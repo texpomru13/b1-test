@@ -1,0 +1,69 @@
+{
+ "judge": "qwen3.6:27b-q4_K_M",
+ "split": "dev",
+ "fact_recall_all_answerable": {
+  "num": 42,
+  "den": 67,
+  "value": 0.6269
+ },
+ "complete_answers_all_answerable": {
+  "num": 11,
+  "den": 24
+ },
+ "fact_recall_found_only": {
+  "num": 42,
+  "den": 49
+ },
+ "answers_with_forbidden_fact": {
+  "num": 0,
+  "den": 24
+ },
+ "judge_errors": 0,
+ "false_positives": {
+  "n": 1,
+  "quotes_do_not_answer (hallucination)": 1,
+  "quotes_answer (possible gold error)": 0
+ },
+ "ragas": {
+  "faithfulness[found]": {
+   "mean": 0.8571,
+   "n": 7,
+   "nan": 0
+  },
+  "faithfulness[all]": {
+   "mean": 0.8571,
+   "n": 7,
+   "nan": 0
+  },
+  "context_recall[found]": {
+   "mean": 1.0,
+   "n": 7,
+   "nan": 0
+  },
+  "context_recall[all]": {
+   "mean": 1.0,
+   "n": 8,
+   "nan": 0
+  },
+  "llm_context_precision_with_reference[found]": {
+   "mean": 1.0,
+   "n": 7,
+   "nan": 0
+  },
+  "llm_context_precision_with_reference[all]": {
+   "mean": 1.0,
+   "n": 8,
+   "nan": 0
+  },
+  "factual_correctness(mode=f1)[found]": {
+   "mean": 0.6,
+   "n": 7,
+   "nan": 0
+  },
+  "factual_correctness(mode=f1)[all]": {
+   "mean": 0.6,
+   "n": 7,
+   "nan": 0
+  }
+ }
+}

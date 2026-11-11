@@ -44,7 +44,7 @@ def evaluate(ranked: dict[str, dict], gold: list[dict], index: dict[str, dict],
                    for k in (1, 3, 5, ctx_k, 20, 60)}
             row["hit@60"] = float(any(span_covered(s, r[:60]) for s in spans))
             row[f"all_spans@{ctx_k}"] = float(all(span_covered(s, r[:ctx_k]) for s in spans))
-            row["ndcg@10"] = ndcg(r, spans, 10)
+            row["ndcg@10"] = ndcg(r, spans, 10, list(rng.values()))
             first = next((i for i in range(len(r)) if any(span_covered(s, r[i:i + 1])
                                                           for s in spans)), None)
             row["mrr"] = 1 / (first + 1) if first is not None else 0.0

@@ -67,6 +67,18 @@ FACT_PROMPT = """Ты — строгий проверяющий ответов �
 """
 
 
+FP_PROMPT = """Ты — строгий проверяющий. Вопрос задан по договору. Система утверждает, что
+нашла ответ, и приводит дословные цитаты из договора. Реши ТОЛЬКО по цитатам:
+отвечают ли они на вопрос по существу (а не на похожий, но другой вопрос)?
+Верни ТОЛЬКО JSON {{"citations_answer_question": true/false, "reason": "кратко"}}.
+
+Вопрос: {question}
+Ответ системы: {answer}
+Цитаты:
+{quotes}
+"""
+
+
 def load_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
@@ -143,6 +155,40 @@ def main() -> None:
             fh.flush()
     print(f"fact check done in {time.monotonic() - t0:.0f}s", flush=True)
 
+    # ---- false positives on negatives / isolation probes --------------------------
+    # A found=true on a no-answer case (or on a foreign document) is either a
+    # system hallucination (quotes do not answer) or a gold error (the document
+    # does answer). The judge decides from the verified quotes; the report lists
+    # every case for manual review.
+    fp_path = run_dir / "judge_false_positives.jsonl"
+    done_fp = {r["req_id"] for r in load_jsonl(fp_path)}
+    fps = [r for r in load_jsonl(run_dir / "responses.jsonl")
+           if r.get("http_status") == 200 and r["body"].get("found")
+           and (r["kind"] == "isolation" or not gold[r["case_id"]]["answerable"])
+           and (args.split == "all" or gold[r["case_id"]]["split"] == args.split)]
+    with fp_path.open("a", encoding="utf-8") as fh:
+        for rec in fps:
+            if rec["req_id"] in done_fp:
+                continue
+            quotes = "\n".join(f"[{c['id']}] {c['text']}" for c in rec["body"]["citations"])
+            prompt = FP_PROMPT.format(question=rec["question"],
+                                      answer=MARKER.sub("", rec["body"]["answer"]),
+                                      quotes=quotes)
+            verdict: dict = {"error": "judge output invalid"}
+            for _ in range(3):
+                try:
+                    data = json.loads(chat_json.invoke(prompt).content)
+                    verdict = {"citations_answer_question":
+                               bool(data["citations_answer_question"]),
+                               "reason": str(data.get("reason", ""))[:300]}
+                    break
+                except (ValueError, KeyError, TypeError):
+                    continue
+            fh.write(json.dumps({"req_id": rec["req_id"], "kind": rec["kind"],
+                                 "case_id": rec["case_id"], "question": rec["question"],
+                                 "answer": rec["body"]["answer"], **verdict},
+                                ensure_ascii=False) + "\n")
+
     # ---- RAGAS -----------------------------------------------------------------
     ragas_path = run_dir / "judge_ragas.jsonl"
     if not args.skip_ragas:
@@ -189,8 +235,12 @@ def main() -> None:
                       f"in {time.monotonic() - t1:.0f}s", flush=True)
 
     # ---- aggregate --------------------------------------------------------------
-    facts = load_jsonl(facts_path)
-    ragas_rows = load_jsonl(ragas_path)
+    # aggregate ONLY the rows of this split (the jsonl files are shared across splits)
+    in_split = {r["req_id"] for r in recs}
+    facts = [f for f in load_jsonl(facts_path) if f["req_id"] in in_split]
+    ragas_rows = [r for r in load_jsonl(ragas_path) if r["req_id"] in in_split]
+    fp_rows = [r for r in load_jsonl(fp_path)
+               if args.split == "all" or gold[r["case_id"]]["split"] == args.split]
     exp_tot = sum(len(f.get("expected", [])) for f in facts if "error" not in f)
     exp_hit = sum(sum(f.get("expected", [])) for f in facts if "error" not in f)
     complete = sum(1 for f in facts if "error" not in f and f["expected"] and all(f["expected"]))
@@ -206,6 +256,13 @@ def main() -> None:
             "den": sum(len(f["expected"]) for f in found_facts)},
         "answers_with_forbidden_fact": {"num": forb_cases, "den": len(facts)},
         "judge_errors": sum(1 for f in facts if "error" in f),
+        "false_positives": {
+            "n": len(fp_rows),
+            "quotes_do_not_answer (hallucination)": sum(
+                1 for r in fp_rows if r.get("citations_answer_question") is False),
+            "quotes_answer (possible gold error)": sum(
+                1 for r in fp_rows if r.get("citations_answer_question") is True),
+        },
         "ragas": {},
     }
     for key in ("faithfulness", "context_recall", "llm_context_precision_with_reference",

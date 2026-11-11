@@ -1,0 +1,143 @@
+{
+ "outcomes": {
+  "gold": {
+   "found": 44,
+   "not_found": 53,
+   "http_502": 1
+  },
+  "isolation": {
+   "not_found": 14
+  }
+ },
+ "by_category": {
+  "exact": {
+   "num": 14,
+   "den": 22,
+   "value": 0.6364
+  },
+  "multi": {
+   "num": 6,
+   "den": 12,
+   "value": 0.5
+  },
+  "negation": {
+   "num": 8,
+   "den": 14,
+   "value": 0.5714
+  },
+  "no_answer": {
+   "num": 29,
+   "den": 29,
+   "value": 1.0
+  },
+  "paraphrase": {
+   "num": 16,
+   "den": 21,
+   "value": 0.7619
+  }
+ },
+ "run": "low-4b-off",
+ "split": "holdout",
+ "n_requests": 112,
+ "n_gold": 98,
+ "n_answerable": 69,
+ "n_no_answer": 29,
+ "n_isolation": 14,
+ "structured_validity_200": {
+  "num": 111,
+  "den": 111,
+  "value": 1.0
+ },
+ "citation_span_validity": {
+  "num": 77,
+  "den": 77,
+  "value": 1.0
+ },
+ "cross_doc_leakage_citations": {
+  "num": 0,
+  "den": 77,
+  "value": 0.0
+ },
+ "isolation_correct_not_found": {
+  "num": 14,
+  "den": 14,
+  "value": 1.0
+ },
+ "isolation_found_true": [],
+ "positive_hit_at_candidates": {
+  "num": 68,
+  "den": 69,
+  "value": 0.9855
+ },
+ "all_spans_in_candidates": {
+  "num": 68,
+  "den": 69,
+  "value": 0.9855
+ },
+ "context_evidence_coverage_all": {
+  "num": 66,
+  "den": 69,
+  "value": 0.9565
+ },
+ "context_evidence_coverage_any": {
+  "num": 66,
+  "den": 69,
+  "value": 0.9565
+ },
+ "mean_span_recall_context": 0.9706,
+ "ndcg@10_rerank": 0.9296,
+ "span_recall@1_rerank": 0.8363,
+ "span_recall@3_rerank": 0.9152,
+ "span_recall@5_rerank": 0.9373,
+ "span_recall@8_rerank": 0.9706,
+ "span_recall@20_rerank": 1.0,
+ "span_recall@60_rerank": 1.0,
+ "answerable_found": {
+  "num": 44,
+  "den": 69,
+  "value": 0.6377
+ },
+ "answerable_not_found": {
+  "num": 24,
+  "den": 69,
+  "value": 0.3478
+ },
+ "answerable_errors": {
+  "num": 1,
+  "den": 69,
+  "value": 0.0145
+ },
+ "found_cites_gold_span": {
+  "num": 44,
+  "den": 44,
+  "value": 1.0
+ },
+ "correct_abstention_negatives": {
+  "num": 29,
+  "den": 29,
+  "value": 1.0
+ },
+ "negatives_errors": {
+  "num": 0,
+  "den": 29,
+  "value": 0.0
+ },
+ "latency_ms_200": {
+  "n": 111,
+  "p50": 15372,
+  "p95": 31376,
+  "max": 55125
+ },
+ "stage_ms_p50": {
+  "context": 1,
+  "encode": 139,
+  "fusion": 3,
+  "rerank": 9646
+ },
+ "stage_ms_p95": {
+  "context": 3,
+  "encode": 243,
+  "fusion": 4,
+  "rerank": 17330
+ }
+}

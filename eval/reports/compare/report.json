@@ -1,0 +1,296 @@
+{
+ "encoders": {
+  "BAAI/bge-m3": {
+   "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+   "device": "mps",
+   "encode_s": 33.2,
+   "load_s": 187.5,
+   "dense[all]": {
+    "n": 93,
+    "recall@1": 0.7228,
+    "recall@5": 0.9129,
+    "recall@8": 0.9308,
+    "recall@20": 0.9606,
+    "recall@60": 1.0,
+    "all_spans@8": 0.914,
+    "ndcg@10": 0.8639
+   },
+   "hybrid_rrf60[all]": {
+    "n": 93,
+    "recall@1": 0.6828,
+    "recall@5": 0.8771,
+    "recall@8": 0.9247,
+    "recall@20": 0.9516,
+    "recall@60": 1.0,
+    "all_spans@8": 0.8925,
+    "ndcg@10": 0.8289
+   },
+   "dense[dev]": {
+    "n": 24,
+    "recall@1": 0.8333,
+    "recall@5": 0.9167,
+    "recall@8": 0.9306,
+    "recall@20": 0.9583,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9167,
+    "ndcg@10": 0.904
+   },
+   "hybrid_rrf60[dev]": {
+    "n": 24,
+    "recall@1": 0.75,
+    "recall@5": 0.875,
+    "recall@8": 0.9306,
+    "recall@20": 0.9583,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9167,
+    "ndcg@10": 0.8521
+   },
+   "dense[holdout]": {
+    "n": 69,
+    "recall@1": 0.6843,
+    "recall@5": 0.9116,
+    "recall@8": 0.9309,
+    "recall@20": 0.9614,
+    "recall@60": 1.0,
+    "all_spans@8": 0.913,
+    "ndcg@10": 0.85
+   },
+   "hybrid_rrf60[holdout]": {
+    "n": 69,
+    "recall@1": 0.6594,
+    "recall@5": 0.8778,
+    "recall@8": 0.9227,
+    "recall@20": 0.9493,
+    "recall@60": 1.0,
+    "all_spans@8": 0.8841,
+    "ndcg@10": 0.8209
+   }
+  },
+  "ai-sage/Giga-Embeddings-instruct-480M-0826": {
+   "revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+   "device": "mps",
+   "encode_s": 39.7,
+   "load_s": 0.8,
+   "dense[all]": {
+    "n": 93,
+    "recall@1": 0.7943,
+    "recall@5": 0.9487,
+    "recall@8": 0.9642,
+    "recall@20": 0.9785,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9462,
+    "ndcg@10": 0.9163
+   },
+   "hybrid_rrf60[all]": {
+    "n": 93,
+    "recall@1": 0.7194,
+    "recall@5": 0.9004,
+    "recall@8": 0.9283,
+    "recall@20": 0.9695,
+    "recall@60": 1.0,
+    "all_spans@8": 0.8925,
+    "ndcg@10": 0.862
+   },
+   "dense[dev]": {
+    "n": 24,
+    "recall@1": 0.875,
+    "recall@5": 0.9861,
+    "recall@8": 0.9861,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9583,
+    "ndcg@10": 0.9651
+   },
+   "hybrid_rrf60[dev]": {
+    "n": 24,
+    "recall@1": 0.75,
+    "recall@5": 0.9306,
+    "recall@8": 0.9861,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9583,
+    "ndcg@10": 0.8897
+   },
+   "dense[holdout]": {
+    "n": 69,
+    "recall@1": 0.7662,
+    "recall@5": 0.9357,
+    "recall@8": 0.9565,
+    "recall@20": 0.971,
+    "recall@60": 1.0,
+    "all_spans@8": 0.942,
+    "ndcg@10": 0.8994
+   },
+   "hybrid_rrf60[holdout]": {
+    "n": 69,
+    "recall@1": 0.7087,
+    "recall@5": 0.8899,
+    "recall@8": 0.9082,
+    "recall@20": 0.9589,
+    "recall@60": 1.0,
+    "all_spans@8": 0.8696,
+    "ndcg@10": 0.8524
+   }
+  },
+  "ai-sage/Giga-Embeddings-instruct": {
+   "revision": "2cf0fdc97194aaedf10ac0e6bf798834acd31042",
+   "device": "mps",
+   "encode_s": 315.9,
+   "load_s": 6.6,
+   "dense[all]": {
+    "n": 93,
+    "recall@1": 0.8427,
+    "recall@5": 0.9466,
+    "recall@8": 0.9749,
+    "recall@20": 0.9892,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9677,
+    "ndcg@10": 0.9353
+   },
+   "hybrid_rrf60[all]": {
+    "n": 93,
+    "recall@1": 0.7355,
+    "recall@5": 0.895,
+    "recall@8": 0.9355,
+    "recall@20": 0.9803,
+    "recall@60": 1.0,
+    "all_spans@8": 0.914,
+    "ndcg@10": 0.8696
+   },
+   "dense[dev]": {
+    "n": 24,
+    "recall@1": 0.875,
+    "recall@5": 0.9861,
+    "recall@8": 1.0,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 1.0,
+    "ndcg@10": 0.9637
+   },
+   "hybrid_rrf60[dev]": {
+    "n": 24,
+    "recall@1": 0.75,
+    "recall@5": 0.9306,
+    "recall@8": 0.9583,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9583,
+    "ndcg@10": 0.8995
+   },
+   "dense[holdout]": {
+    "n": 69,
+    "recall@1": 0.8314,
+    "recall@5": 0.9329,
+    "recall@8": 0.9662,
+    "recall@20": 0.9855,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9565,
+    "ndcg@10": 0.9255
+   },
+   "hybrid_rrf60[holdout]": {
+    "n": 69,
+    "recall@1": 0.7304,
+    "recall@5": 0.8826,
+    "recall@8": 0.9275,
+    "recall@20": 0.9734,
+    "recall@60": 1.0,
+    "all_spans@8": 0.8986,
+    "ndcg@10": 0.8592
+   }
+  }
+ },
+ "rerankers": {
+  "BAAI/bge-reranker-v2-m3": {
+   "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+   "device": "mps",
+   "score_s": 122.2,
+   "pairs": 5851,
+   "ai-sage/Giga-Embeddings-instruct[all]": {
+    "n": 93,
+    "recall@1": 0.848,
+    "recall@5": 0.9434,
+    "recall@8": 0.9677,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9677,
+    "ndcg@10": 0.9378
+   },
+   "ai-sage/Giga-Embeddings-instruct[holdout]": {
+    "n": 69,
+    "recall@1": 0.8386,
+    "recall@5": 0.9382,
+    "recall@8": 0.971,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.971,
+    "ndcg@10": 0.9306
+   },
+   "ai-sage/Giga-Embeddings-instruct-480M-0826[all]": {
+    "n": 93,
+    "recall@1": 0.848,
+    "recall@5": 0.9434,
+    "recall@8": 0.9677,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9677,
+    "ndcg@10": 0.9378
+   },
+   "ai-sage/Giga-Embeddings-instruct-480M-0826[holdout]": {
+    "n": 69,
+    "recall@1": 0.8386,
+    "recall@5": 0.9382,
+    "recall@8": 0.971,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.971,
+    "ndcg@10": 0.9306
+   }
+  },
+  "Qwen/Qwen3-Reranker-0.6B": {
+   "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+   "device": "mps",
+   "score_s": 880.9,
+   "pairs": 5851,
+   "ai-sage/Giga-Embeddings-instruct[all]": {
+    "n": 93,
+    "recall@1": 0.8312,
+    "recall@5": 0.9373,
+    "recall@8": 0.9624,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9462,
+    "ndcg@10": 0.9371
+   },
+   "ai-sage/Giga-Embeddings-instruct[holdout]": {
+    "n": 69,
+    "recall@1": 0.8111,
+    "recall@5": 0.93,
+    "recall@8": 0.9638,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.942,
+    "ndcg@10": 0.9263
+   },
+   "ai-sage/Giga-Embeddings-instruct-480M-0826[all]": {
+    "n": 93,
+    "recall@1": 0.8312,
+    "recall@5": 0.9373,
+    "recall@8": 0.9516,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9355,
+    "ndcg@10": 0.937
+   },
+   "ai-sage/Giga-Embeddings-instruct-480M-0826[holdout]": {
+    "n": 69,
+    "recall@1": 0.8111,
+    "recall@5": 0.93,
+    "recall@8": 0.9493,
+    "recall@20": 1.0,
+    "recall@60": 1.0,
+    "all_spans@8": 0.9275,
+    "ndcg@10": 0.9262
+   }
+  }
+ }
+}

@@ -35,9 +35,13 @@ def chunk_relevant(rng: tuple[int, int], spans: list[dict]) -> bool:
     return False
 
 
-def ndcg(ranked: list[tuple[int, int]], spans: list[dict], k: int) -> float:
+def ndcg(ranked: list[tuple[int, int]], spans: list[dict], k: int,
+         doc_ranges: list[tuple[int, int]]) -> float:
+    """Binary-relevance nDCG@k; the ideal ranking places ALL relevant chunks of the
+    document first (relevance = chunk_relevant), so the score is not capped by the
+    number of gold spans."""
     gains = [1.0 if chunk_relevant(r, spans) else 0.0 for r in ranked[:k]]
     dcg = sum(g / math.log2(i + 2) for i, g in enumerate(gains))
-    n_rel = min(k, max(1, len(spans)))
+    n_rel = min(k, sum(1 for r in doc_ranges if chunk_relevant(r, spans)))
     idcg = sum(1 / math.log2(i + 2) for i in range(n_rel))
     return dcg / idcg if idcg else 0.0

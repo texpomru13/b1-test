@@ -96,9 +96,26 @@ def run_section(name: str) -> list[str]:
                       f"| Answers asserting a forbidden fact | "
                       f"{j['answers_with_forbidden_fact']['num']}/{j['answers_with_forbidden_fact']['den']} |",
                       f"| Judge output errors | {j['judge_errors']} |"]
+            fp = j.get("false_positives")
+            if fp:
+                lines.append(f"| found=true on no-answer/isolation: judged hallucination | "
+                             f"{fp['quotes_do_not_answer (hallucination)']}/{fp['n']} |")
+                lines.append(f"| found=true on no-answer/isolation: quotes do answer "
+                             f"(gold error?) | {fp['quotes_answer (possible gold error)']}/{fp['n']} |")
             for k, v in j.get("ragas", {}).items():
                 mean = "n/a" if v["mean"] is None else f"{v['mean']:.3f}"
                 lines.append(f"| RAGAS {k} | {mean} (n={v['n']}, NaN={v['nan']}) |")
+            lines.append("")
+        fps = [json.loads(x) for x in (WORK / "runs" / name / "judge_false_positives.jsonl")
+               .read_text(encoding="utf-8").splitlines() if x] \
+            if (WORK / "runs" / name / "judge_false_positives.jsonl").exists() else []
+        if fps and split == "all":
+            lines += ["False positives (found=true where not-found was expected) — every case:",
+                      "", "| Request | Judge: quotes answer? | Judge reason |", "|---|---|---|"]
+            for r in fps:
+                reason = r.get("reason", r.get("error", "")).replace("|", "/")
+                lines.append(f"| {r['req_id']} | {r.get('citations_answer_question')} | "
+                             f"{reason[:160]} |")
             lines.append("")
     return lines
 

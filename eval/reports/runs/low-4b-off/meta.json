@@ -1,0 +1,16 @@
+{
+ "run": "low-4b-off",
+ "api": "http://127.0.0.1:8000",
+ "started_at": "2026-11-11T17:58:27.466780+00:00",
+ "git_head": "03896f8489e4939ba1cd87e4eccde3cd43d39ff8",
+ "split": "all",
+ "ready": {
+  "status": "ready",
+  "components": {
+   "redis": "ok",
+   "qdrant": "ok",
+   "local_models": "ok"
+  },
+  "model_ready": true
+ }
+}

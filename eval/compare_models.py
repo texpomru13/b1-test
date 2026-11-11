@@ -131,7 +131,7 @@ def metrics(ranked: dict[str, list[str]], gold: list[dict], index: dict[str, dic
         row = {f"recall@{k}": sum(span_covered(s, r[:k]) for s in spans) / len(spans)
                for k in (1, 5, 8, 20, 60)}
         row["all_spans@8"] = float(all(span_covered(s, r[:8]) for s in spans))
-        row["ndcg@10"] = ndcg(r, spans, 10)
+        row["ndcg@10"] = ndcg(r, spans, 10, list(rng.values()))
         rows.append(row)
     return {"n": len(rows), **{k: round(statistics.fmean(x[k] for x in rows), 4)
                                for k in rows[0]}}

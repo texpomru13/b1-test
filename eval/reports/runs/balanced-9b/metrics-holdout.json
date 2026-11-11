@@ -1,0 +1,98 @@
+{
+ "outcomes": {},
+ "by_category": {},
+ "run": "balanced-9b",
+ "split": "holdout",
+ "n_requests": 0,
+ "n_gold": 0,
+ "n_answerable": 0,
+ "n_no_answer": 0,
+ "n_isolation": 0,
+ "structured_validity_200": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "citation_span_validity": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "cross_doc_leakage_citations": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "isolation_correct_not_found": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "isolation_found_true": [],
+ "positive_hit_at_candidates": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "all_spans_in_candidates": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "context_evidence_coverage_all": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "context_evidence_coverage_any": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "mean_span_recall_context": null,
+ "ndcg@10_rerank": null,
+ "span_recall@1_rerank": null,
+ "span_recall@3_rerank": null,
+ "span_recall@5_rerank": null,
+ "span_recall@8_rerank": null,
+ "span_recall@20_rerank": null,
+ "span_recall@60_rerank": null,
+ "answerable_found": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "answerable_not_found": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "answerable_errors": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "found_cites_gold_span": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "correct_abstention_negatives": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "negatives_errors": {
+  "num": 0,
+  "den": 0,
+  "value": null
+ },
+ "latency_ms_200": {
+  "n": 0,
+  "p50": null,
+  "p95": null,
+  "max": null
+ },
+ "stage_ms_p50": {},
+ "stage_ms_p95": {}
+}

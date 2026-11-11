@@ -144,7 +144,7 @@ def main() -> None:
             row["ctx_any"] = any(span_covered(s, ctx_r) for s in spans)
             row["ctx_all"] = all(span_covered(s, ctx_r) for s in spans)
             row["span_recall_ctx"] = sum(span_covered(s, ctx_r) for s in spans) / len(spans)
-            row["ndcg10_rerank"] = ndcg(cand_r, spans, 10)
+            row["ndcg10_rerank"] = ndcg(cand_r, spans, 10, list(rng.values()))
             for k in (1, 3, 5, 8, 20, 60):
                 row[f"recall@{k}"] = sum(span_covered(s, cand_r[:k]) for s in spans) / len(spans)
             cited = [(c["char_start"], c["char_end"]) for c in body.get("citations", [])]
