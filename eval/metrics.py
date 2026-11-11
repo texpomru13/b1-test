@@ -205,8 +205,8 @@ def main() -> None:
         good = sum((r["outcome"] == "found") if r["answerable"] else
                    (r["outcome"] == "not_found") for r in rs)
         agg["by_category"][cat] = ratio(good, len(rs))
-    (run_dir / "metrics.json").write_text(json.dumps(agg, ensure_ascii=False, indent=1))
-    with (run_dir / "cases.jsonl").open("w", encoding="utf-8") as fh:
+    (run_dir / f"metrics-{args.split}.json").write_text(json.dumps(agg, ensure_ascii=False, indent=1))
+    with (run_dir / f"cases-{args.split}.jsonl").open("w", encoding="utf-8") as fh:
         for r in rows:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")
     print(json.dumps(agg, ensure_ascii=False, indent=1))

@@ -218,7 +218,7 @@ def main() -> None:
                 summary["ragas"][f"{key}[{scope}]"] = {
                     "mean": round(statistics.fmean(vals), 4) if vals else None,
                     "n": len(vals), "nan": missing}
-    (run_dir / "judge.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
+    (run_dir / f"judge-{args.split}.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
     print(json.dumps(summary, ensure_ascii=False, indent=1))
 
 
