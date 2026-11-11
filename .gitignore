@@ -34,3 +34,7 @@ CLAUDE.md
 
 # Stage-0 research spikes
 spikes/
+.runtime-*/
+
+# Evaluation outputs (regenerable: logs, local doc ids, index exports, fixtures)
+eval/work/

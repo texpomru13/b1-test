@@ -193,8 +193,8 @@ docker model pull ai/qwen3.6:27B
 |---|---|---|---|---|
 | `quality` | Giga-Embeddings-instruct (3B, dim 2048) | Qwen3-Reranker-8B | qwen3.6:27b-q4_K_M | 14.5 + 19.0 + 20.0 |
 | `quality-compact` | Giga-Embeddings-instruct | bge-reranker-v2-m3 | qwen3.6:27b-q4_K_M | 14.5 + 2.2 + 20.0 |
-| `balanced` | Giga-Embeddings-instruct-480M (dim 1024) | bge-reranker-v2-m3 | qwen3.5:9b | 3.6 + 2.2 + 7.5 |
-| `low-memory` | Giga-Embeddings-instruct-480M | bge-reranker-v2-m3 | qwen3.5:4b | 3.6 + 2.2 + 3.5 |
+| `balanced` | Giga-Embeddings-instruct-480M (dim 1024) | bge-reranker-v2-m3 | qwen3.5:9b-q4_K_M | 3.6 + 2.2 + 7.5 |
+| `low-memory` | Giga-Embeddings-instruct-480M | bge-reranker-v2-m3 | qwen3.5:4b-q4_K_M | 3.6 + 2.2 + 3.5 |
 
 Все пресеты имеют статус `candidate` (сравнительная оценка на gold-наборе не
 проводилась). Дедлайны зависят от runtime: host Ollama / DMR / GPU — чтение LLM
@@ -825,6 +825,7 @@ FUSION_METHOD=dbsf DENSE_TOP_K=40 SPARSE_TOP_K=30 RERANK_INPUT_K=50 CONTEXT_TOP_
 | `QA_DEADLINE_S` | по runtime: 900, для CPU 3600 | Общий дедлайн вопроса; явное значение имеет приоритет |
 | `LOCAL_CONTEXT_TOKENS` | `16384` | Окно контекста, под которое считается бюджет |
 | `LLM_MAX_OUTPUT_TOKENS`, `LLM_REASONING_BUDGET_TOKENS` | `2048`, `4096` | Резерв под ответ и рассуждение |
+| `LLM_THINKING` | `auto` | Только Ollama: режим рассуждения модели — `auto` (умолчание модели), `on`, `off`. Контекст Ollama всегда задаётся явно равным `LOCAL_CONTEXT_TOKENS` |
 | `EMBEDDING_TOKENIZER_PATH` | по выбранному энкодеру | `tokenizer.json` энкодера для точного подсчёта токенов при разбиении; задаёт launcher (compose: `B1_TOKENIZER_PATH`) |
 
 ### Подключения

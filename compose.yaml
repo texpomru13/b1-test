@@ -155,6 +155,7 @@ services:
       LOCAL_CONTEXT_TOKENS:
       LLM_MAX_OUTPUT_TOKENS:
       LLM_REASONING_BUDGET_TOKENS:
+      LLM_THINKING:
       # -- limits
       MAX_FILE_MB:
       MAX_PAGES:

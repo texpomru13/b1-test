@@ -20,6 +20,23 @@ def test_local_providers_need_no_keys() -> None:
     assert "model-runner.docker.internal" in (dmr.capabilities.base_url or "")
 
 
+@pytest.mark.parametrize(("mode", "expected"), [("auto", None), ("on", True), ("off", False)])
+def test_ollama_context_and_thinking_are_explicit(mode: str, expected: bool | None) -> None:
+    adapter = build_chat_adapter(make_settings(
+        llm_provider="ollama", llm_model="qwen3.5:9b-q4_K_M",
+        local_context_tokens=16384, llm_thinking=mode,
+    ))
+    model = adapter._model  # type: ignore[attr-defined]
+    # num_ctx must match the §6.3 budget instead of Ollama's host-dependent default
+    assert model.num_ctx == 16384
+    assert model.reasoning is expected
+
+
+def test_unknown_thinking_mode_is_rejected() -> None:
+    with pytest.raises(ValidationError):
+        make_settings(llm_thinking="sometimes")
+
+
 def test_cloud_without_key_is_config_error_not_fallback() -> None:
     with pytest.raises(ProviderConfigError, match="OPENAI_API_KEY"):
         build_chat_adapter(make_settings(llm_provider="openai", llm_model="gpt-6.1-sol"))

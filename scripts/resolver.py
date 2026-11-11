@@ -53,8 +53,13 @@ RERANKERS = {
 }
 LLMS = {
     "qwen3.6:27b-q4_K_M": {"rss_gib": 20.0, "quality_rank": 0, "dmr_id": "ai/qwen3.6:27B"},
-    "qwen3.5:9b": {"rss_gib": 7.5, "quality_rank": 1, "dmr_id": None},
-    "qwen3.5:4b": {"rss_gib": 3.5, "quality_rank": 2, "dmr_id": None},
+    # Explicit GGUF quantization tags: on Apple Silicon Ollama >= 0.40 resolves the
+    # bare "qwen3.5:9b" tag to an MLX (nvfp4) artifact whose runner rejects
+    # structured output ("structured output is unavailable", stage-9 finding), and
+    # the bare tag is a different artifact per platform. Q4_K_M runs on llama.cpp
+    # everywhere and supports the JSON-schema `format` the QA graph requires.
+    "qwen3.5:9b-q4_K_M": {"rss_gib": 7.5, "quality_rank": 1, "dmr_id": None},
+    "qwen3.5:4b-q4_K_M": {"rss_gib": 3.5, "quality_rank": 2, "dmr_id": None},
 }
 INFRA_RESERVE_GIB = 2.5   # redis + qdrant + api/worker/dispatcher
 SAFETY_RATIO = 0.8        # plan: keep a 20-30% reserve on top of the reserve
@@ -66,9 +71,9 @@ PROFILES = {
                         "reranker": "BAAI/bge-reranker-v2-m3",
                         "llm": "qwen3.6:27b-q4_K_M"},
     "balanced": {"encoder": "ai-sage/Giga-Embeddings-instruct-480M-0826",
-                 "reranker": "BAAI/bge-reranker-v2-m3", "llm": "qwen3.5:9b"},
+                 "reranker": "BAAI/bge-reranker-v2-m3", "llm": "qwen3.5:9b-q4_K_M"},
     "low-memory": {"encoder": "ai-sage/Giga-Embeddings-instruct-480M-0826",
-                   "reranker": "BAAI/bge-reranker-v2-m3", "llm": "qwen3.5:4b"},
+                   "reranker": "BAAI/bge-reranker-v2-m3", "llm": "qwen3.5:4b-q4_K_M"},
 }
 PROFILE_ORDER = ["quality", "quality-compact", "balanced", "low-memory"]
 

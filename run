@@ -7,10 +7,18 @@
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-RUNTIME_DIR="$ROOT/.runtime"
-LOCK_DIR="$RUNTIME_DIR/launcher.lock"
 PY_IMAGE="python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b"
-PROJECT=b1-rag
+# Compose project name (containers/volumes/network prefix). B1_PROJECT lets a second
+# isolated copy (e.g. an evaluation stack) run next to the default one without
+# touching its volumes; `-p` has the highest precedence over compose.yaml `name:`.
+PROJECT=${B1_PROJECT:-b1-rag}
+case "$PROJECT" in
+    *[!a-z0-9_-]*|[!a-z0-9]*) printf 'error: B1_PROJECT must match [a-z0-9][a-z0-9_-]*\n' >&2; exit 2 ;;
+esac
+# Saved profile/lock are per project: the default keeps .runtime/, another
+# B1_PROJECT gets its own .runtime-<project>/ (never overwrites the default's).
+if [ "$PROJECT" = b1-rag ]; then RUNTIME_DIR="$ROOT/.runtime"; else RUNTIME_DIR="$ROOT/.runtime-$PROJECT"; fi
+LOCK_DIR="$RUNTIME_DIR/launcher.lock"
 
 fail() { printf 'error: %s\n' "$1" >&2; exit "${2:-1}"; }
 stage() { printf '==> [%s] %s\n' "$1" "$2"; }
@@ -90,7 +98,7 @@ preflight() {
 
 compose() {
     # shellcheck disable=SC2086
-    docker compose --project-directory "$ROOT" -f "$ROOT/compose.yaml" $COMPOSE_EXTRA "$@"
+    docker compose -p "$PROJECT" --project-directory "$ROOT" -f "$ROOT/compose.yaml" $COMPOSE_EXTRA "$@"
 }
 
 # ---------- probe + resolve (pinned image; host python never required) ----------
@@ -286,6 +294,12 @@ fi
 apply_env_overrides
 
 stage profile "probing host facts and resolving the profile (once per launch)"
+if [ -z "$OV_EMB" ] && [ -n "$(saved_value B1_EMBEDDING_MODEL)" ]; then
+    # The saved encoder pins the existing index (no silent re-embedding); say so,
+    # because it overrides the encoder of the requested quality profile.
+    printf '    - encoder kept from the saved profile / existing index: %s (change it only via a controlled reindex, or use a separate B1_PROJECT)\n' \
+        "$(saved_value B1_EMBEDDING_MODEL)"
+fi
 RES=$(run_resolver) || {
     print_reasons "$RES" 2>/dev/null || true
     fail "profile resolution failed (see reasons above)" 3
@@ -314,6 +328,18 @@ if [ "$B1_LLM_PROVIDER" = "ollama" ] && [ "$B1_OLLAMA_BASE_URL" = "http://host.d
         ollama ls 2>/dev/null | grep -q "$B1_LLM_MODEL" || fail "OFFLINE: host Ollama lacks $B1_LLM_MODEL" 4
     else
         ollama pull "$B1_LLM_MODEL" || fail "host ollama pull failed" 4
+    fi
+    # The QA graph needs JSON-schema structured output. Some host artifacts (e.g.
+    # MLX builds picked by Ollama on Apple Silicon for bare tags) reject it, which
+    # would otherwise surface only as 503s on every question.
+    if command -v curl >/dev/null 2>&1; then
+        stage warmup "checking structured output of $B1_LLM_MODEL on host Ollama"
+        probe=$(curl -s --max-time 300 http://127.0.0.1:11434/api/chat -d "{\"model\":\"$B1_LLM_MODEL\",\"stream\":false,\"think\":false,\"messages\":[{\"role\":\"user\",\"content\":\"Return {\\\"ok\\\": true}\"}],\"format\":{\"type\":\"object\",\"properties\":{\"ok\":{\"type\":\"boolean\"}},\"required\":[\"ok\"]},\"options\":{\"num_predict\":16,\"num_ctx\":2048}}" || true)
+        case "$probe" in
+        *'"error"'*) fail "host Ollama model $B1_LLM_MODEL cannot produce structured output: $probe
+  Use a GGUF quantization tag (e.g. qwen3.5:9b-q4_K_M) via --model." 4 ;;
+        '') printf '    - warning: structured-output probe got no response (continuing)\n' ;;
+        esac
     fi
 fi
 

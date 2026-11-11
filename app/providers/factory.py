@@ -19,7 +19,7 @@ from typing import Any, Protocol
 
 from pydantic import SecretStr
 
-from app.config.settings import LLMProvider, Settings
+from app.config.settings import LLMProvider, LLMThinking, Settings
 from app.observability.logging import get_logger
 
 logger = get_logger("providers.factory")
@@ -184,7 +184,15 @@ def build_chat_adapter(settings: Settings) -> ChatAdapter:
             sampling_params_allowed=True, is_local=True,
             base_url=settings.ollama_base_url,
         )
-        ollama_model = ChatOllama(model=settings.llm_model, base_url=settings.ollama_base_url)
+        # num_ctx is set explicitly: Ollama's own default context depends on the
+        # host (4096 on small machines, up to the model maximum on large ones), so
+        # leaving it unset makes the §6.3 budget (LOCAL_CONTEXT_TOKENS) fiction.
+        thinking = {LLMThinking.AUTO: None, LLMThinking.ON: True,
+                    LLMThinking.OFF: False}[settings.llm_thinking]
+        ollama_model = ChatOllama(
+            model=settings.llm_model, base_url=settings.ollama_base_url,
+            num_ctx=settings.local_context_tokens, reasoning=thinking,
+        )
         return _OllamaAdapter(capabilities, ollama_model)
     if provider == LLMProvider.DMR:
         from langchain_openai import ChatOpenAI

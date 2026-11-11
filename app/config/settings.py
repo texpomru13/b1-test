@@ -30,6 +30,15 @@ class LLMProvider(enum.StrEnum):
     ANTHROPIC = "anthropic"
 
 
+class LLMThinking(enum.StrEnum):
+    """Reasoning ("thinking") mode of the local Ollama model. AUTO keeps the
+    model's own default; ON/OFF are explicit evaluation variants (plan §11.3)."""
+
+    AUTO = "auto"
+    ON = "on"
+    OFF = "off"
+
+
 class Device(enum.StrEnum):
     AUTO = "auto"
     CPU = "cpu"
@@ -72,6 +81,7 @@ class Settings(BaseSettings):
     local_context_tokens: int = Field(default=16384, gt=0)
     llm_max_output_tokens: int = Field(default=2048, gt=0)
     llm_reasoning_budget_tokens: int = Field(default=4096, ge=0)
+    llm_thinking: LLMThinking = LLMThinking.AUTO
 
     # --- Embeddings ---
     # launcher/compose-level: the encoder is owned by the local-models service.
