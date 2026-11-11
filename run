@@ -1,0 +1,385 @@
+#!/bin/sh
+# One-command launcher (DEPLOYMENT_SPEC.md, stage 8). POSIX sh; works as `sh ./run`.
+# Default local path needs ONLY Docker Engine/Desktop with Compose v2 — no host
+# Python/uv/jq, no manual .env, no YAML editing. The profile resolver runs inside
+# the pinned python base image; its decisions are written atomically to
+# .runtime/resolved.env BEFORE any Compose interpolation.
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+RUNTIME_DIR="$ROOT/.runtime"
+LOCK_DIR="$RUNTIME_DIR/launcher.lock"
+PY_IMAGE="python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b"
+PROJECT=b1-rag
+
+fail() { printf 'error: %s\n' "$1" >&2; exit "${2:-1}"; }
+stage() { printf '==> [%s] %s\n' "$1" "$2"; }
+
+# ---------- argument parsing ----------
+CMD=""
+DRY_RUN=0; FORCE_BUILD=0; OFFLINE=0; JSON_OUT=0
+OV_PROVIDER=""; OV_DEVICE=""; OV_QUALITY=""; OV_MODEL=""; OV_EMB=""; OV_RR=""
+OV_RESIDENCY=""; OV_STRICT=0; OV_ALLOW_SLOW=0; OV_PORT=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+    up|doctor|status|logs|stop|down) CMD="$1" ;;
+    --json) JSON_OUT=1 ;;
+    --dry-run) DRY_RUN=1 ;;
+    --build) FORCE_BUILD=1 ;;
+    --offline) OFFLINE=1 ;;
+    --port) shift; OV_PORT="${1:-}" ;;
+    --provider) shift; OV_PROVIDER="${1:-}" ;;
+    --device) shift; OV_DEVICE="${1:-}" ;;
+    --quality) shift; OV_QUALITY="${1:-}" ;;
+    --model) shift; OV_MODEL="${1:-}" ;;
+    --embedding-model) shift; OV_EMB="${1:-}" ;;
+    --reranker-model) shift; OV_RR="${1:-}" ;;
+    --residency) shift; OV_RESIDENCY="${1:-}" ;;
+    --strict-profile) OV_STRICT=1 ;;
+    --allow-slow) OV_ALLOW_SLOW=1 ;;
+    *) fail "unknown option '$1' (commands: up doctor status logs stop down; see README)" 2 ;;
+    esac
+    shift
+done
+[ -n "$CMD" ] || CMD=up
+
+# ---------- environment / .env as a configuration source ----------
+# Precedence: CLI flag -> environment or .env -> saved profile -> auto.
+# The model/profile settings of the app contract (LLM_PROVIDER, LLM_MODEL,
+# EMBEDDING_MODEL, RERANKER_MODEL, DEVICE, QUALITY_PROFILE, PROFILE_STRICT,
+# OFFLINE) are honored here exactly like the matching CLI flag; "auto" and an
+# empty value mean "not set".
+load_dotenv() {  # optional .env; never written by the launcher
+    [ -f "$ROOT/.env" ] || return 0
+    cli_offline=$OFFLINE   # .env may define OFFLINE: keep the launcher's own flag
+    set -a; . "$ROOT/.env"; set +a
+    env_offline=${OFFLINE:-}
+    OFFLINE=$cli_offline
+    case "$env_offline" in 1|true|True|TRUE|yes) OFFLINE=1 ;; esac
+}
+
+env_default() {  # env_default CLI_VALUE ENV_VALUE -> CLI value, else non-auto env value
+    if [ -n "$1" ]; then printf '%s' "$1"; return 0; fi
+    case "$2" in ""|auto) ;; *) printf '%s' "$2" ;; esac
+}
+
+apply_env_overrides() {
+    OV_PROVIDER=$(env_default "$OV_PROVIDER" "${LLM_PROVIDER:-}")
+    OV_MODEL=$(env_default "$OV_MODEL" "${LLM_MODEL:-}")
+    OV_EMB=$(env_default "$OV_EMB" "${EMBEDDING_MODEL:-}")
+    OV_RR=$(env_default "$OV_RR" "${RERANKER_MODEL:-}")
+    OV_DEVICE=$(env_default "$OV_DEVICE" "${DEVICE:-}")
+    OV_QUALITY=$(env_default "$OV_QUALITY" "${QUALITY_PROFILE:-}")
+    case "${PROFILE_STRICT:-}" in 1|true|True|TRUE|yes) OV_STRICT=1 ;; esac
+}
+
+# ---------- preflight (shell-only; enough to explain a missing Docker) ----------
+preflight() {
+    command -v docker >/dev/null 2>&1 || fail "Docker is not installed or not on PATH.
+  macOS: install & start Docker Desktop (https://docs.docker.com/desktop/).
+  Linux: install docker-ce + docker-compose-plugin and start the daemon." 10
+    docker info >/dev/null 2>&1 || fail "Docker CLI found, but the daemon is not reachable. Start Docker Desktop / dockerd." 11
+    docker compose version >/dev/null 2>&1 || fail "Docker Compose v2 plugin is missing ('docker compose' failed)." 12
+    port="${OV_PORT:-8000}"
+    if [ "$CMD" = up ] && command -v nc >/dev/null 2>&1 \
+        && nc -z 127.0.0.1 "$port" 2>/dev/null \
+        && ! docker ps --format '{{.Ports}}' | grep -q "127.0.0.1:$port->"; then
+        fail "port $port is busy by a foreign process; use: ./run --port 8001 (never killing other processes)" 13
+    fi
+}
+
+compose() {
+    # shellcheck disable=SC2086
+    docker compose --project-directory "$ROOT" -f "$ROOT/compose.yaml" $COMPOSE_EXTRA "$@"
+}
+
+# ---------- probe + resolve (pinned image; host python never required) ----------
+probe_facts() { sh "$ROOT/scripts/probe.sh"; }
+
+saved_value() {  # saved_value KEY  (from existing resolved.env)
+    [ -f "$RUNTIME_DIR/resolved.env" ] || return 0
+    sed -n "s/^export $1=//p" "$RUNTIME_DIR/resolved.env" | tr -d "'" | head -1
+}
+
+build_overrides_json() {
+    saved_encoder=""
+    if [ -z "$OV_EMB" ]; then
+        saved_encoder=$(saved_value B1_EMBEDDING_MODEL)
+    fi
+    printf '{'
+    printf '"provider": "%s",' "${OV_PROVIDER:-$(saved_value B1_SAVED_PROVIDER)}"
+    if [ -z "$OV_PROVIDER" ]; then
+        printf '"saved_runtime": "%s",' "$(saved_value B1_SAVED_RUNTIME)"
+    else
+        printf '"saved_runtime": "",'
+    fi
+    printf '"device": "%s",' "$OV_DEVICE"
+    printf '"quality": "%s",' "$OV_QUALITY"
+    printf '"model": "%s",' "$OV_MODEL"
+    printf '"embedding_model": "%s",' "${OV_EMB:-$saved_encoder}"
+    printf '"reranker_model": "%s",' "$OV_RR"
+    printf '"residency": "%s",' "$OV_RESIDENCY"
+    printf '"strict_profile": %s,' "$([ $OV_STRICT = 1 ] && echo true || echo false)"
+    printf '"allow_slow": %s' "$([ $OV_ALLOW_SLOW = 1 ] && echo true || echo false)"
+    printf '}'
+}
+
+run_resolver() {  # stdin: none; stdout: resolution JSON
+    facts=$(probe_facts)
+    overrides=$(build_overrides_json)
+    payload=$(printf '{"facts": %s, "overrides": %s}' "$facts" "$overrides")
+    # Clean the overrides: empty strings mean "not set" — resolver treats "" as falsy.
+    printf '%s' "$payload" | docker run --rm -i \
+        -v "$ROOT/scripts/resolver.py:/resolver.py:ro" "$PY_IMAGE" \
+        python /resolver.py
+}
+
+json_get() {  # json_get JSON KEY -> scalar via the pinned image-free POSIX way
+    printf '%s' "$1" | sed -n "s/.*\"$2\": *\"\{0,1\}\([^\",}]*\)\"\{0,1\}.*/\1/p" | head -1
+}
+
+write_resolved_env() {  # $1 = resolution json
+    mkdir -p "$RUNTIME_DIR" "$RUNTIME_DIR/empty-seed"
+    res="$1"
+    provider=$(json_get "$res" llm_provider)
+    llm_model=$(json_get "$res" llm_model)
+    emb=$(json_get "$res" embedding_model)
+    emb_rev=$(json_get "$res" embedding_revision)
+    rr=$(json_get "$res" reranker_model)
+    rr_rev=$(json_get "$res" reranker_revision)
+    rr_adapter=$(json_get "$res" reranker_adapter)
+    ollama_url=$(json_get "$res" ollama_base_url)
+    degraded=$(json_get "$res" quality_degraded)
+    degraded_reason=$(json_get "$res" quality_degraded_reason)
+    [ "$degraded_reason" = "null" ] && degraded_reason=""
+    emb_path=$(printf '%s' "$emb" | sed 's,/,--,g')
+    seed_dir="$RUNTIME_DIR/empty-seed"
+    [ -d "$HOME/.cache/huggingface/hub" ] && seed_dir="$HOME/.cache/huggingface"
+    tmp="$RUNTIME_DIR/resolved.env.tmp"
+    {
+        printf "export B1_LLM_PROVIDER='%s'\n" "$provider"
+        printf "export B1_SAVED_PROVIDER='%s'\n" "${OV_PROVIDER:-}"
+        printf "export B1_SAVED_RUNTIME='%s'\n" "$(json_get "$res" llm_runtime)"
+        printf "export B1_LLM_MODEL='%s'\n" "$llm_model"
+        printf "export B1_OLLAMA_BASE_URL='%s'\n" "$ollama_url"
+        printf "export B1_EMBEDDING_MODEL='%s'\n" "$emb"
+        printf "export B1_EMBEDDING_REVISION='%s'\n" "$emb_rev"
+        printf "export B1_RERANKER_MODEL='%s'\n" "$rr"
+        printf "export B1_RERANKER_REVISION='%s'\n" "$rr_rev"
+        printf "export B1_RERANKER_ADAPTER='%s'\n" "$rr_adapter"
+        printf "export B1_TOKENIZER_PATH='/models-cache/hub/models--%s/snapshots/%s/tokenizer.json'\n" "$emb_path" "$emb_rev"
+        printf "export B1_QUALITY_DEGRADED='%s'\n" "$([ "$degraded" = "true" ] && echo 1 || echo 0)"
+        printf "export B1_QUALITY_DEGRADED_REASON='%s'\n" "$degraded_reason"
+        printf "export B1_HF_SEED_DIR='%s'\n" "$seed_dir"
+        printf "export B1_OFFLINE='%s'\n" "$OFFLINE"
+        printf "export B1_API_PORT='%s'\n" "${OV_PORT:-8000}"
+        printf "export B1_LLM_READ_TIMEOUT_S='%s'\n" "$(json_get "$res" llm_read_timeout_s)"
+        printf "export B1_QA_DEADLINE_S='%s'\n" "$(json_get "$res" qa_deadline_s)"
+    } > "$tmp"
+    mv "$tmp" "$RUNTIME_DIR/resolved.env"   # atomic
+    printf '%s' "$res" > "$RUNTIME_DIR/resolved-config.json.tmp"
+    mv "$RUNTIME_DIR/resolved-config.json.tmp" "$RUNTIME_DIR/resolved-config.json"
+}
+
+compose_overrides_args() {  # $1 = resolution json -> "-f compose.X.yaml ..."
+    extra=""
+    case "$1" in
+    *compose.mac.yaml*) extra="$extra -f $ROOT/compose.mac.yaml" ;;
+    esac
+    case "$1" in
+    *compose.dmr.yaml*) extra="$extra -f $ROOT/compose.dmr.yaml" ;;
+    esac
+    case "$1" in
+    *compose.cloud.yaml*) extra="$extra -f $ROOT/compose.cloud.yaml" ;;
+    esac
+    case "$1" in
+    *compose.gpu.yaml*) extra="$extra -f $ROOT/compose.gpu.yaml" ;;
+    esac
+    [ "$OFFLINE" = 1 ] && extra="$extra -f $ROOT/compose.offline.yaml"
+    printf '%s' "$extra"
+}
+
+print_reasons() {
+    printf '%s' "$1" | docker run --rm -i "$PY_IMAGE" python -c '
+import json,sys
+r = json.load(sys.stdin)
+for line in r.get("reasons", []): print("    -", line)
+for line in r.get("errors", []): print("    ! ", line)
+d = r.get("decisions", {})
+if d.get("quality_degraded"):
+    print("    !! QUALITY DEGRADED:", d.get("quality_degraded_reason"))
+'
+}
+
+ready_summary() {
+    compose exec -T api python -c '
+import json, urllib.request, urllib.error
+try:
+    r = urllib.request.urlopen("http://127.0.0.1:8000/health/ready", timeout=5)
+    body = json.loads(r.read())
+except urllib.error.HTTPError as e:
+    body = json.loads(e.read())
+print(json.dumps(body, ensure_ascii=False))
+' 2>/dev/null || echo '{"status":"unknown"}'
+}
+
+api_container_health() {
+    docker inspect --format '{{.State.Health.Status}}' "$PROJECT-api-1" 2>/dev/null || echo missing
+}
+
+service_state() {  # $1 service name -> running|exited(code)|missing
+    docker inspect --format '{{.State.Status}} {{.State.ExitCode}}' "$PROJECT-$1-1" 2>/dev/null || echo "missing 0"
+}
+
+# ---------- commands ----------
+preflight
+mkdir -p "$RUNTIME_DIR" "$RUNTIME_DIR/empty-seed"
+COMPOSE_EXTRA=""
+
+case "$CMD" in
+doctor)
+    load_dotenv
+    apply_env_overrides
+    stage preflight "docker=$(docker --version | cut -d, -f1); compose=$(docker compose version --short)"
+    facts=$(probe_facts)
+    res=$(printf '{"facts": %s, "overrides": %s}' "$facts" "$(build_overrides_json)" \
+        | docker run --rm -i -v "$ROOT/scripts/resolver.py:/resolver.py:ro" "$PY_IMAGE" python /resolver.py) || true
+    if [ "$JSON_OUT" = 1 ]; then
+        printf '{"facts": %s, "resolution": %s}\n' "$facts" "$res"
+    else
+        stage facts "$facts"
+        stage resolution "accelerator_verified is false until a real warmup smoke:"
+        print_reasons "$res"
+    fi
+    exit 0
+    ;;
+status)
+    compose ps
+    printf 'readiness: %s\n' "$(ready_summary)"
+    exit 0
+    ;;
+logs) compose logs --tail=200; exit 0 ;;
+stop) compose stop; exit 0 ;;
+down) compose down; exit 0 ;;  # volumes are ALWAYS preserved
+up) ;;
+*) fail "unhandled command $CMD" 2 ;;
+esac
+
+# ---------- up ----------
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+    fail "another ./run is already active for this project (lock: $LOCK_DIR).
+  If it crashed, remove the directory and retry." 14
+fi
+cleanup_lock() { rmdir "$LOCK_DIR" 2>/dev/null || true; }
+on_interrupt() {
+    printf '\n==> interrupted: containers/volumes keep their state; re-run ./run to resume\n'
+    cleanup_lock
+    exit 130
+}
+trap on_interrupt INT TERM
+trap cleanup_lock EXIT
+
+if [ -f "$ROOT/.env" ]; then
+    stage preflight "loading optional .env (never overwritten by the launcher)"
+    load_dotenv
+fi
+apply_env_overrides
+
+stage profile "probing host facts and resolving the profile (once per launch)"
+RES=$(run_resolver) || {
+    print_reasons "$RES" 2>/dev/null || true
+    fail "profile resolution failed (see reasons above)" 3
+}
+case "$RES" in
+*'"ok": false'*|*'"ok":false'*)
+    print_reasons "$RES"
+    fail "profile resolution refused the requested configuration" 3
+    ;;
+esac
+print_reasons "$RES"
+write_resolved_env "$RES"
+# shellcheck disable=SC1091
+. "$RUNTIME_DIR/resolved.env"
+COMPOSE_EXTRA=$(compose_overrides_args "$RES")
+
+if [ "$DRY_RUN" = 1 ]; then
+    stage dry-run "no downloads, no container starts; resolved configuration:"
+    cat "$RUNTIME_DIR/resolved.env"
+    exit 0
+fi
+
+if [ "$B1_LLM_PROVIDER" = "ollama" ] && [ "$B1_OLLAMA_BASE_URL" = "http://host.docker.internal:11434" ]; then
+    stage download "ensuring host Ollama has $B1_LLM_MODEL (resumable pull)"
+    if [ "$OFFLINE" = 1 ]; then
+        ollama ls 2>/dev/null | grep -q "$B1_LLM_MODEL" || fail "OFFLINE: host Ollama lacks $B1_LLM_MODEL" 4
+    else
+        ollama pull "$B1_LLM_MODEL" || fail "host ollama pull failed" 4
+    fi
+fi
+
+stage images "building/starting services (first run may download many GiB)"
+BUILD_FLAG="--build"
+compose up -d $BUILD_FLAG
+
+stage download "waiting for models-init (pinned snapshots into the hf_models volume)"
+i=0
+while :; do
+    state=$(service_state models-init)
+    case "$state" in
+    "exited 0") break ;;
+    "exited "*)
+        compose logs models-init | tail -20
+        fail "models-init failed (state: $state); see the asset list above — re-run ./run to resume" 4 ;;
+    esac
+    i=$((i + 1)); [ $i -gt 360 ] && fail "models-init did not finish in 30min; ./run logs" 4
+    sleep 5
+done
+
+if [ "${B1_LLM_PROVIDER}" = "ollama" ] && [ "$B1_OLLAMA_BASE_URL" = "http://ollama:11434" ]; then
+    stage download "waiting for ollama-init ($B1_LLM_MODEL into the ollama_models volume)"
+    i=0
+    while :; do
+        state=$(service_state ollama-init)
+        case "$state" in
+        "exited 0") break ;;
+        "exited "*) compose logs ollama-init | tail -10; fail "ollama-init failed" 4 ;;
+        esac
+        i=$((i + 1)); [ $i -gt 480 ] && fail "ollama-init did not finish in 40min" 4
+        sleep 5
+    done
+fi
+
+stage warmup "waiting for local-models (encoder + reranker load)"
+i=0
+until docker inspect --format '{{.State.Health.Status}}' "$PROJECT-local-models-1" 2>/dev/null | grep -q healthy; do
+    i=$((i + 1)); [ $i -gt 180 ] && { compose ps; fail "local-models not healthy in 15min; ./run logs" 20; }
+    sleep 5
+done
+
+stage services "waiting for API liveness"
+i=0
+until [ "$(api_container_health)" = "healthy" ]; do
+    i=$((i + 1)); [ $i -gt 60 ] && { compose ps; fail "API did not become healthy; ./run logs" 20; }
+    sleep 5
+done
+
+stage ready "waiting for full readiness"
+i=0
+while :; do
+    summary=$(ready_summary)
+    case "$summary" in *'"status": "ready"'*|*'"status":"ready"'*) break ;; esac
+    i=$((i + 1))
+    if [ $i -gt "${RUN_READY_TIMEOUT_POLLS:-120}" ]; then
+        printf '==> readiness NOT reached: %s\n' "$summary"
+        fail "readiness timeout — components above show the real state; ./run status" 21
+    fi
+    sleep 5
+done
+
+printf '\nReady. Resolved stack (candidate preset, reasons above):\n'
+printf '  provider=%s model=%s\n' "$B1_LLM_PROVIDER" "$B1_LLM_MODEL"
+printf '  encoder=%s@%s\n' "$B1_EMBEDDING_MODEL" "$(printf '%s' "$B1_EMBEDDING_REVISION" | cut -c1-8)"
+printf '  reranker=%s (%s)\n' "$B1_RERANKER_MODEL" "$B1_RERANKER_ADAPTER"
+[ "$B1_QUALITY_DEGRADED" = "1" ] && printf '  !! QUALITY DEGRADED: %s\n' "$B1_QUALITY_DEGRADED_REASON"
+printf '  API: http://127.0.0.1:%s  (docs: /docs, ready: /health/ready)\n' "${B1_API_PORT:-8000}"
+printf '  Logs: ./run logs   Status: ./run status   Stop: ./run stop   Down (keep data): ./run down\n'

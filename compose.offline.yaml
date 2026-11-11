@@ -1,0 +1,9 @@
+# Offline verification profile: the compose network becomes INTERNAL — a real
+# egress block for every container (registry/HF/telemetry unreachable), while
+# inter-container traffic keeps working. init jobs run with OFFLINE=1 and only
+# verify that assets are already present (they list what is missing).
+# NOTE: host-side runtimes (host Ollama / DMR) are unreachable from an internal
+# network, so offline is verified on the container-CPU profile.
+networks:
+  default:
+    internal: true

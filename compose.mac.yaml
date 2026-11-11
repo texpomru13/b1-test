@@ -1,0 +1,9 @@
+# Mac accelerated profile: the LLM runs in HOST Ollama (Metal). The container
+# LLM path is disabled; app containers reach the host via host.docker.internal.
+services:
+  ollama:
+    deploy:
+      replicas: 0
+  ollama-init:
+    deploy:
+      replicas: 0

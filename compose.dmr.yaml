@@ -1,0 +1,10 @@
+# Explicit DMR profile (ADR 005): llama.cpp/Metal via Docker Model Runner.
+# The dmr endpoint is reached as http://model-runner.docker.internal/engines/v1;
+# the Docker socket is NEVER mounted into app containers.
+services:
+  ollama:
+    deploy:
+      replicas: 0
+  ollama-init:
+    deploy:
+      replicas: 0

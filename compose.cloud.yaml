@@ -1,0 +1,9 @@
+# Explicit cloud profile: NO local LLM is started or downloaded. Retrieval and
+# the reranker stay local (local-models/models-init unchanged).
+services:
+  ollama:
+    deploy:
+      replicas: 0
+  ollama-init:
+    deploy:
+      replicas: 0

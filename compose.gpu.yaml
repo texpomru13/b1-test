@@ -1,0 +1,12 @@
+# NVIDIA profile: applied ONLY after a positive container GPU smoke
+# (resolver fact nvidia_container_smoke_ok). NOT live-tested on this project's
+# dev machine (no NVIDIA hardware) — status: not_run.
+services:
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: ["gpu"]

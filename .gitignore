@@ -1,0 +1,37 @@
+# Runtime artifacts (resolved config, model manifests) — never committed
+.runtime/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venvs/
+
+# Env files with secrets
+.env
+.env.*
+!.env.example
+
+# uv / tooling caches inside repo
+.uv-cache/
+
+# OS
+.DS_Store
+
+# Spike scratch outputs that are not evidence (evidence lives in spikes/stage0/results/)
+spikes/**/tmp/
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Internal planning / dev-agent material — not part of the deliverable (README is self-contained)
+docs/
+ROADMAP.md
+CLAUDE.md
+.claude/
+
+# Stage-0 research spikes and local test corpus
+spikes/
+test_documents/

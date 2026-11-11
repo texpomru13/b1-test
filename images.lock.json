@@ -1,0 +1,43 @@
+{
+  "note": "Release image manifest (DEPLOYMENT_SPEC §3/§8, RUNTIME_IMAGES_REVIEW §5). Application images are built FROM SOURCE by ./run / docker compose (--build); no registry publication has been performed and none is implied. Digests resolved and platform-verified on 2026-11-11 (stage 0 S10).",
+  "source_commit": "workspace (no git commits yet; see docs/implementation-log.md)",
+  "third_party": [
+    {
+      "role": "broker/lifecycle",
+      "image": "redis:8.10.3",
+      "digest": "sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53",
+      "platforms": ["linux/amd64", "linux/arm64"]
+    },
+    {
+      "role": "vector-store",
+      "image": "qdrant/qdrant:v1.20.0",
+      "digest": "sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2",
+      "platforms": ["linux/amd64", "linux/arm64"]
+    },
+    {
+      "role": "llm-runtime (container CPU/GPU path)",
+      "image": "ollama/ollama:0.40.16",
+      "digest": "sha256:910d0d8107b538fb0894e63163eb195de0cc7aefcbc666dc62d3b18f71124592",
+      "platforms": ["linux/amd64", "linux/arm64"]
+    },
+    {
+      "role": "python base (app, local-models, resolver sandbox)",
+      "image": "python:3.12-slim",
+      "digest": "sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b",
+      "platforms": ["linux/amd64", "linux/arm64"]
+    },
+    {
+      "role": "uv (build stage only)",
+      "image": "ghcr.io/astral-sh/uv:0.13.7",
+      "digest": null,
+      "platforms": ["linux/amd64", "linux/arm64"],
+      "note": "immutable version tag; digest pinning TODO when a registry build pipeline appears"
+    }
+  ],
+  "built_from_source": [
+    {"role": "api/worker/dispatcher", "context": ".", "dockerfile": "Dockerfile"},
+    {"role": "local-models", "context": "services/local-models",
+     "dockerfile": "services/local-models/Dockerfile"}
+  ],
+  "model_assets": "pinned revisions in compose.yaml defaults and scripts/resolver.py; runtime manifest written by models-init to the hf_models volume (models.lock.json)"
+}

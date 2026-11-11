@@ -1,0 +1,24 @@
+# Minimal CI: lint + type check + unit tests. Downloads no models, needs no API keys.
+# Running on ubuntu-latest (amd64) also closes the ADR 001 amd64 runtime import smoke.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.7"
+      - name: Sync environment (frozen)
+        run: uv sync --frozen
+      - name: Ruff
+        run: uv run ruff check app tests
+      - name: Mypy
+        run: uv run mypy
+      - name: Unit tests
+        run: uv run pytest tests/unit -q

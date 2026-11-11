@@ -1,0 +1,28 @@
+[project]
+name = "local-models"
+version = "0.1.0"
+description = "Single owner of retrieval model weights: embeddings (+ reranker in stage 5)"
+requires-python = ">=3.12,<3.13"
+# Pins per ADR 001 local-models environment: Giga remote code requires
+# transformers 4.57.x / sentence-transformers 5.7.x (verified in spike S6).
+dependencies = [
+    "torch==2.15.0",
+    "transformers==4.57.6",
+    "sentence-transformers==5.7.0",
+    "einops==0.8.2",
+    "fastapi==0.162.4",
+    "uvicorn==0.54.0",
+    "pydantic==2.14.3",
+    "psutil==7.2.2",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

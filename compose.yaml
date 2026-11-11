@@ -1,0 +1,244 @@
+# CPU baseline compose (DEPLOYMENT_SPEC): raw `docker compose up --build` starts
+# the full container-only CPU path with defaults. The launcher (`./run`) exports
+# B1_* variables from .runtime/resolved.env BEFORE compose interpolation and adds
+# profile overrides (compose.mac/dmr/cloud/gpu/offline.yaml).
+# Images pinned by tag@digest (ADR 001); model weights live in named volumes,
+# never inside images.
+name: b1-rag
+
+services:
+  redis:
+    image: redis:8.10.3@sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.20.0@sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-shot provisioning of pinned encoder/reranker snapshots into hf_models.
+  models-init:
+    build: services/local-models
+    user: "0:0"
+    entrypoint: ["python", "-m", "app_lm.models_init"]
+    environment:
+      HF_HOME: /models-cache
+      HF_HUB_OFFLINE: "0"
+      OFFLINE: ${B1_OFFLINE:-0}
+      B1_EMBEDDING_MODEL: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct}
+      B1_EMBEDDING_REVISION: ${B1_EMBEDDING_REVISION:-2cf0fdc97194aaedf10ac0e6bf798834acd31042}
+      B1_RERANKER_MODEL: ${B1_RERANKER_MODEL:-Qwen/Qwen3-Reranker-8B}
+      B1_RERANKER_REVISION: ${B1_RERANKER_REVISION:-77d193c791ed757ca307ee72715aa132723da912}
+    volumes:
+      - hf_models:/models-cache
+      - ${B1_HF_SEED_DIR:-./.runtime/empty-seed}:/seed-cache:ro
+    restart: "no"
+
+  local-models:
+    build: services/local-models
+    environment:
+      LM_MODEL_ID: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct}
+      LM_REVISION: ${B1_EMBEDDING_REVISION:-2cf0fdc97194aaedf10ac0e6bf798834acd31042}
+      LM_DEVICE: cpu
+      LM_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-4}
+      LM_RERANKER_MODEL: ${B1_RERANKER_MODEL:-Qwen/Qwen3-Reranker-8B}
+      LM_RERANKER_REVISION: ${B1_RERANKER_REVISION:-77d193c791ed757ca307ee72715aa132723da912}
+      LM_RERANKER_ADAPTER: ${B1_RERANKER_ADAPTER:-qwen_yes_no}
+      LM_RERANKER_BATCH: ${RERANKER_BATCH_SIZE:-2}
+      LM_QUALITY_DEGRADED: ${B1_QUALITY_DEGRADED:-0}
+      LM_QUALITY_DEGRADED_REASON: ${B1_QUALITY_DEGRADED_REASON:-}
+      HF_HOME: /models-cache
+      # weights volume stays read-only; the trust_remote_code module cache is
+      # derived code and goes to a writable tmp path instead
+      HF_MODULES_CACHE: /tmp/hf-modules
+    volumes:
+      - hf_models:/models-cache:ro
+    depends_on:
+      models-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import json, sys, urllib.request
+          body = json.load(urllib.request.urlopen("http://127.0.0.1:8081/v1/health", timeout=5))
+          sys.exit(0 if body.get("status") == "ok" else 1)
+      interval: 10s
+      timeout: 6s
+      retries: 90
+      start_period: 60s
+
+  # CPU-baseline LLM runtime (container). Disabled (replicas: 0) by the
+  # mac/dmr/cloud overrides.
+  ollama:
+    image: ollama/ollama:0.40.16@sha256:910d0d8107b538fb0894e63163eb195de0cc7aefcbc666dc62d3b18f71124592
+    volumes:
+      - ollama_models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "ls"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  # One-shot model pull for the container LLM path (resumable, idempotent).
+  ollama-init:
+    image: ollama/ollama:0.40.16@sha256:910d0d8107b538fb0894e63163eb195de0cc7aefcbc666dc62d3b18f71124592
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ "${B1_OFFLINE:-0}" = "1" ]; then
+          ollama ls | grep -q "${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M}" \
+            && echo "model present (offline)" \
+            || { echo "OFFLINE: model ${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M} is missing"; exit 4; }
+        else
+          ollama pull "${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M}"
+        fi
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      B1_LLM_MODEL: ${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M}
+      B1_OFFLINE: ${B1_OFFLINE:-0}
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:${B1_API_PORT:-8000}:8000"
+    environment: &app_env
+      # Connections: defaults target the bundled services; set the variable in
+      # the shell or in .env to point at an external instance.
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/1}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      LOCAL_MODELS_URL: ${LOCAL_MODELS_URL:-http://local-models:8081}
+      DOCUMENTS_DIR: /data/documents
+      LLM_PROVIDER: ${B1_LLM_PROVIDER:-ollama}
+      # An explicit LLM_READ_TIMEOUT_S / QA_DEADLINE_S wins over the launcher's
+      # per-runtime value (B1_*); the last default is the slow-CPU baseline.
+      LLM_READ_TIMEOUT_S: ${LLM_READ_TIMEOUT_S:-${B1_LLM_READ_TIMEOUT_S:-1200}}
+      FASTEMBED_CACHE_DIR: /home/appuser/.cache/fastembed
+      QA_DEADLINE_S: ${QA_DEADLINE_S:-${B1_QA_DEADLINE_S:-3600}}
+      # Pass-through application settings (app/config/settings.py). A key
+      # without a value is forwarded from the shell environment or .env ONLY
+      # when it is set there; otherwise the Settings default applies, so the
+      # defaults live in one place.
+      # -- hybrid search and reranking
+      FUSION_METHOD:
+      DENSE_TOP_K:
+      SPARSE_TOP_K:
+      RERANK_INPUT_K:
+      CONTEXT_TOP_K:
+      # -- chunking, BM25 and the LLM context budget
+      CHUNK_TOKENS:
+      CHUNK_OVERLAP_TOKENS:
+      BM25_LANGUAGE:
+      BM25_AVG_LEN:
+      CONTEXT_BUDGET_TOKENS:
+      LOCAL_CONTEXT_TOKENS:
+      LLM_MAX_OUTPUT_TOKENS:
+      LLM_REASONING_BUDGET_TOKENS:
+      # -- limits
+      MAX_FILE_MB:
+      MAX_PAGES:
+      MAX_QUESTION_CHARS:
+      MAX_CONCURRENT_QA:
+      # -- grounding and reliability
+      MAX_REPAIR_ATTEMPTS:
+      MAX_LLM_CALLS_PER_QUESTION:
+      LLM_MAX_ATTEMPTS:
+      QDRANT_MAX_ATTEMPTS:
+      JOB_MAX_ATTEMPTS:
+      RECONCILE_INTERVAL_S:
+      FAILED_SOURCE_TTL_S:
+      LOCAL_MODELS_TIMEOUT_S:
+      QDRANT_COLLECTION:
+      LLM_MODEL: ${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M}
+      OLLAMA_BASE_URL: ${B1_OLLAMA_BASE_URL:-http://ollama:11434}
+      DMR_BASE_URL: ${B1_DMR_BASE_URL:-http://model-runner.docker.internal/engines/v1}
+      EMBEDDING_MODEL: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct}
+      EMBEDDING_TOKENIZER_PATH: ${B1_TOKENIZER_PATH:-/models-cache/hub/models--ai-sage--Giga-Embeddings-instruct/snapshots/2cf0fdc97194aaedf10ac0e6bf798834acd31042/tokenizer.json}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - documents_data:/data/documents
+      - fastembed_cache:/home/appuser/.cache
+      - hf_models:/models-cache:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import sys, urllib.request
+          sys.exit(0 if urllib.request.urlopen("http://127.0.0.1:8000/health/live", timeout=3).status == 200 else 1)
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  dispatcher:
+    build: .
+    command: ["python", "-m", "app.jobs.dispatcher"]
+    environment: *app_env
+    volumes:
+      - documents_data:/data/documents
+      - fastembed_cache:/home/appuser/.cache
+      - hf_models:/models-cache:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command:
+      [
+        "celery",
+        "-A",
+        "app.jobs.celery_app",
+        "worker",
+        "--concurrency=1",
+        "--loglevel=INFO",
+      ]
+    environment: *app_env
+    volumes:
+      - documents_data:/data/documents
+      - fastembed_cache:/home/appuser/.cache
+      - hf_models:/models-cache:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      local-models:
+        condition: service_healthy
+
+volumes:
+  redis_data:
+  qdrant_data:
+  documents_data:
+  fastembed_cache:
+  hf_models:
+  ollama_models:
