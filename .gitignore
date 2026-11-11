@@ -32,6 +32,5 @@ ROADMAP.md
 CLAUDE.md
 .claude/
 
-# Stage-0 research spikes and local test corpus
+# Stage-0 research spikes
 spikes/
-test_documents/

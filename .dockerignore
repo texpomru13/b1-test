@@ -16,3 +16,4 @@ CLAUDE.md
 Dockerfile
 compose.yaml
 run
+test_documents
