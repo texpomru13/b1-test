@@ -231,6 +231,7 @@ def build_qa_graph(deps: QaDependencies) -> Any:
         draft = state["draft"]
         assert draft is not None
         if not draft.answerable or not draft.claims:
+            logger.info("draft_not_answerable", repairs=state.get("repair_count", 0))
             return {"outcome": OUTCOME_NOT_FOUND}
         retrieval = state["retrieval"]
         assert retrieval is not None
@@ -280,6 +281,11 @@ def build_qa_graph(deps: QaDependencies) -> Any:
             return update
         update["verification"] = verification
         verdict_by_index = {v.claim_index: v.verdict for v in verification.verdicts}
+        logger.info(
+            "verifier_verdict", coverage=str(verification.coverage),
+            verdicts=[str(verdict_by_index.get(i)) for i in range(len(draft.claims))],
+            repairs=state.get("repair_count", 0),
+        )
         all_supported = all(
             verdict_by_index.get(i) == ClaimVerdict.SUPPORTED
             for i in range(len(draft.claims))
