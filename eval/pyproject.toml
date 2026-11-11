@@ -1,0 +1,19 @@
+[project]
+name = "rag-eval"
+version = "0.1.0"
+description = "Stage-9 evaluation harness: gold dataset, own metrics, RAGAS with a LOCAL judge"
+requires-python = ">=3.12,<3.13"
+# Separate environment so the evaluation stack never changes the app lockfile.
+dependencies = [
+    "ragas==0.4.3",
+    "langchain-core==1.7.7",
+    "langchain-ollama==1.1.0",
+    "httpx==0.28.1",
+    "pydantic==2.14.3",
+    "numpy==2.5.4",
+    # ragas 0.4.3 imports langchain_community.chat_models.vertexai (removed in 0.4.2)
+    "langchain-community==0.4.1",
+]
+
+[tool.uv]
+package = false
