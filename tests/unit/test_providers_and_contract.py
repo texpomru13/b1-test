@@ -32,6 +32,31 @@ def test_ollama_context_and_thinking_are_explicit(mode: str, expected: bool | No
     assert model.reasoning is expected
 
 
+async def test_ollama_bound_options_keep_num_ctx(monkeypatch: pytest.MonkeyPatch) -> None:
+    adapter = build_chat_adapter(make_settings(
+        llm_provider="ollama", llm_model="m", local_context_tokens=12288,
+    ))
+    captured: dict = {}
+
+    class _Bound:
+        async def ainvoke(self, _messages: object) -> object:
+            class _Msg:
+                content = '{"ok": true}'
+                usage_metadata = {"input_tokens": 1, "output_tokens": 1}  # noqa: RUF012
+                response_metadata: dict = {}  # noqa: RUF012
+            return _Msg()
+
+    def fake_bind(**kwargs: object) -> _Bound:
+        captured.update(kwargs)
+        return _Bound()
+
+    monkeypatch.setattr(type(adapter._model), "bind",  # type: ignore[attr-defined]
+                        lambda self, **kw: fake_bind(**kw))
+    await adapter.generate_json(system="s", user="u", json_schema={"schema": {}}, max_tokens=99)
+    # bound options replace the model's options in langchain-ollama: num_ctx must survive
+    assert captured["options"] == {"num_predict": 99, "num_ctx": 12288}
+
+
 def test_unknown_thinking_mode_is_rejected() -> None:
     with pytest.raises(ValidationError):
         make_settings(llm_thinking="sometimes")

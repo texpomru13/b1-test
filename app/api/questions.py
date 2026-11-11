@@ -83,8 +83,11 @@ async def _qa_runtime(request: Request) -> dict[str, Any]:
     return app.state.qa_runtime
 
 
+# exclude_UNSET (not exclude_none): `diagnostics` is omitted unless debug=true, but
+# nullable required fields (citation `section`, diagnostics branch counts) are kept
+# as explicit nulls so every 200 body validates against the published schema.
 @router.post("/documents/{doc_id}/questions", response_model=AnswerResponse,
-             response_model_exclude_none=True)
+             response_model_exclude_unset=True)
 async def ask_question(
     request: Request, doc_id: str, body: QuestionRequest
 ) -> AnswerResponse:

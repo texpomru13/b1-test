@@ -134,7 +134,12 @@ class _OllamaAdapter:
     async def generate_json(
         self, *, system: str, user: str, json_schema: dict, max_tokens: int
     ) -> tuple[dict, dict[str, int]]:
-        bound = self._model.bind(format=json_schema["schema"], options={"num_predict": max_tokens})
+        # langchain-ollama REPLACES the model-level options when `options` is bound,
+        # so num_ctx must be repeated here or Ollama falls back to its host default.
+        options: dict[str, Any] = {"num_predict": max_tokens}
+        if getattr(self._model, "num_ctx", None):
+            options["num_ctx"] = self._model.num_ctx
+        bound = self._model.bind(format=json_schema["schema"], options=options)
         try:
             message = await bound.ainvoke([("system", system), ("user", user)])
         except Exception as exc:
