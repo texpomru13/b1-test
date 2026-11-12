@@ -1,0 +1,93 @@
+{"req_id": "01-01", "case_id": "01-01", "found": true, "expected": [true, true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "01-02", "case_id": "01-02", "found": false, "expected": [false, false], "forbidden": [false], "note": "found=false on an answerable case"}
+{"req_id": "01-03", "case_id": "01-03", "found": false, "expected": [false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "01-04", "case_id": "01-04", "found": true, "expected": [true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "01-05", "case_id": "01-05", "found": true, "expected": [true, true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "01-06", "case_id": "01-06", "found": true, "expected": [true, false, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "05-01", "case_id": "05-01", "found": true, "expected": [true, true, false], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "05-02", "case_id": "05-02", "found": true, "expected": [true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "05-03", "case_id": "05-03", "found": false, "expected": [false, false], "forbidden": [false, false, false], "note": "found=false on an answerable case"}
+{"req_id": "05-04", "case_id": "05-04", "found": true, "expected": [true, true, false], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "05-05", "case_id": "05-05", "found": true, "expected": [true, true, true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "05-06", "case_id": "05-06", "found": true, "expected": [true, true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "13-01", "case_id": "13-01", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "13-02", "case_id": "13-02", "found": true, "expected": [true, true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "13-03", "case_id": "13-03", "found": false, "expected": [false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "13-04", "case_id": "13-04", "found": true, "expected": [true, false, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "13-05", "case_id": "13-05", "found": false, "expected": [false, false, false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "13-06", "case_id": "13-06", "found": true, "expected": [true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "15-01", "case_id": "15-01", "found": true, "expected": [true, true, false], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "15-02", "case_id": "15-02", "found": true, "expected": [true, true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "15-03", "case_id": "15-03", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "15-04", "case_id": "15-04", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "15-05", "case_id": "15-05", "found": true, "expected": [true, true, true, false], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "15-06", "case_id": "15-06", "found": true, "expected": [true, false, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "02-01", "case_id": "02-01", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "02-02", "case_id": "02-02", "found": true, "expected": [true, true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "02-03", "case_id": "02-03", "found": true, "expected": [true, true], "forbidden": [false], "attempts": 1}
+{"req_id": "02-04", "case_id": "02-04", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "02-05", "case_id": "02-05", "found": true, "expected": [true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "02-06", "case_id": "02-06", "found": true, "expected": [true, true, true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "02-07", "case_id": "02-07", "found": true, "expected": [true, true, true], "forbidden": [false], "attempts": 1}
+{"req_id": "03-01", "case_id": "03-01", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "03-02", "case_id": "03-02", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "03-03", "case_id": "03-03", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "03-04", "case_id": "03-04", "found": true, "expected": [true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "03-05", "case_id": "03-05", "found": false, "expected": [false, false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "03-06", "case_id": "03-06", "found": true, "expected": [false, false], "forbidden": [false], "attempts": 1}
+{"req_id": "03-07", "case_id": "03-07", "found": true, "expected": [true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "04-01", "case_id": "04-01", "found": true, "expected": [true, false, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "04-02", "case_id": "04-02", "found": true, "expected": [true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "04-03", "case_id": "04-03", "found": true, "expected": [true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "04-04", "case_id": "04-04", "found": true, "expected": [true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "04-05", "case_id": "04-05", "found": true, "expected": [true, true, true, true], "forbidden": [false, false, false, false], "attempts": 1}
+{"req_id": "04-06", "case_id": "04-06", "found": true, "expected": [true, false, false], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "07-01", "case_id": "07-01", "found": true, "expected": [true, true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "07-02", "case_id": "07-02", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "07-03", "case_id": "07-03", "found": true, "expected": [true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "07-04", "case_id": "07-04", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "07-05", "case_id": "07-05", "found": true, "expected": [false, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "07-06", "case_id": "07-06", "found": false, "expected": [false, false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "07-07", "case_id": "07-07", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "07-08", "case_id": "07-08", "found": true, "expected": [true, true], "forbidden": [false], "attempts": 1}
+{"req_id": "08-01", "case_id": "08-01", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "08-02", "case_id": "08-02", "found": true, "expected": [true, true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "08-03", "case_id": "08-03", "found": true, "expected": [true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "08-04", "case_id": "08-04", "found": true, "expected": [true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "08-05", "case_id": "08-05", "found": false, "expected": [false, false, false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "08-06", "case_id": "08-06", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "09-01", "case_id": "09-01", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "09-02", "case_id": "09-02", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "09-03", "case_id": "09-03", "found": true, "expected": [true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "09-04", "case_id": "09-04", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "09-05", "case_id": "09-05", "found": true, "expected": [true, true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "09-06", "case_id": "09-06", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "10-01", "case_id": "10-01", "found": false, "expected": [false, false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "10-02", "case_id": "10-02", "found": true, "expected": [true, true, true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "10-03", "case_id": "10-03", "found": true, "expected": [true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "10-04", "case_id": "10-04", "found": false, "expected": [false, false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "10-05", "case_id": "10-05", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "10-06", "case_id": "10-06", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "10-07", "case_id": "10-07", "found": true, "expected": [true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "11-01", "case_id": "11-01", "found": true, "expected": [false, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "11-02", "case_id": "11-02", "found": true, "expected": [true, false, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "11-03", "case_id": "11-03", "found": true, "expected": [true, true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "11-04", "case_id": "11-04", "found": true, "expected": [true], "forbidden": [false], "attempts": 1}
+{"req_id": "11-05", "case_id": "11-05", "found": true, "expected": [true, true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "11-06", "case_id": "11-06", "found": true, "expected": [false, true, true], "forbidden": [false], "attempts": 1}
+{"req_id": "11-07", "case_id": "11-07", "found": true, "expected": [true, true, true], "forbidden": [false], "attempts": 1}
+{"req_id": "12-01", "case_id": "12-01", "found": true, "expected": [true, false], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "12-02", "case_id": "12-02", "found": true, "expected": [true, true, false], "forbidden": [false, false], "attempts": 1}
+{"req_id": "12-03", "case_id": "12-03", "found": true, "expected": [true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "12-04", "case_id": "12-04", "found": true, "expected": [true, false, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "12-05", "case_id": "12-05", "found": true, "expected": [true, false, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "12-06", "case_id": "12-06", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "14-01", "case_id": "14-01", "found": false, "expected": [false, false, false, false], "forbidden": [false, false, false], "note": "found=false on an answerable case"}
+{"req_id": "14-02", "case_id": "14-02", "found": false, "expected": [false, false, false, false], "forbidden": [false, false, false], "note": "found=false on an answerable case"}
+{"req_id": "14-03", "case_id": "14-03", "found": true, "expected": [true, false, true, true], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "14-04", "case_id": "14-04", "found": false, "expected": [false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "14-05", "case_id": "14-05", "found": true, "expected": [true, false, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "14-06", "case_id": "14-06", "found": true, "expected": [true, true, true, false], "forbidden": [false, false, false], "attempts": 1}
+{"req_id": "14-07", "case_id": "14-07", "found": true, "expected": [true, false, true], "forbidden": [false, false], "attempts": 1}
+{"req_id": "14-08", "case_id": "14-08", "found": false, "expected": [false, false], "forbidden": [false, false], "note": "found=false on an answerable case"}
+{"req_id": "14-09", "case_id": "14-09", "found": true, "expected": [true, true, true], "forbidden": [false, false], "attempts": 1}

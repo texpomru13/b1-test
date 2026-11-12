@@ -135,6 +135,9 @@ def main() -> None:
         f"holdout {sum(c['split'] == 'holdout' for c in gold)}); agent-drafted, quotes "
         "machine-verified, NOT human-reviewed.", "",
     ]
+    summary = REPORTS / "SUMMARY.md"  # hand-written conclusions over the tables below
+    if summary.exists():
+        lines += [summary.read_text(encoding="utf-8").rstrip(), "", "---", ""]
     for r in runs:
         lines += run_section(r)
     abl = load(WORK / "ablation" / "balanced.metrics.json")

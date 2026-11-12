@@ -1,0 +1,28 @@
+{
+ "judge": "qwen3.6:27b-q4_K_M",
+ "split": "holdout",
+ "fact_recall_all_answerable": {
+  "num": 78,
+  "den": 177,
+  "value": 0.4407
+ },
+ "complete_answers_all_answerable": {
+  "num": 22,
+  "den": 68
+ },
+ "fact_recall_found_only": {
+  "num": 78,
+  "den": 106
+ },
+ "answers_with_forbidden_fact": {
+  "num": 0,
+  "den": 68
+ },
+ "judge_errors": 0,
+ "false_positives": {
+  "n": 0,
+  "quotes_do_not_answer (hallucination)": 0,
+  "quotes_answer (possible gold error)": 0
+ },
+ "ragas": {}
+}

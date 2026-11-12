@@ -1,0 +1,24 @@
+{"req_id": "02-01", "case_id": "02-01", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.99999999995, "factual_correctness(mode=f1)": 0.67}
+{"req_id": "02-02", "case_id": "02-02", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.57}
+{"req_id": "02-03", "case_id": "02-03", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.5}
+{"req_id": "02-04", "case_id": "02-04", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.67}
+{"req_id": "02-05", "case_id": "02-05", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.4}
+{"req_id": "02-06", "case_id": "02-06", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.0, "factual_correctness(mode=f1)": 1.0}
+{"req_id": "02-07", "case_id": "02-07", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.7499999999625, "factual_correctness(mode=f1)": 0.4}
+{"req_id": "03-01", "case_id": "03-01", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 1.0}
+{"req_id": "03-02", "case_id": "03-02", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.8}
+{"req_id": "03-03", "case_id": "03-03", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 1.0}
+{"req_id": "03-04", "case_id": "03-04", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 1.0}
+{"req_id": "03-06", "case_id": "03-06", "found": true, "faithfulness": 0.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.0}
+{"req_id": "03-07", "case_id": "03-07", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 1.0}
+{"req_id": "04-01", "case_id": "04-01", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.8}
+{"req_id": "04-02", "case_id": "04-02", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.67}
+{"req_id": "03-05", "case_id": "03-05", "found": false, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999}
+{"req_id": "04-03", "case_id": "04-03", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 1.0}
+{"req_id": "04-04", "case_id": "04-04", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.67}
+{"req_id": "04-05", "case_id": "04-05", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.0, "factual_correctness(mode=f1)": 1.0}
+{"req_id": "04-06", "case_id": "04-06", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.4}
+{"req_id": "07-01", "case_id": "07-01", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.67}
+{"req_id": "07-02", "case_id": "07-02", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.67}
+{"req_id": "07-03", "case_id": "07-03", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.8}
+{"req_id": "07-04", "case_id": "07-04", "found": true, "faithfulness": 1.0, "context_recall": 1.0, "llm_context_precision_with_reference": 0.9999999999, "factual_correctness(mode=f1)": 0.67}

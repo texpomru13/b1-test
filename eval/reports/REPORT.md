@@ -1,20 +1,315 @@
 # Stage-9 evaluation report
 
-> **Status: INTERIM (paused 2026-11-12 00:20).** Complete: gold set, retrieval
-> ablation, encoder comparison (Giga-3B / Giga-480M / BGE-M3), reranker comparison
-> (BGE-v2-m3 / Qwen3-Reranker-0.6B), thinking-mode selection on dev, full QA runs
-> of balanced (9B, thinking off) and low-memory (4B, thinking off), judge fact check
-> and false-positive adjudication for the 9B run. **not_run yet:** RAGAS (only 8 of
-> ~93 rows scored — the means below are NOT representative), judge for the 4B run,
-> Qwen3-Reranker-8B (stopped after a memory-pressure incident; to be re-run alone),
-> per-stage diagnosis of missed answers, demo and fresh-copy acceptance.
-> Run `balanced-9b` = thinking `auto`, DEV split only (used to choose the mode).
-> The single schema-invalid 200 body (dev case 01-07, null `section` dropped) was
-> produced BEFORE the exclude_none fix in commit a69d620; all later bodies are valid.
-
-Generated 2026-11-11T19:38:42+00:00 from artifacts in `eval/work/` (see `eval/README.md` for how to reproduce).
+Generated 2026-11-12T06:09:05+00:00 from artifacts in `eval/work/` (see `eval/README.md` for how to reproduce).
 
 Gold set: 133 cases over 14 documents (dev 35, holdout 98); agent-drafted, quotes machine-verified, NOT human-reviewed.
+
+## Summary (final, stage 9)
+
+Executed on macOS Apple Silicon (M4 Max), host Ollama 0.40.16, stack `b1-eval`
+(isolated compose project; the default `b1-rag` project and its volumes were not touched).
+Profile **balanced**: Giga-Embeddings-instruct-480M + bge-reranker-v2-m3 + qwen3.5:9b-q4_K_M.
+Judge: local qwen3.6:27b-q4_K_M (no paid API calls). Gold: 133 agent-drafted cases
+(93 answerable, 40 no-answer) + 17 cross-document isolation probes; dev = documents
+01/05/13/15, holdout = the other 10 documents.
+
+**Final preset: `balanced-9b-t0`** = thinking off + quote matching v2 (PDF intra-word
+spaces, ordered ellipsis gaps) + deterministic sampling (temperature 0, presence
+penalty 0, seed 0). Chosen on DEV. Caveat: the holdout misses of earlier variants were
+inspected while diagnosing the provenance failures, so the holdout numbers of the two
+fixes are **post-hoc, not a blind estimate**.
+
+| Variant | Split | Answerable found | Correct abstention | 5xx | Isolation | Fact recall (all answerable) | Complete answers | Forbidden facts |
+|---|---|---|---|---|---|---|---|---|
+| thinking auto | dev | 15/24 | 11/11 | 5/24 | — | — | — | — |
+| thinking off | holdout | 46/69 | 27/29 | 0 | 14/14 | 90/181 = 50% | 30/69 | 0 |
+| + quote match v2 | holdout | 54/69 | 27/29 | 0 | 14/14 | — | — | — |
+| **+ temperature 0** | holdout | **60/69** | **28/29** | **0** | **14/14** | **128/181 = 71%** | **37/69** | **0** |
+| **+ temperature 0** | all | **79/93** | **39/40** | **0** | **17/17** | **171/248 = 69%** | **45/93** | **0** |
+| low-memory 4B, thinking off | holdout | 44/69 | 29/29 | 1 | 14/14 | 78/177 = 44% | 22/68 | 0 |
+
+Paired sign test (correct outcome per gold case), `eval/reports/runs/balanced-9b-t0/paired.txt`:
+t0 vs thinking-off — holdout 15 improved / 0 regressed (p=0.0001), all 20/3 (p=0.0005);
+t0 vs quote-match-v2 — holdout 8/1 (p=0.039), dev 5/2 (p=0.45).
+
+Invariants on every run: citation span validity 100%, cross-document leakage 0,
+schema-valid 200 bodies 100% (one invalid body before commit a69d620, fixed),
+retrieval hit@60 = 93/93.
+
+False positives (found=true on a no-answer case), adjudicated by the judge from the
+verified quotes: t0 — 1 (case 10-09, quotes do not answer → hallucination);
+thinking-off — 3 (01-07, 08-07, 10-09). No isolation probe ever returned found=true.
+
+Why answers were missed (thinking-off run, 29 misses, re-asked with log capture,
+`miss_diagnosis.jsonl`): 18 — model quote not an exact substring of the canonical text
+(provenance refusal); 9 — answered on re-ask (sampling noise); 2 — verifier rejected.
+Captured rejected quotes: intra-word spaces in PDF text and ellipsis-joined fragments
+→ fixed by quote matching v2; sampling noise → fixed by temperature 0. The 14
+remaining t0 misses were not re-diagnosed (`not_run`).
+
+**Latency** (200 responses): thinking off p50 19 s / p95 45 s (stack alone);
+4B p50 15 s / p95 30 s. The t0 run's p50 49 s / p95 104 s was measured while the
+27B judge was running on the same GPU, so it is NOT comparable; uncontended t0
+latency was not re-measured (`not_run`).
+
+**Retrieval** (gold spans, published index, all split): hybrid RRF + rerank
+recall@8 0.968, all-spans@8 0.968, hit@60 1.0, nDCG@10 0.938. Dense alone recall@8
+0.964; hybrid RRF without reranker 0.943; BM25 alone 0.863. The reranker is what
+makes hybrid beat dense at top-8.
+Encoders (dense recall@8, same chunks): Giga-3B 0.975, Giga-480M 0.964, BGE-M3 0.931;
+480M encodes ~8× faster than 3B. Rerankers on frozen top-60 candidates (all-spans@8):
+bge-reranker-v2-m3 0.968, Qwen3-Reranker-0.6B 0.935–0.946 (7× slower).
+**Qwen3-Reranker-8B: `not_run`** — fp32 on MPS occupied ~100 GB of unified memory,
+swap reached 39/40 GB and no case finished in 2 h 26 min; stopped to protect the host.
+
+**RAGAS** (ragas 0.4.3, local judge), thinking-off run, all 93 answerable:
+faithfulness 0.95, context recall 0.968, context precision 0.833, factual
+correctness F1 0.635 (found answers). Context metrics depend only on retrieval and
+are identical in nature for t0. RAGAS for t0 on holdout: see the t0 run section
+(may be partial if still running at generation time).
+
+Fresh-copy acceptance and demo: `eval/reports/acceptance/ACCEPTANCE.md`.
+
+Limits: gold is agent-drafted and not human-reviewed; the judge is a local 27B model
+(no human agreement study); one machine; Linux/NVIDIA/Windows and cloud providers `not_run`.
+
+---
+
+### Run `balanced-9b-t0`
+
+Started 2026-11-11T23:39:52.381632+00:00, API http://127.0.0.1:8000, git `a2c35fa5e28a`.
+
+**Split `all`** — requests 150 (gold 133: answerable 93, no-answer 40; isolation probes 17)
+
+| Metric | Target | Measured | Verdict |
+|---|---|---|---|
+| Citation span validity | 100% | 136/136 = 100.0% | PASS |
+| Cross-document leakage (citations) | 0 | 0/136 = 0.0% | PASS |
+| Positive retrieval hit@candidates (60) | >=95% | 93/93 = 100.0% | PASS |
+| Context evidence coverage (all spans) | >=90% | 90/93 = 96.8% | PASS |
+| Correct abstention on negatives | >=95% | 39/40 = 97.5% | PASS |
+| Structured response validity | 100% | 150/150 = 100.0% | PASS |
+| Isolation probes answered found=false | 100% | 17/17 = 100.0% | — |
+| Answerable → found=true | — | 79/93 = 85.0% | — |
+| Answerable → found=false (missed) | — | 14/93 = 15.0% | — |
+| Answerable → error (5xx/timeout) | 0 | 0/93 = 0.0% | — |
+| No-answer → error | 0 | 0/40 = 0.0% | — |
+| found=true citing a gold span | — | 79/79 = 100.0% | — |
+| Mean gold-span recall in context | — | 0.9677 | — |
+| nDCG@10 (reranked) | — | 0.9378 | — |
+
+Per category (answerable: found=true; no_answer: found=false):
+
+| Category | Correct outcome |
+|---|---|
+| exact | 26/30 = 86.7% |
+| multi | 12/16 = 75.0% |
+| negation | 17/18 = 94.4% |
+| no_answer | 39/40 = 97.5% |
+| paraphrase | 24/29 = 82.8% |
+
+Latency of 200 responses (client wall time, sequential): n=150, p50=49.2s, p95=103.7s, max=174.8s. Stage p50 ms: {'context': 3, 'encode': 156, 'fusion': 5, 'rerank': 26493}.
+
+LLM-judged (judge `qwen3.6:27b-q4_K_M`, local):
+
+| Metric | Value |
+|---|---|
+| Expected-fact recall, all answerable | 171/248 = 69.0% |
+| Expected-fact recall, found=true only | 171/208 = 82.2% |
+| Fully complete answers (all facts) | 45/93 |
+| Answers asserting a forbidden fact | 0/93 |
+| Judge output errors | 0 |
+| found=true on no-answer/isolation: judged hallucination | 1/1 |
+| found=true on no-answer/isolation: quotes do answer (gold error?) | 0/1 |
+
+False positives (found=true where not-found was expected) — every case:
+
+| Request | Judge: quotes answer? | Judge reason |
+|---|---|---|
+| 10-09 | False | Цитаты указывают, что размер расходов определяется соглашением сторон или структурой тарифной ставки, но не содержат конкретного процентного значения. |
+
+**Split `holdout`** — requests 112 (gold 98: answerable 69, no-answer 29; isolation probes 14)
+
+| Metric | Target | Measured | Verdict |
+|---|---|---|---|
+| Citation span validity | 100% | 107/107 = 100.0% | PASS |
+| Cross-document leakage (citations) | 0 | 0/107 = 0.0% | PASS |
+| Positive retrieval hit@candidates (60) | >=95% | 69/69 = 100.0% | PASS |
+| Context evidence coverage (all spans) | >=90% | 67/69 = 97.1% | PASS |
+| Correct abstention on negatives | >=95% | 28/29 = 96.5% | PASS |
+| Structured response validity | 100% | 112/112 = 100.0% | PASS |
+| Isolation probes answered found=false | 100% | 14/14 = 100.0% | — |
+| Answerable → found=true | — | 60/69 = 87.0% | — |
+| Answerable → found=false (missed) | — | 9/69 = 13.0% | — |
+| Answerable → error (5xx/timeout) | 0 | 0/69 = 0.0% | — |
+| No-answer → error | 0 | 0/29 = 0.0% | — |
+| found=true citing a gold span | — | 60/60 = 100.0% | — |
+| Mean gold-span recall in context | — | 0.971 | — |
+| nDCG@10 (reranked) | — | 0.9306 | — |
+
+Per category (answerable: found=true; no_answer: found=false):
+
+| Category | Correct outcome |
+|---|---|
+| exact | 19/22 = 86.4% |
+| multi | 9/12 = 75.0% |
+| negation | 13/14 = 92.9% |
+| no_answer | 28/29 = 96.5% |
+| paraphrase | 19/21 = 90.5% |
+
+Latency of 200 responses (client wall time, sequential): n=112, p50=58.5s, p95=108.2s, max=174.8s. Stage p50 ms: {'context': 3, 'encode': 160, 'fusion': 6, 'rerank': 31888}.
+
+LLM-judged (judge `qwen3.6:27b-q4_K_M`, local):
+
+| Metric | Value |
+|---|---|
+| Expected-fact recall, all answerable | 128/181 = 70.7% |
+| Expected-fact recall, found=true only | 128/153 = 83.7% |
+| Fully complete answers (all facts) | 37/69 |
+| Answers asserting a forbidden fact | 0/69 |
+| Judge output errors | 0 |
+| found=true on no-answer/isolation: judged hallucination | 1/1 |
+| found=true on no-answer/isolation: quotes do answer (gold error?) | 0/1 |
+
+**Split `dev`** — requests 38 (gold 35: answerable 24, no-answer 11; isolation probes 3)
+
+| Metric | Target | Measured | Verdict |
+|---|---|---|---|
+| Citation span validity | 100% | 29/29 = 100.0% | PASS |
+| Cross-document leakage (citations) | 0 | 0/29 = 0.0% | PASS |
+| Positive retrieval hit@candidates (60) | >=95% | 24/24 = 100.0% | PASS |
+| Context evidence coverage (all spans) | >=90% | 23/24 = 95.8% | PASS |
+| Correct abstention on negatives | >=95% | 11/11 = 100.0% | PASS |
+| Structured response validity | 100% | 38/38 = 100.0% | PASS |
+| Isolation probes answered found=false | 100% | 3/3 = 100.0% | — |
+| Answerable → found=true | — | 19/24 = 79.2% | — |
+| Answerable → found=false (missed) | — | 5/24 = 20.8% | — |
+| Answerable → error (5xx/timeout) | 0 | 0/24 = 0.0% | — |
+| No-answer → error | 0 | 0/11 = 0.0% | — |
+| found=true citing a gold span | — | 19/19 = 100.0% | — |
+| Mean gold-span recall in context | — | 0.9583 | — |
+| nDCG@10 (reranked) | — | 0.9584 | — |
+
+Per category (answerable: found=true; no_answer: found=false):
+
+| Category | Correct outcome |
+|---|---|
+| exact | 7/8 = 87.5% |
+| multi | 3/4 = 75.0% |
+| negation | 4/4 = 100.0% |
+| no_answer | 11/11 = 100.0% |
+| paraphrase | 5/8 = 62.5% |
+
+Latency of 200 responses (client wall time, sequential): n=38, p50=38.4s, p95=74.8s, max=103.7s. Stage p50 ms: {'context': 2, 'encode': 148, 'fusion': 5, 'rerank': 20454}.
+
+LLM-judged (judge `qwen3.6:27b-q4_K_M`, local):
+
+| Metric | Value |
+|---|---|
+| Expected-fact recall, all answerable | 43/67 = 64.2% |
+| Expected-fact recall, found=true only | 43/55 = 78.2% |
+| Fully complete answers (all facts) | 8/24 |
+| Answers asserting a forbidden fact | 0/24 |
+| Judge output errors | 0 |
+| found=true on no-answer/isolation: judged hallucination | 0/0 |
+| found=true on no-answer/isolation: quotes do answer (gold error?) | 0/0 |
+
+### Run `balanced-9b-nothink-qm2`
+
+Started 2026-11-11T21:28:05.088901+00:00, API http://127.0.0.1:8000, git `a2c35fa5e28a`.
+
+**Split `all`** — requests 150 (gold 133: answerable 93, no-answer 40; isolation probes 17)
+
+| Metric | Target | Measured | Verdict |
+|---|---|---|---|
+| Citation span validity | 100% | 144/144 = 100.0% | PASS |
+| Cross-document leakage (citations) | 0 | 0/144 = 0.0% | PASS |
+| Positive retrieval hit@candidates (60) | >=95% | 93/93 = 100.0% | PASS |
+| Context evidence coverage (all spans) | >=90% | 90/93 = 96.8% | PASS |
+| Correct abstention on negatives | >=95% | 37/40 = 92.5% | FAIL |
+| Structured response validity | 100% | 150/150 = 100.0% | PASS |
+| Isolation probes answered found=false | 100% | 17/17 = 100.0% | — |
+| Answerable → found=true | — | 71/93 = 76.3% | — |
+| Answerable → found=false (missed) | — | 22/93 = 23.7% | — |
+| Answerable → error (5xx/timeout) | 0 | 0/93 = 0.0% | — |
+| No-answer → error | 0 | 0/40 = 0.0% | — |
+| found=true citing a gold span | — | 71/71 = 100.0% | — |
+| Mean gold-span recall in context | — | 0.9677 | — |
+| nDCG@10 (reranked) | — | 0.9378 | — |
+
+Per category (answerable: found=true; no_answer: found=false):
+
+| Category | Correct outcome |
+|---|---|
+| exact | 24/30 = 80.0% |
+| multi | 11/16 = 68.8% |
+| negation | 12/18 = 66.7% |
+| no_answer | 37/40 = 92.5% |
+| paraphrase | 24/29 = 82.8% |
+
+Latency of 200 responses (client wall time, sequential): n=150, p50=47.3s, p95=111.5s, max=154.1s. Stage p50 ms: {'context': 2, 'encode': 159, 'fusion': 5, 'rerank': 24019}.
+
+**Split `holdout`** — requests 112 (gold 98: answerable 69, no-answer 29; isolation probes 14)
+
+| Metric | Target | Measured | Verdict |
+|---|---|---|---|
+| Citation span validity | 100% | 110/110 = 100.0% | PASS |
+| Cross-document leakage (citations) | 0 | 0/110 = 0.0% | PASS |
+| Positive retrieval hit@candidates (60) | >=95% | 69/69 = 100.0% | PASS |
+| Context evidence coverage (all spans) | >=90% | 67/69 = 97.1% | PASS |
+| Correct abstention on negatives | >=95% | 27/29 = 93.1% | FAIL |
+| Structured response validity | 100% | 112/112 = 100.0% | PASS |
+| Isolation probes answered found=false | 100% | 14/14 = 100.0% | — |
+| Answerable → found=true | — | 54/69 = 78.3% | — |
+| Answerable → found=false (missed) | — | 15/69 = 21.7% | — |
+| Answerable → error (5xx/timeout) | 0 | 0/69 = 0.0% | — |
+| No-answer → error | 0 | 0/29 = 0.0% | — |
+| found=true citing a gold span | — | 54/54 = 100.0% | — |
+| Mean gold-span recall in context | — | 0.971 | — |
+| nDCG@10 (reranked) | — | 0.9306 | — |
+
+Per category (answerable: found=true; no_answer: found=false):
+
+| Category | Correct outcome |
+|---|---|
+| exact | 18/22 = 81.8% |
+| multi | 7/12 = 58.3% |
+| negation | 10/14 = 71.4% |
+| no_answer | 27/29 = 93.1% |
+| paraphrase | 19/21 = 90.5% |
+
+Latency of 200 responses (client wall time, sequential): n=112, p50=49.4s, p95=114.1s, max=154.1s. Stage p50 ms: {'context': 3, 'encode': 158, 'fusion': 5, 'rerank': 26777}.
+
+**Split `dev`** — requests 38 (gold 35: answerable 24, no-answer 11; isolation probes 3)
+
+| Metric | Target | Measured | Verdict |
+|---|---|---|---|
+| Citation span validity | 100% | 34/34 = 100.0% | PASS |
+| Cross-document leakage (citations) | 0 | 0/34 = 0.0% | PASS |
+| Positive retrieval hit@candidates (60) | >=95% | 24/24 = 100.0% | PASS |
+| Context evidence coverage (all spans) | >=90% | 23/24 = 95.8% | PASS |
+| Correct abstention on negatives | >=95% | 10/11 = 90.9% | FAIL |
+| Structured response validity | 100% | 38/38 = 100.0% | PASS |
+| Isolation probes answered found=false | 100% | 3/3 = 100.0% | — |
+| Answerable → found=true | — | 17/24 = 70.8% | — |
+| Answerable → found=false (missed) | — | 7/24 = 29.2% | — |
+| Answerable → error (5xx/timeout) | 0 | 0/24 = 0.0% | — |
+| No-answer → error | 0 | 0/11 = 0.0% | — |
+| found=true citing a gold span | — | 17/17 = 100.0% | — |
+| Mean gold-span recall in context | — | 0.9583 | — |
+| nDCG@10 (reranked) | — | 0.9584 | — |
+
+Per category (answerable: found=true; no_answer: found=false):
+
+| Category | Correct outcome |
+|---|---|
+| exact | 6/8 = 75.0% |
+| multi | 4/4 = 100.0% |
+| negation | 2/4 = 50.0% |
+| no_answer | 10/11 = 90.9% |
+| paraphrase | 5/8 = 62.5% |
+
+Latency of 200 responses (client wall time, sequential): n=38, p50=38.9s, p95=103.9s, max=127.1s. Stage p50 ms: {'context': 2, 'encode': 160, 'fusion': 5, 'rerank': 21254}.
 
 ### Run `balanced-9b-nothink`
 
@@ -62,14 +357,14 @@ LLM-judged (judge `qwen3.6:27b-q4_K_M`, local):
 | Judge output errors | 0 |
 | found=true on no-answer/isolation: judged hallucination | 3/3 |
 | found=true on no-answer/isolation: quotes do answer (gold error?) | 0/3 |
-| RAGAS faithfulness[found] | 0.857 (n=7, NaN=0) |
-| RAGAS faithfulness[all] | 0.857 (n=7, NaN=0) |
-| RAGAS context_recall[found] | 1.000 (n=7, NaN=0) |
-| RAGAS context_recall[all] | 1.000 (n=8, NaN=0) |
-| RAGAS llm_context_precision_with_reference[found] | 1.000 (n=7, NaN=0) |
-| RAGAS llm_context_precision_with_reference[all] | 1.000 (n=8, NaN=0) |
-| RAGAS factual_correctness(mode=f1)[found] | 0.600 (n=7, NaN=0) |
-| RAGAS factual_correctness(mode=f1)[all] | 0.600 (n=7, NaN=0) |
+| RAGAS faithfulness[found] | 0.950 (n=64, NaN=0) |
+| RAGAS faithfulness[all] | 0.950 (n=64, NaN=0) |
+| RAGAS context_recall[found] | 1.000 (n=64, NaN=0) |
+| RAGAS context_recall[all] | 0.968 (n=93, NaN=0) |
+| RAGAS llm_context_precision_with_reference[found] | 0.924 (n=64, NaN=0) |
+| RAGAS llm_context_precision_with_reference[all] | 0.833 (n=93, NaN=0) |
+| RAGAS factual_correctness(mode=f1)[found] | 0.635 (n=64, NaN=0) |
+| RAGAS factual_correctness(mode=f1)[all] | 0.635 (n=64, NaN=0) |
 
 False positives (found=true where not-found was expected) — every case:
 
@@ -121,6 +416,14 @@ LLM-judged (judge `qwen3.6:27b-q4_K_M`, local):
 | Judge output errors | 0 |
 | found=true on no-answer/isolation: judged hallucination | 2/2 |
 | found=true on no-answer/isolation: quotes do answer (gold error?) | 0/2 |
+| RAGAS faithfulness[found] | 0.967 (n=46, NaN=0) |
+| RAGAS faithfulness[all] | 0.967 (n=46, NaN=0) |
+| RAGAS context_recall[found] | 1.000 (n=46, NaN=0) |
+| RAGAS context_recall[all] | 0.971 (n=69, NaN=0) |
+| RAGAS llm_context_precision_with_reference[found] | 0.894 (n=46, NaN=0) |
+| RAGAS llm_context_precision_with_reference[all] | 0.811 (n=69, NaN=0) |
+| RAGAS factual_correctness(mode=f1)[found] | 0.617 (n=46, NaN=0) |
+| RAGAS factual_correctness(mode=f1)[all] | 0.617 (n=46, NaN=0) |
 
 **Split `dev`** — requests 38 (gold 35: answerable 24, no-answer 11; isolation probes 3)
 
@@ -164,14 +467,14 @@ LLM-judged (judge `qwen3.6:27b-q4_K_M`, local):
 | Judge output errors | 0 |
 | found=true on no-answer/isolation: judged hallucination | 1/1 |
 | found=true on no-answer/isolation: quotes do answer (gold error?) | 0/1 |
-| RAGAS faithfulness[found] | 0.857 (n=7, NaN=0) |
-| RAGAS faithfulness[all] | 0.857 (n=7, NaN=0) |
-| RAGAS context_recall[found] | 1.000 (n=7, NaN=0) |
-| RAGAS context_recall[all] | 1.000 (n=8, NaN=0) |
-| RAGAS llm_context_precision_with_reference[found] | 1.000 (n=7, NaN=0) |
-| RAGAS llm_context_precision_with_reference[all] | 1.000 (n=8, NaN=0) |
-| RAGAS factual_correctness(mode=f1)[found] | 0.600 (n=7, NaN=0) |
-| RAGAS factual_correctness(mode=f1)[all] | 0.600 (n=7, NaN=0) |
+| RAGAS faithfulness[found] | 0.906 (n=18, NaN=0) |
+| RAGAS faithfulness[all] | 0.906 (n=18, NaN=0) |
+| RAGAS context_recall[found] | 1.000 (n=18, NaN=0) |
+| RAGAS context_recall[all] | 0.958 (n=24, NaN=0) |
+| RAGAS llm_context_precision_with_reference[found] | 1.000 (n=18, NaN=0) |
+| RAGAS llm_context_precision_with_reference[all] | 0.894 (n=24, NaN=0) |
+| RAGAS factual_correctness(mode=f1)[found] | 0.679 (n=18, NaN=0) |
+| RAGAS factual_correctness(mode=f1)[all] | 0.679 (n=18, NaN=0) |
 
 ### Run `balanced-9b`
 
@@ -293,6 +596,18 @@ Per category (answerable: found=true; no_answer: found=false):
 
 Latency of 200 responses (client wall time, sequential): n=149, p50=14.7s, p95=30.3s, max=55.1s. Stage p50 ms: {'context': 1, 'encode': 136, 'fusion': 3, 'rerank': 9212}.
 
+LLM-judged (judge `qwen3.6:27b-q4_K_M`, local):
+
+| Metric | Value |
+|---|---|
+| Expected-fact recall, all answerable | 110/244 = 45.1% |
+| Expected-fact recall, found=true only | 110/145 = 75.9% |
+| Fully complete answers (all facts) | 32/92 |
+| Answers asserting a forbidden fact | 0/92 |
+| Judge output errors | 0 |
+| found=true on no-answer/isolation: judged hallucination | 0/0 |
+| found=true on no-answer/isolation: quotes do answer (gold error?) | 0/0 |
+
 **Split `holdout`** — requests 112 (gold 98: answerable 69, no-answer 29; isolation probes 14)
 
 | Metric | Target | Measured | Verdict |
@@ -323,6 +638,18 @@ Per category (answerable: found=true; no_answer: found=false):
 | paraphrase | 16/21 = 76.2% |
 
 Latency of 200 responses (client wall time, sequential): n=111, p50=15.4s, p95=31.4s, max=55.1s. Stage p50 ms: {'context': 1, 'encode': 139, 'fusion': 3, 'rerank': 9646}.
+
+LLM-judged (judge `qwen3.6:27b-q4_K_M`, local):
+
+| Metric | Value |
+|---|---|
+| Expected-fact recall, all answerable | 78/177 = 44.1% |
+| Expected-fact recall, found=true only | 78/106 = 73.6% |
+| Fully complete answers (all facts) | 22/68 |
+| Answers asserting a forbidden fact | 0/68 |
+| Judge output errors | 0 |
+| found=true on no-answer/isolation: judged hallucination | 0/0 |
+| found=true on no-answer/isolation: quotes do answer (gold error?) | 0/0 |
 
 **Split `dev`** — requests 38 (gold 35: answerable 24, no-answer 11; isolation probes 3)
 

@@ -1,0 +1,142 @@
+{
+ "outcomes": {
+  "gold": {
+   "found": 56,
+   "not_found": 42
+  },
+  "isolation": {
+   "not_found": 14
+  }
+ },
+ "by_category": {
+  "exact": {
+   "num": 18,
+   "den": 22,
+   "value": 0.8182
+  },
+  "multi": {
+   "num": 7,
+   "den": 12,
+   "value": 0.5833
+  },
+  "negation": {
+   "num": 10,
+   "den": 14,
+   "value": 0.7143
+  },
+  "no_answer": {
+   "num": 27,
+   "den": 29,
+   "value": 0.931
+  },
+  "paraphrase": {
+   "num": 19,
+   "den": 21,
+   "value": 0.9048
+  }
+ },
+ "run": "balanced-9b-nothink-qm2",
+ "split": "holdout",
+ "n_requests": 112,
+ "n_gold": 98,
+ "n_answerable": 69,
+ "n_no_answer": 29,
+ "n_isolation": 14,
+ "structured_validity_200": {
+  "num": 112,
+  "den": 112,
+  "value": 1.0
+ },
+ "citation_span_validity": {
+  "num": 110,
+  "den": 110,
+  "value": 1.0
+ },
+ "cross_doc_leakage_citations": {
+  "num": 0,
+  "den": 110,
+  "value": 0.0
+ },
+ "isolation_correct_not_found": {
+  "num": 14,
+  "den": 14,
+  "value": 1.0
+ },
+ "isolation_found_true": [],
+ "positive_hit_at_candidates": {
+  "num": 69,
+  "den": 69,
+  "value": 1.0
+ },
+ "all_spans_in_candidates": {
+  "num": 69,
+  "den": 69,
+  "value": 1.0
+ },
+ "context_evidence_coverage_all": {
+  "num": 67,
+  "den": 69,
+  "value": 0.971
+ },
+ "context_evidence_coverage_any": {
+  "num": 67,
+  "den": 69,
+  "value": 0.971
+ },
+ "mean_span_recall_context": 0.971,
+ "ndcg@10_rerank": 0.9306,
+ "span_recall@1_rerank": 0.8386,
+ "span_recall@3_rerank": 0.9164,
+ "span_recall@5_rerank": 0.9382,
+ "span_recall@8_rerank": 0.971,
+ "span_recall@20_rerank": 1.0,
+ "span_recall@60_rerank": 1.0,
+ "answerable_found": {
+  "num": 54,
+  "den": 69,
+  "value": 0.7826
+ },
+ "answerable_not_found": {
+  "num": 15,
+  "den": 69,
+  "value": 0.2174
+ },
+ "answerable_errors": {
+  "num": 0,
+  "den": 69,
+  "value": 0.0
+ },
+ "found_cites_gold_span": {
+  "num": 54,
+  "den": 54,
+  "value": 1.0
+ },
+ "correct_abstention_negatives": {
+  "num": 27,
+  "den": 29,
+  "value": 0.931
+ },
+ "negatives_errors": {
+  "num": 0,
+  "den": 29,
+  "value": 0.0
+ },
+ "latency_ms_200": {
+  "n": 112,
+  "p50": 49374,
+  "p95": 114100,
+  "max": 154072
+ },
+ "stage_ms_p50": {
+  "context": 3,
+  "encode": 158,
+  "fusion": 5,
+  "rerank": 26777
+ },
+ "stage_ms_p95": {
+  "context": 7,
+  "encode": 523,
+  "fusion": 7,
+  "rerank": 44260
+ }
+}

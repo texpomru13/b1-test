@@ -26,43 +26,43 @@
  },
  "ragas": {
   "faithfulness[found]": {
-   "mean": 0.8571,
-   "n": 7,
+   "mean": 0.95,
+   "n": 64,
    "nan": 0
   },
   "faithfulness[all]": {
-   "mean": 0.8571,
-   "n": 7,
+   "mean": 0.95,
+   "n": 64,
    "nan": 0
   },
   "context_recall[found]": {
    "mean": 1.0,
-   "n": 7,
+   "n": 64,
    "nan": 0
   },
   "context_recall[all]": {
-   "mean": 1.0,
-   "n": 8,
+   "mean": 0.9677,
+   "n": 93,
    "nan": 0
   },
   "llm_context_precision_with_reference[found]": {
-   "mean": 1.0,
-   "n": 7,
+   "mean": 0.9237,
+   "n": 64,
    "nan": 0
   },
   "llm_context_precision_with_reference[all]": {
-   "mean": 1.0,
-   "n": 8,
+   "mean": 0.8327,
+   "n": 93,
    "nan": 0
   },
   "factual_correctness(mode=f1)[found]": {
-   "mean": 0.6,
-   "n": 7,
+   "mean": 0.6347,
+   "n": 64,
    "nan": 0
   },
   "factual_correctness(mode=f1)[all]": {
-   "mean": 0.6,
-   "n": 7,
+   "mean": 0.6347,
+   "n": 64,
    "nan": 0
   }
  }

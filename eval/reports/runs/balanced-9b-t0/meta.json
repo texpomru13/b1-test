@@ -1,0 +1,16 @@
+{
+ "run": "balanced-9b-t0",
+ "api": "http://127.0.0.1:8000",
+ "started_at": "2026-11-11T23:39:52.381632+00:00",
+ "git_head": "a2c35fa5e28a8c097223b916206a70e8bd76b133",
+ "split": "dev",
+ "ready": {
+  "status": "ready",
+  "components": {
+   "redis": "ok",
+   "qdrant": "ok",
+   "local_models": "ok"
+  },
+  "model_ready": true
+ }
+}

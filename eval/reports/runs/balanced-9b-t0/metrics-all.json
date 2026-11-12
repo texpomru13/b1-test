@@ -1,0 +1,142 @@
+{
+ "outcomes": {
+  "gold": {
+   "found": 80,
+   "not_found": 53
+  },
+  "isolation": {
+   "not_found": 17
+  }
+ },
+ "by_category": {
+  "exact": {
+   "num": 26,
+   "den": 30,
+   "value": 0.8667
+  },
+  "multi": {
+   "num": 12,
+   "den": 16,
+   "value": 0.75
+  },
+  "negation": {
+   "num": 17,
+   "den": 18,
+   "value": 0.9444
+  },
+  "no_answer": {
+   "num": 39,
+   "den": 40,
+   "value": 0.975
+  },
+  "paraphrase": {
+   "num": 24,
+   "den": 29,
+   "value": 0.8276
+  }
+ },
+ "run": "balanced-9b-t0",
+ "split": "all",
+ "n_requests": 150,
+ "n_gold": 133,
+ "n_answerable": 93,
+ "n_no_answer": 40,
+ "n_isolation": 17,
+ "structured_validity_200": {
+  "num": 150,
+  "den": 150,
+  "value": 1.0
+ },
+ "citation_span_validity": {
+  "num": 136,
+  "den": 136,
+  "value": 1.0
+ },
+ "cross_doc_leakage_citations": {
+  "num": 0,
+  "den": 136,
+  "value": 0.0
+ },
+ "isolation_correct_not_found": {
+  "num": 17,
+  "den": 17,
+  "value": 1.0
+ },
+ "isolation_found_true": [],
+ "positive_hit_at_candidates": {
+  "num": 93,
+  "den": 93,
+  "value": 1.0
+ },
+ "all_spans_in_candidates": {
+  "num": 93,
+  "den": 93,
+  "value": 1.0
+ },
+ "context_evidence_coverage_all": {
+  "num": 90,
+  "den": 93,
+  "value": 0.9677
+ },
+ "context_evidence_coverage_any": {
+  "num": 90,
+  "den": 93,
+  "value": 0.9677
+ },
+ "mean_span_recall_context": 0.9677,
+ "ndcg@10_rerank": 0.9378,
+ "span_recall@1_rerank": 0.848,
+ "span_recall@3_rerank": 0.9237,
+ "span_recall@5_rerank": 0.9434,
+ "span_recall@8_rerank": 0.9677,
+ "span_recall@20_rerank": 1.0,
+ "span_recall@60_rerank": 1.0,
+ "answerable_found": {
+  "num": 79,
+  "den": 93,
+  "value": 0.8495
+ },
+ "answerable_not_found": {
+  "num": 14,
+  "den": 93,
+  "value": 0.1505
+ },
+ "answerable_errors": {
+  "num": 0,
+  "den": 93,
+  "value": 0.0
+ },
+ "found_cites_gold_span": {
+  "num": 79,
+  "den": 79,
+  "value": 1.0
+ },
+ "correct_abstention_negatives": {
+  "num": 39,
+  "den": 40,
+  "value": 0.975
+ },
+ "negatives_errors": {
+  "num": 0,
+  "den": 40,
+  "value": 0.0
+ },
+ "latency_ms_200": {
+  "n": 150,
+  "p50": 49173,
+  "p95": 103713,
+  "max": 174759
+ },
+ "stage_ms_p50": {
+  "context": 3,
+  "encode": 156,
+  "fusion": 5,
+  "rerank": 26493
+ },
+ "stage_ms_p95": {
+  "context": 7,
+  "encode": 638,
+  "fusion": 8,
+  "rerank": 64128
+ }
+}

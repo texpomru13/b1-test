@@ -1,0 +1,6 @@
+balanced-9b-t0 vs balanced-9b-nothink       dev      improved= 5 regressed= 3 sign-test p=0.7266
+balanced-9b-t0 vs balanced-9b-nothink       holdout  improved=15 regressed= 0 sign-test p=0.0001
+balanced-9b-t0 vs balanced-9b-nothink       all      improved=20 regressed= 3 sign-test p=0.0005
+balanced-9b-t0 vs balanced-9b-nothink-qm2   dev      improved= 5 regressed= 2 sign-test p=0.4531
+balanced-9b-t0 vs balanced-9b-nothink-qm2   holdout  improved= 8 regressed= 1 sign-test p=0.0391
+balanced-9b-t0 vs balanced-9b-nothink-qm2   all      improved=13 regressed= 3 sign-test p=0.0213

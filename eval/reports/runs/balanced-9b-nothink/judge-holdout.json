@@ -24,5 +24,46 @@
   "quotes_do_not_answer (hallucination)": 2,
   "quotes_answer (possible gold error)": 0
  },
- "ragas": {}
+ "ragas": {
+  "faithfulness[found]": {
+   "mean": 0.9674,
+   "n": 46,
+   "nan": 0
+  },
+  "faithfulness[all]": {
+   "mean": 0.9674,
+   "n": 46,
+   "nan": 0
+  },
+  "context_recall[found]": {
+   "mean": 1.0,
+   "n": 46,
+   "nan": 0
+  },
+  "context_recall[all]": {
+   "mean": 0.971,
+   "n": 69,
+   "nan": 0
+  },
+  "llm_context_precision_with_reference[found]": {
+   "mean": 0.8938,
+   "n": 46,
+   "nan": 0
+  },
+  "llm_context_precision_with_reference[all]": {
+   "mean": 0.8115,
+   "n": 69,
+   "nan": 0
+  },
+  "factual_correctness(mode=f1)[found]": {
+   "mean": 0.6174,
+   "n": 46,
+   "nan": 0
+  },
+  "factual_correctness(mode=f1)[all]": {
+   "mean": 0.6174,
+   "n": 46,
+   "nan": 0
+  }
+ }
 }
