@@ -1,23 +1,20 @@
-# Fresh-copy acceptance (stage 9)
+# Приёмка со свежей копии (этап 9)
 
-Executed 2026-11-12 by the agent on macOS Apple Silicon (M4 Max), host Ollama 0.40.16.
+Выполнена агентом 2026-11-12 на macOS Apple Silicon (M4 Max), host Ollama 0.40.16.
 
-| Step | Command | Result |
+| Шаг | Команда | Результат |
 |---|---|---|
-| Fresh copy | `git clone https://github.com/texpomru13/b1-test.git` (HEAD `d29a210`) into an empty scratch dir; no `.runtime`, no `.env` | done |
-| First launch | `B1_PROJECT=b1-release ./run --quality balanced --port 8001` | exit 0, Ready, wall **20 s** |
-| Resolved stack | balanced: Giga-Embeddings-instruct-480M + bge-reranker-v2-m3 + qwen3.5:9b-q4_K_M, `LLM_THINKING=off` from the profile | `resolved.env` |
-| Demo (upload 2 PDFs, poll, list, exact, paraphrase, no-answer, debug, isolation, 2nd doc) | `sh eval/demo.sh http://127.0.0.1:8001` | exit 0, wall 362 s (incl. indexing of 2 docs); outcomes as expected; answers identical to the b1-eval stack |
-| Stop | `./run stop` | exit 0, 0 containers left |
-| Restart | same launch command | exit 0, wall **17 s**; `ollama pull` only verified the manifest (no layer re-download); models from the volume |
-| Persistence | `GET /api/v1/documents` after restart | both documents `succeeded`, `ready=true` |
-| First QA after restart | exact question on doc A | 200, same answer, 62 s (cold model load into Ollama under a concurrent judge job) |
+| Свежая копия | `git clone https://github.com/texpomru13/b1-test.git` (HEAD `d29a210`) в пустой временный каталог; без `.runtime` и `.env` | выполнено |
+| Первый запуск | `B1_PROJECT=b1-release ./run --quality balanced --port 8001` | код 0, Ready, **20 с** |
+| Выбранный стек | balanced: Giga-Embeddings-instruct-480M + bge-reranker-v2-m3 + qwen3.5:9b-q4_K_M, `LLM_THINKING=off` из профиля | `resolved.env` |
+| Демо: загрузка 2 PDF, опрос статуса, список, точный вопрос, перефразированный, без ответа, debug, изоляция, вопрос ко 2-му документу | `sh eval/demo.sh http://127.0.0.1:8001` | код 0, 362 с вместе с индексацией 2 документов; все исходы ожидаемые; ответы совпадают с ответами стека b1-eval |
+| Остановка | `./run stop` | код 0, контейнеров не осталось |
+| Повторный запуск | та же команда запуска | код 0, **17 с**; `ollama pull` только сверил манифест, слои заново не скачивались; модели взяты из volume |
+| Сохранность данных | `GET /api/v1/documents` после перезапуска | оба документа `succeeded`, `ready=true` |
+| Первый вопрос после перезапуска | точный вопрос к документу A | 200, тот же ответ, 62 с: холодная загрузка модели в Ollama при параллельно работающем судье |
 
-Honest limits of this measurement:
+Ограничения этого замера:
 
-- The 20 s first launch is **warm-cache**: Docker BuildKit layers were cached (same
-  Dockerfiles built earlier for `b1-eval`), the HF models were seeded from the host
-  cache (`B1_HF_SEED_DIR`), and the Ollama model was already pulled. A cold machine
-  (image build from scratch + HF model download + 6.5 GB Ollama layers) was **not_run**.
-- Timings were taken while the local judge (qwen3.6:27b) was running in parallel on
-  the same host, so QA latency is pessimistic.
+- **Тёплые кэши.** 20 с первого запуска получены при закэшированных слоях Docker BuildKit: те же Dockerfile ранее собирались для `b1-eval`. Модели HF засеяны из кэша хоста (`B1_HF_SEED_DIR`), модель Ollama уже была скачана.
+- **Холодная машина не проверялась (`not_run`).** Не измерены сборка образов с нуля, загрузка моделей HF и 6,5 ГБ слоёв Ollama.
+- **Задержка QA завышена.** Замеры шли, пока на той же машине параллельно работал локальный судья (qwen3.6:27b).

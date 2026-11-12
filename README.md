@@ -1062,6 +1062,44 @@ dense 0.964, гибрид без реранкера 0.943, BM25 0.863. RAGAS (в
 а не слепая оценка. Qwen3-Reranker-8B — `not_run` (fp32 на MPS занял ~100 ГБ, остановлен).
 Приёмка со свежей копии репозитория: [`eval/reports/acceptance/ACCEPTANCE.md`](eval/reports/acceptance/ACCEPTANCE.md).
 
+**Состав gold-набора.** Категории: точное обозначение (номер пункта, сумма, сторона) — 30,
+перефразированный вопрос — 29, несколько условий — 16, отрицание и ограничения — 18,
+нет ответа в документе — 40. У каждого вопроса есть эталонный ответ, ожидаемые и
+запрещённые факты и gold-фрагменты — точные цитаты с восстановленными смещениями и
+страницами. Документ 06 — скан без текстового слоя, он проверяет только отказ
+индексации с `OCR_REQUIRED`.
+
+**Что измеряется.**
+
+| Группа | Метрики | Как считается |
+|---|---|---|
+| Контракт и цитаты | валидность схемы, точная подстрока у каждой цитаты, утечка из другого документа | детерминированно по ответам API (`eval/metrics.py`) |
+| Поиск | hit@60, recall@k, all-spans@8, nDCG@10, MRR; доля gold-фрагментов в контексте LLM | по gold-фрагментам и `context_chunk_ids` из `debug=true` |
+| Исход ответа | найден / промах / верный отказ / 5xx; пробы изоляции | детерминированно |
+| Содержание | полнота ожидаемых фактов, полные ответы, запрещённые факты, разбор каждого ложного found=true | локальный судья (`eval/judge.py`) |
+| RAGAS | faithfulness, context recall, context precision, factual correctness | ragas 0.4.3, тот же локальный судья |
+| Абляция и модели | dense / BM25 / гибрид RRF / DBSF / гибрид + реранкер; энкодеры и реранкеры на замороженных кандидатах | `eval/ablation.py`, `eval/compare_models.py` |
+
+Варианты сравниваются парным sign-test по одним и тем же вопросам.
+
+**Как воспроизвести** (кратко, полностью — в `eval/README.md`):
+
+```bash
+B1_PROJECT=b1-eval ./run --quality balanced          # отдельный стек, свои volumes
+uv run python eval/upload_corpus.py                   # корпус + время индексации
+python3 eval/export_index.py --project b1-eval && python3 eval/build_gold.py
+uv run python eval/run_qa.py --run my-run             # вопросы через публичный API
+uv run python eval/metrics.py --run my-run --split holdout
+(cd eval && uv sync && .venv/bin/python judge.py --run my-run --split holdout)
+python3 eval/report.py --runs my-run                  # eval/reports/REPORT.md
+sh eval/demo.sh                                       # демо API с сохранением ответов
+```
+
+Артефакты: `eval/reports/REPORT.md` (сводка + таблицы по прогонам),
+`eval/reports/runs/<прогон>/` (сырые ответы, метрики, вердикты судьи),
+`eval/reports/ablation`, `eval/reports/compare`, `eval/reports/diagnosis`,
+`eval/reports/demo`. Промежуточные данные (`eval/work/`) в git не входят.
+
 Тесты: unit-набор без внешних сервисов; интеграционные — на реальных Redis,
 Qdrant и сервисе моделей, включая инъекцию сбоев (`tests/integration/test_recovery_faults.py`:
 падение воркера посреди индексации, сбой перед публикацией, устаревший токен,
