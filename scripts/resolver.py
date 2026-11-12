@@ -58,8 +58,13 @@ LLMS = {
     # structured output ("structured output is unavailable", stage-9 finding), and
     # the bare tag is a different artifact per platform. Q4_K_M runs on llama.cpp
     # everywhere and supports the JSON-schema `format` the QA graph requires.
-    "qwen3.5:9b-q4_K_M": {"rss_gib": 7.5, "quality_rank": 1, "dmr_id": None},
-    "qwen3.5:4b-q4_K_M": {"rss_gib": 3.5, "quality_rank": 2, "dmr_id": None},
+    # thinking=off: measured on the stage-9 DEV split (eval/reports): with thinking
+    # the 9B model spends num_predict on reasoning and returns empty JSON (5/24 502s,
+    # p50 145 s) vs 0 errors and p50 19 s without it. LLM_THINKING overrides.
+    "qwen3.5:9b-q4_K_M": {"rss_gib": 7.5, "quality_rank": 1, "dmr_id": None,
+                          "thinking": "off"},
+    "qwen3.5:4b-q4_K_M": {"rss_gib": 3.5, "quality_rank": 2, "dmr_id": None,
+                          "thinking": "off"},
 }
 INFRA_RESERVE_GIB = 2.5   # redis + qdrant + api/worker/dispatcher
 SAFETY_RATIO = 0.8        # plan: keep a 20-30% reserve on top of the reserve
@@ -290,6 +295,9 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
         "llm_model": profile["llm"] if not cloud else overrides.get("model", ""),
         "dmr_model": (LLMS.get(profile["llm"], {}) or {}).get("dmr_id")
         if llm_runtime == "dmr" else None,
+        # model-level default reasoning mode for Ollama (env LLM_THINKING wins)
+        "llm_thinking": ("auto" if cloud
+                         else (LLMS.get(profile["llm"], {}) or {}).get("thinking", "auto")),
         "ollama_base_url": ("http://host.docker.internal:11434"
                             if llm_runtime == "host-ollama"
                             else "http://ollama:11434"),

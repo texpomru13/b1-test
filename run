@@ -183,6 +183,8 @@ write_resolved_env() {  # $1 = resolution json
         printf "export B1_API_PORT='%s'\n" "${OV_PORT:-8000}"
         printf "export B1_LLM_READ_TIMEOUT_S='%s'\n" "$(json_get "$res" llm_read_timeout_s)"
         printf "export B1_QA_DEADLINE_S='%s'\n" "$(json_get "$res" qa_deadline_s)"
+        # model default reasoning mode; an explicit LLM_THINKING (env / .env) wins
+        printf "export LLM_THINKING='%s'\n" "${LLM_THINKING:-$(json_get "$res" llm_thinking)}"
     } > "$tmp"
     mv "$tmp" "$RUNTIME_DIR/resolved.env"   # atomic
     printf '%s' "$res" > "$RUNTIME_DIR/resolved-config.json.tmp"

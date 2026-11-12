@@ -194,3 +194,12 @@ def test_mac_container_llm_uses_vm_pool_not_host_free() -> None:
     d = result["decisions"]
     assert d["llm_runtime"] == "container-ollama"
     assert d["profile"] == "quality"  # fits the VM pool with sequential residency
+
+
+def test_llm_thinking_default_follows_model() -> None:
+    quality = resolve(linux_cpu_facts(64.0), {})["decisions"]
+    assert quality["llm_thinking"] == "auto"  # no stage-9 evidence for the 27B model
+    for model in ("qwen3.5:9b-q4_K_M", "qwen3.5:4b-q4_K_M"):
+        d = resolve(mac_facts(64.0, 63.0), {"model": model})["decisions"]
+        assert d["llm_model"] == model
+        assert d["llm_thinking"] == "off"

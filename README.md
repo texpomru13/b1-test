@@ -825,7 +825,7 @@ FUSION_METHOD=dbsf DENSE_TOP_K=40 SPARSE_TOP_K=30 RERANK_INPUT_K=50 CONTEXT_TOP_
 | `QA_DEADLINE_S` | по runtime: 900, для CPU 3600 | Общий дедлайн вопроса; явное значение имеет приоритет |
 | `LOCAL_CONTEXT_TOKENS` | `16384` | Окно контекста, под которое считается бюджет |
 | `LLM_MAX_OUTPUT_TOKENS`, `LLM_REASONING_BUDGET_TOKENS` | `2048`, `4096` | Резерв под ответ и рассуждение |
-| `LLM_THINKING` | `auto` | Только Ollama: режим рассуждения модели — `auto` (умолчание модели), `on`, `off`. Контекст Ollama всегда задаётся явно равным `LOCAL_CONTEXT_TOKENS` |
+| `LLM_THINKING` | по модели: `off` для `qwen3.5:9b/4b` (balanced, low-memory), иначе `auto` | Только Ollama: режим рассуждения модели — `auto` (умолчание модели), `on`, `off`. Умолчание `off` для 9B/4B выбрано по dev-сплиту этапа 9 (с рассуждением — пустые JSON-ответы и 502). Контекст Ollama всегда задаётся явно равным `LOCAL_CONTEXT_TOKENS` |
 | `LLM_TEMPERATURE` | `0` | Только Ollama: температура генерации и верификатора; `presence_penalty` всегда 0, `seed` фиксирован — дословное цитирование воспроизводимо |
 | `EMBEDDING_TOKENIZER_PATH` | по выбранному энкодеру | `tokenizer.json` энкодера для точного подсчёта токенов при разбиении; задаёт launcher (compose: `B1_TOKENIZER_PATH`) |
 
