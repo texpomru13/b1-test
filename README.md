@@ -1053,8 +1053,9 @@ compose-проект `b1-eval`; судья — локальная qwen3.6:27b, �
 | Ответы с запрещённым фактом | 0/69 | 0/93 |
 
 Поиск (все 93 вопроса): гибрид RRF + реранкер — recall@8 0.968, hit@60 1.0;
-dense 0.964, гибрид без реранкера 0.943, BM25 0.863. RAGAS (вариант thinking off,
-93 вопроса): faithfulness 0.95, context recall 0.968, context precision 0.833.
+dense 0.964, гибрид без реранкера 0.943, BM25 0.863. RAGAS итогового пресета
+(holdout, 69 вопросов): faithfulness 0.970, factual correctness F1 0.660,
+context recall 0.971, context precision 0.812.
 Задержка ответа на стеке без посторонней нагрузки: p50 19 с, p95 45 с (9B), p50 15 с (4B).
 
 Важные оговорки: оба исправления (сопоставление цитат и temperature 0) выбраны на dev,
