@@ -2,9 +2,14 @@
 
 1. Evidence chunk_id must be in the FINAL (post-budget) allowed context.
 2. (Scope is guaranteed by retrieval: context comes only from the scoped query.)
-3. The quote must match the chunk text exactly after ONE documented whitespace
-   normalization (runs of whitespace -> single space); offsets and pages are
-   recovered SERVER-side from the raw chunk span.
+3. The quote must match the chunk text under a documented, character-preserving
+   matching rule (QUOTE_MATCH_VERSION): first strict (runs of whitespace -> one
+   space), then whitespace-insensitive (PDF text layers split words: "уст ановленной"),
+   and an ellipsis ("..." / "…") may stand for a skipped run of at most
+   MAX_ELLIPSIS_GAP_CHARS inside the SAME chunk, segments in order, each segment
+   >= MIN_SEGMENT_CHARS non-space characters. Every non-space character of the
+   quote must appear verbatim and in order; nothing is fuzzy. The citation text,
+   offsets and pages are ALWAYS the raw canonical span recovered server-side.
 4. Numbers, percents, amounts and the working/calendar-days distinction in the
    claim text must be present in its evidence quotes.
 """
@@ -36,14 +41,37 @@ def _ws_normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+QUOTE_MATCH_VERSION = "ws-insensitive+ellipsis-v2"
+MAX_ELLIPSIS_GAP_CHARS = 400
+MIN_SEGMENT_CHARS = 12
+_ELLIPSIS = re.compile(r"\s*(?:\.\.\.+|…)\s*")
+
+
+def _lenient_pattern(quote: str) -> str | None:
+    """Whitespace-insensitive pattern; an ellipsis is a bounded in-order gap."""
+    segments = [seg for seg in _ELLIPSIS.split(quote.strip()) if seg.strip()]
+    if not segments:
+        return None
+    parts = []
+    for seg in segments:
+        chars = [ch for ch in seg if not ch.isspace()]
+        if len(chars) < MIN_SEGMENT_CHARS and len(segments) > 1:
+            return None  # tiny fragments must not be stitched together
+        parts.append(r"\s*".join(re.escape(ch) for ch in chars))
+    return f"[\\s\\S]{{0,{MAX_ELLIPSIS_GAP_CHARS}}}?".join(parts)
+
+
 def locate_quote(chunk: ContextChunk, quote: str) -> LocatedQuote:
-    """Find the quote in the chunk under whitespace normalization; recover the
-    RAW span and canonical offsets. Raises ProvenanceError if absent."""
+    """Find the quote in the chunk (strict, then the documented lenient rule);
+    recover the RAW span and canonical offsets. Raises ProvenanceError if absent."""
     tokens = _ws_normalize(quote).split(" ")
     if not tokens or not tokens[0]:
         raise ProvenanceError("empty quote")
     pattern = r"\s+".join(re.escape(token) for token in tokens)
     match = re.search(pattern, chunk.text)
+    if match is None:
+        lenient = _lenient_pattern(quote)
+        match = re.search(lenient, chunk.text) if lenient else None
     if match is None:
         raise ProvenanceError(
             f"quote is not a substring of chunk {chunk.chunk_id} "

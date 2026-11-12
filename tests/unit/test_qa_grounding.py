@@ -91,3 +91,62 @@ def test_quote_page_resolved_from_segments() -> None:
     c = chunk(segments=seg)
     located = locate_quote(c, "десяти рабочих дней")
     assert located.page == 3 and located.page_to == 3
+
+
+# --- quote matching v2: whitespace-insensitive + bounded ellipsis (stage-9 finding) ---
+
+PDF_TEXT = (
+    "19. Абонент  снимает  показания приборов учета на последнее число периода, "
+    "установленного настоя щим договором. Страница 3 из 8 Туроп ератор не несет "
+    "ответственности за расходы заказчика."
+)
+
+
+def pdf_chunk() -> ContextChunk:
+    return ContextChunk(
+        chunk_id="source-2", chunk_index=1, text=PDF_TEXT, section=None,
+        page_from=1, page_to=1, char_start=1000, char_end=1000 + len(PDF_TEXT),
+        rerank_score=0.5, segments=[],
+    )
+
+
+def _is_canonical_slice(located) -> None:  # type: ignore[no-untyped-def]
+    assert PDF_TEXT[located.char_start - 1000: located.char_end - 1000] == located.quote_raw
+
+
+def test_intra_word_pdf_spaces_are_tolerated_and_raw_span_returned() -> None:
+    located = locate_quote(pdf_chunk(), "установленного настоящим договором")
+    assert located.quote_raw == "установленного настоя щим договором"
+    _is_canonical_slice(located)
+
+
+def test_ellipsis_bridges_a_bounded_gap_in_order() -> None:
+    located = locate_quote(
+        pdf_chunk(), "установленного настоящим договором ... Туроператор не несет ответственности")
+    assert "Страница 3 из 8" in located.quote_raw  # the skipped text is part of the span
+    _is_canonical_slice(located)
+
+
+def test_ellipsis_segments_out_of_order_are_rejected() -> None:
+    with pytest.raises(ProvenanceError):
+        locate_quote(pdf_chunk(),
+                     "Туроператор не несет ответственности ... установленного настоящим договором")
+
+
+def test_ellipsis_with_tiny_fragments_is_rejected() -> None:
+    with pytest.raises(ProvenanceError):
+        locate_quote(pdf_chunk(), "19. ... расходы")
+
+
+def test_ellipsis_gap_is_bounded() -> None:
+    long_text = "Начало пункта о сроках оплаты. " + "x" * 500 + " Конец пункта о сроках оплаты."
+    c = ContextChunk(chunk_id="source-3", chunk_index=0, text=long_text, section=None,
+                     page_from=1, page_to=1, char_start=0, char_end=len(long_text),
+                     rerank_score=0.1, segments=[])
+    with pytest.raises(ProvenanceError):
+        locate_quote(c, "Начало пункта о сроках оплаты ... Конец пункта о сроках оплаты")
+
+
+def test_any_changed_character_is_still_rejected() -> None:
+    with pytest.raises(ProvenanceError):  # 'е' -> 'и': not verbatim
+        locate_quote(pdf_chunk(), "Туроператор ни несет ответственности")
