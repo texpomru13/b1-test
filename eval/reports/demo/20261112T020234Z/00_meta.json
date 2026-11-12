@@ -1,0 +1,1 @@
+{"timestamp_utc": "20261112T020234Z", "api": "http://127.0.0.1:8000", "git_head": "8a80bccb773b081752edc0728d7e344fa62405e5", "ready": {"status":"ready","components":{"redis":"ok","qdrant":"ok","local_models":"ok"},"model_ready":true}}

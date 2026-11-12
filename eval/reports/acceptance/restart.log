@@ -1,0 +1,108 @@
+==> [profile] probing host facts and resolving the profile (once per launch)
+    - encoder kept from the saved profile / existing index: ai-sage/Giga-Embeddings-instruct-480M-0826 (change it only via a controlled reindex, or use a separate B1_PROJECT)
+    - saved profile kept: runtime=host-ollama (no silent migration; use --provider to switch)
+    - resolved profile=balanced runtime=host-ollama encoder=ai-sage/Giga-Embeddings-instruct-480M-0826 reranker=BAAI/bge-reranker-v2-m3 residency=resident-both
+==> [download] ensuring host Ollama has qwen3.5:9b-q4_K_M (resumable pull)
+pulling manifest ⠙ pulling manifest ⠙ pulling manifest ⠸ pulling manifest ⠸ pulling manifest ⠼ pulling manifest ⠴ pulling manifest ⠦ pulling manifest ⠇ pulling manifest 
+pulling f836f08f9211: 100% ▕██████████████████▏ 921 MB                         
+pulling 02d45dc1cf45: 100% ▕██████████████████▏ 5.6 GB                         
+pulling b507b9c2f6ca: 100% ▕██████████████████▏   13 B                         
+pulling 50cbab8a892c: 100% ▕██████████████████▏  11 KB                         
+pulling 9371364b27a5: 100% ▕██████████████████▏   65 B                         
+pulling 08f9698c1116: 100% ▕██████████████████▏  177 B                         
+verifying sha256 digest 
+writing manifest 
+removing unused layers 
+success 
+==> [warmup] checking structured output of qwen3.5:9b-q4_K_M on host Ollama
+==> [images] building/starting services (first run may download many GiB)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ b1-release-models-init  Built
+ b1-release-local-models  Built
+ b1-release-worker  Built
+ b1-release-dispatcher  Built
+ b1-release-api  Built
+ Container b1-release-models-init-1  Recreate
+ Container b1-release-dispatcher-1  Recreate
+ Container b1-release-api-1  Recreate
+ Container b1-release-models-init-1  Recreated
+ Container b1-release-local-models-1  Recreate
+ Container b1-release-api-1  Recreated
+ Container b1-release-dispatcher-1  Recreated
+ Container b1-release-local-models-1  Recreated
+ Container b1-release-worker-1  Recreate
+ Container b1-release-worker-1  Recreated
+ Container b1-release-qdrant-1  Starting
+ Container b1-release-models-init-1  Starting
+ Container b1-release-redis-1  Starting
+ Container b1-release-qdrant-1  Started
+ Container b1-release-redis-1  Started
+ Container b1-release-qdrant-1  Waiting
+ Container b1-release-redis-1  Waiting
+ Container b1-release-redis-1  Waiting
+ Container b1-release-models-init-1  Started
+ Container b1-release-models-init-1  Waiting
+ Container b1-release-models-init-1  Exited
+ Container b1-release-local-models-1  Starting
+ Container b1-release-local-models-1  Started
+ Container b1-release-redis-1  Waiting
+ Container b1-release-qdrant-1  Waiting
+ Container b1-release-local-models-1  Waiting
+ Container b1-release-qdrant-1  Healthy
+ Container b1-release-redis-1  Healthy
+ Container b1-release-qdrant-1  Healthy
+ Container b1-release-redis-1  Healthy
+ Container b1-release-dispatcher-1  Starting
+ Container b1-release-redis-1  Healthy
+ Container b1-release-api-1  Starting
+ Container b1-release-dispatcher-1  Started
+ Container b1-release-api-1  Started
+ Container b1-release-local-models-1  Healthy
+ Container b1-release-worker-1  Starting
+ Container b1-release-worker-1  Started
+==> [download] waiting for models-init (pinned snapshots into the hf_models volume)
+==> [warmup] waiting for local-models (encoder + reranker load)
+==> [services] waiting for API liveness
+==> [ready] waiting for full readiness
+
+Ready. Resolved stack (candidate preset, reasons above):
+  provider=ollama model=qwen3.5:9b-q4_K_M
+  encoder=ai-sage/Giga-Embeddings-instruct-480M-0826@1763d603
+  reranker=BAAI/bge-reranker-v2-m3 (cross_encoder)
+  API: http://127.0.0.1:8001  (docs: /docs, ready: /health/ready)
+  Logs: ./run logs   Status: ./run status   Stop: ./run stop   Down (keep data): ./run down
