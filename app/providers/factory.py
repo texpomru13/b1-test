@@ -127,16 +127,23 @@ class _OpenAICompatibleAdapter:
 
 
 class _OllamaAdapter:
-    def __init__(self, capabilities: CapabilityMap, chat_model: Any) -> None:
+    def __init__(self, capabilities: CapabilityMap, chat_model: Any,
+                 temperature: float = 0.0) -> None:
         self.capabilities = capabilities
         self._model = chat_model
+        self._temperature = temperature
 
     async def generate_json(
         self, *, system: str, user: str, json_schema: dict, max_tokens: int
     ) -> tuple[dict, dict[str, int]]:
         # langchain-ollama REPLACES the model-level options when `options` is bound,
         # so num_ctx must be repeated here or Ollama falls back to its host default.
-        options: dict[str, Any] = {"num_predict": max_tokens}
+        options: dict[str, Any] = {
+            "num_predict": max_tokens,
+            "temperature": self._temperature,
+            "presence_penalty": 0.0,
+            "seed": 0,
+        }
         if getattr(self._model, "num_ctx", None):
             options["num_ctx"] = self._model.num_ctx
         bound = self._model.bind(format=json_schema["schema"], options=options)
@@ -198,7 +205,8 @@ def build_chat_adapter(settings: Settings) -> ChatAdapter:
             model=settings.llm_model, base_url=settings.ollama_base_url,
             num_ctx=settings.local_context_tokens, reasoning=thinking,
         )
-        return _OllamaAdapter(capabilities, ollama_model)
+        return _OllamaAdapter(capabilities, ollama_model,
+                              temperature=settings.llm_temperature)
     if provider == LLMProvider.DMR:
         from langchain_openai import ChatOpenAI
 

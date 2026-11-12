@@ -54,7 +54,16 @@ async def test_ollama_bound_options_keep_num_ctx(monkeypatch: pytest.MonkeyPatch
                         lambda self, **kw: fake_bind(**kw))
     await adapter.generate_json(system="s", user="u", json_schema={"schema": {}}, max_tokens=99)
     # bound options replace the model's options in langchain-ollama: num_ctx must survive
-    assert captured["options"] == {"num_predict": 99, "num_ctx": 12288}
+    assert captured["options"] == {"num_predict": 99, "num_ctx": 12288, "temperature": 0.0,
+                                   "presence_penalty": 0.0, "seed": 0}
+
+
+def test_temperature_is_bounded_and_forwarded() -> None:
+    with pytest.raises(ValidationError):
+        make_settings(llm_temperature=3.0)
+    adapter = build_chat_adapter(make_settings(llm_provider="ollama", llm_model="m",
+                                               llm_temperature=0.3))
+    assert adapter._temperature == 0.3  # type: ignore[attr-defined]
 
 
 def test_unknown_thinking_mode_is_rejected() -> None:

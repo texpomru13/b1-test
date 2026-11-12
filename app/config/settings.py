@@ -82,6 +82,10 @@ class Settings(BaseSettings):
     llm_max_output_tokens: int = Field(default=2048, gt=0)
     llm_reasoning_budget_tokens: int = Field(default=4096, ge=0)
     llm_thinking: LLMThinking = LLMThinking.AUTO
+    # Local (Ollama) sampling for grounded extraction: greedy decoding and NO
+    # presence penalty. Chat-model defaults (e.g. qwen3.5: temperature 1,
+    # presence_penalty 1.5) make verbatim quoting unstable (stage-9 finding).
+    llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
 
     # --- Embeddings ---
     # launcher/compose-level: the encoder is owned by the local-models service.
