@@ -20,3 +20,10 @@ def test_ping_task_registered() -> None:
     from app.jobs.celery_app import celery_app
 
     assert "app.jobs.ping" in celery_app.tasks
+
+def test_configured_soft_time_limit_is_used_for_all_deadlines() -> None:
+    settings = Settings(_env_file=None, indexing_soft_time_limit_s=60)  # type: ignore[call-arg]
+    conf = create_celery_app(settings).conf
+    assert conf.task_soft_time_limit == 60
+    assert conf.task_time_limit == 240
+    assert conf.broker_transport_options["visibility_timeout"] == 360

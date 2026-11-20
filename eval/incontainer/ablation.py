@@ -34,7 +34,10 @@ async def main() -> None:
     s = get_settings()
     queries = json.loads(os.environ["EVAL_QUERIES_JSON"])
     repo = RedisJobRepository(create_redis_client(s.redis_url))
-    qdrant = create_qdrant_client(s.qdrant_url, timeout_s=60)
+    qdrant = create_qdrant_client(
+        s.qdrant_url, timeout_s=s.qdrant_timeout_s,
+        api_key=s.qdrant_api_key.get_secret_value() if s.qdrant_api_key else None,
+    )
     lm = LocalModelsClient(s.local_models_url, timeout_s=600)
     bm25 = Bm25Adapter(language=s.bm25_language, avg_len=float(s.bm25_avg_len),
                        cache_dir=s.fastembed_cache_dir)

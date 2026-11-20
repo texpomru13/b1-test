@@ -1,7 +1,7 @@
 """Capture model quotes that fail the exact-substring provenance check (INSIDE api container).
 
 Env EVAL_QUERIES_JSON = [{"req_id", "doc_id", "question"}]. Runs the production QA
-graph unchanged, but wraps grounding.locate_quote (graph-module reference) to record
+workflow, but wraps grounding.locate_quote to record
 each rejected quote together with the closest chunk window, and classifies the
 mismatch: whitespace-insensitive match (PDF intra-word spaces), quote-mark / dash /
 ё normalization, or genuinely paraphrased. Output: JSON on stdout. Diagnosis only.
@@ -21,7 +21,7 @@ from app.config.settings import get_settings
 from app.inference.client import LocalModelsClient
 from app.ingestion.chunker import ApproxTokenLength, HFTokenizerLength
 from app.providers.factory import build_chat_adapter
-from app.qa.graph import QaDependencies, build_qa_graph, run_qa
+from app.qa.workflow import QaDependencies, run_qa
 from app.reliability.deadline import Deadline
 from app.retrieval.bm25 import Bm25Adapter
 from app.retrieval.search import RetrievalScope
@@ -43,7 +43,7 @@ def _classify(chunk_text: str, quote: str) -> str:
     return "paraphrased_or_altered"
 
 
-def wrapped(chunk, quote):  # noqa: ANN001, ANN202
+def wrapped(chunk, quote):
     try:
         return _orig(chunk, quote)
     except grounding.ProvenanceError:
@@ -65,23 +65,26 @@ async def main() -> None:
     length_fn = (HFTokenizerLength(__import__("pathlib").Path(s.embedding_tokenizer_path))
                  if s.embedding_tokenizer_path else ApproxTokenLength())
     deps = QaDependencies(
-        settings=s, qdrant=create_qdrant_client(s.qdrant_url, timeout_s=60),
+        settings=s,
+        qdrant=create_qdrant_client(
+            s.qdrant_url, timeout_s=s.qdrant_timeout_s,
+            api_key=s.qdrant_api_key.get_secret_value() if s.qdrant_api_key else None,
+        ),
         local_models=LocalModelsClient(s.local_models_url, timeout_s=600),
         bm25=Bm25Adapter(language=s.bm25_language, avg_len=float(s.bm25_avg_len),
                          cache_dir=s.fastembed_cache_dir),
         length_fn=length_fn, adapter=build_chat_adapter(s),
     )
-    graph = build_qa_graph(deps)
     out = []
     for q in json.loads(os.environ["EVAL_QUERIES_JSON"]):
         job = await repo.get_job(await repo.get_job_id_for_doc(q["doc_id"]))
         scope = RetrievalScope(q["doc_id"], job["accepted_run_id"], job["index_fingerprint"])
         FAILS.clear()
-        state = await run_qa(graph, question=q["question"], scope=scope, debug=False,
+        state = await run_qa(deps, question=q["question"], scope=scope, debug=False,
                              deadline=Deadline(total_s=float(s.qa_deadline_s)))
-        out.append({"req_id": q["req_id"], "outcome": state.get("outcome"),
+        out.append({"req_id": q["req_id"], "outcome": state.outcome,
                     "rejected_quotes": list(FAILS)})
-        print(q["req_id"], state.get("outcome"), [f["kind"] for f in FAILS],
+        print(q["req_id"], state.outcome, [f["kind"] for f in FAILS],
               file=sys.stderr, flush=True)
     json.dump(out, sys.stdout, ensure_ascii=False)
 

@@ -38,20 +38,21 @@ from app.jobs.indexer import (
 from app.jobs.lease import LEASE_TTL_MS, LeaseKeeper
 from app.observability.logging import get_logger
 from app.retrieval.bm25 import Bm25Adapter
-from app.storage.job_lifecycle_sync import SyncJobLifecycle, create_sync_client
+from app.storage.job_lifecycle_sync import LeaseLostError, SyncJobLifecycle, create_sync_client
 from app.storage.qdrant_repo import QdrantIndexRepository, create_sync_qdrant_client
 
 logger = get_logger("jobs.index")
 
-_bm25_cache: dict[tuple[str, int], Bm25Adapter] = {}
+_bm25_cache: dict[tuple[str, int, str | None, bool], Bm25Adapter] = {}
 
 
 def _get_bm25(settings: Settings) -> Bm25Adapter:
-    key = (settings.bm25_language, settings.bm25_avg_len)
+    key = (settings.bm25_language, settings.bm25_avg_len,
+           settings.fastembed_cache_dir, settings.offline)
     if key not in _bm25_cache:
         _bm25_cache[key] = Bm25Adapter(
             language=settings.bm25_language, avg_len=float(settings.bm25_avg_len),
-            cache_dir=settings.fastembed_cache_dir,
+            cache_dir=settings.fastembed_cache_dir, local_files_only=settings.offline,
         )
     return _bm25_cache[key]
 
@@ -66,12 +67,12 @@ def _resolve_length_fn(settings: Settings) -> tuple[LengthFn, str]:
 
 
 def _fail(
-    lifecycle: SyncJobLifecycle, job_id: str, *, code: str, message: str, retryable: bool
+    lifecycle: SyncJobLifecycle, job_id: str, *, token: str, code: str,
+    message: str, retryable: bool,
 ) -> None:
     lifecycle.transition(
         job_id,
-        expected=[JobStatus.RUNNING.value],
-        new_status=JobStatus.FAILED.value,
+        expected=[JobStatus.RUNNING.value], new_status=JobStatus.FAILED.value, token=token,
         extra={
             "error_code": code,
             "error_message": message,
@@ -113,6 +114,8 @@ def run_index(
             lifecycle, job_id, job, settings, lease_token=lease_token, keeper=keeper,
             index_repo=index_repo, embedder=embedder, bm25=bm25,
         )
+    except LeaseLostError:
+        return "lease_lost"
     finally:
         keeper.stop()
         lifecycle.release_lease(job_id, lease_token)
@@ -131,25 +134,31 @@ def _run_owned(
     bm25: Bm25Adapter | None,
 ) -> str:
     """The task body executed while holding the job lease."""
+    job = lifecycle.get_job(job_id) or job
+    attempt = int(job.get("attempt", "0")) + 1
     started = lifecycle.transition(
         job_id,
         expected=[JobStatus.QUEUED.value, JobStatus.ACCEPTED.value, JobStatus.RETRY_WAIT.value],
         new_status=JobStatus.RUNNING.value,
-        extra={"stage": JobStage.PARSE.value},
+        token=lease_token,
+        extra={"stage": JobStage.PARSE.value, "attempt": str(attempt), "ingestion_run_id": ""},
     )
     if not started.ok:
         logger.warning("start_transition_rejected", job_id=job_id,
                        verdict=started.verdict, previous=started.previous_status)
         return f"rejected:{started.verdict}"
 
-    attempt = lifecycle.incr_attempt(job_id)
     if attempt > settings.job_max_attempts:
-        _fail(lifecycle, job_id, code=ERROR_ATTEMPTS_EXHAUSTED,
+        _fail(lifecycle, job_id, token=lease_token, code=ERROR_ATTEMPTS_EXHAUSTED,
               message=f"exceeded {settings.job_max_attempts} execution attempts",
               retryable=False)
         return "attempts_exhausted"
 
     doc_dir = Path(settings.documents_dir) / job["doc_id"]
+
+    def progress(stage: str) -> None:
+        lifecycle.set_progress(job_id, {"stage": stage}, token=lease_token)
+
     length_fn, length_fn_id = _resolve_length_fn(settings)
     try:
         result = parse_document(
@@ -160,12 +169,12 @@ def _run_owned(
             overlap_tokens=settings.chunk_overlap_tokens,
             length_fn=length_fn,
             length_fn_id=length_fn_id,
-            progress=lambda stage: lifecycle.set_fields(job_id, {"stage": stage}),
+            progress=progress,
         )
     except ParseError as exc:
         logger.warning("parse_failed", job_id=job_id, code=exc.code,
                        detail=exc.detail or "")
-        _fail(lifecycle, job_id, code=exc.code, message=exc.message,
+        _fail(lifecycle, job_id, token=lease_token, code=exc.code, message=exc.message,
               retryable=exc.retryable)
         return f"parse_failed:{exc.code}"
 
@@ -173,11 +182,11 @@ def _run_owned(
         doc_dir, result,
         chunk_tokens=settings.chunk_tokens, overlap_tokens=settings.chunk_overlap_tokens,
     )
-    lifecycle.set_fields(job_id, {
+    lifecycle.set_progress(job_id, {
         "page_count": str(result.page_count),
         "chunk_count": str(len(result.chunks)),
         "length_fn": result.length_fn_id,
-    })
+    }, token=lease_token)
     logger.info("parse_completed", job_id=job_id, pages=result.page_count,
                 chunks=len(result.chunks))
 
@@ -189,16 +198,22 @@ def _run_owned(
 
     # --- stage 4: real indexing under the lease, published via CAS ---
     repo = index_repo or QdrantIndexRepository(
-        create_sync_qdrant_client(settings.qdrant_url), settings.qdrant_collection
+        create_sync_qdrant_client(
+            settings.qdrant_url, timeout_s=settings.qdrant_timeout_s,
+            api_key=settings.qdrant_api_key.get_secret_value() if settings.qdrant_api_key else None,
+        ), settings.qdrant_collection
+    )
+    encoder = embedder or LocalModelsSyncClient(
+        settings.local_models_url, timeout_s=settings.local_models_timeout_s
     )
     try:
         outcome = run_indexing(
-            job=_refresh(lifecycle, job_id, job),
+            job=job,
             job_id=job_id,
             lifecycle=lifecycle,
             lease_token=lease_token,
             index_repo=repo,
-            embedder=embedder or LocalModelsSyncClient(settings.local_models_url),
+            embedder=encoder,
             bm25=bm25 or _get_bm25(settings),
             settings=settings,
         )
@@ -213,7 +228,7 @@ def _run_owned(
                 return "publish_rejected:STALE_TOKEN"
             logger.warning("publish_rejected", job_id=job_id,
                            verdict=published.verdict, status=published.previous_status)
-            _fail(lifecycle, job_id, code=ERROR_PUBLISH_FAILED,
+            _fail(lifecycle, job_id, token=lease_token, code=ERROR_PUBLISH_FAILED,
                   message=f"publication CAS rejected: {published.verdict} "
                           f"({published.previous_status})",
                   retryable=False)
@@ -229,9 +244,14 @@ def _run_owned(
             _remove_own_run(repo, job["doc_id"], exc.run_id)
             return f"indexing_failed:{exc.code}"
         _compensate_and_fail(
-            lifecycle, job_id, index_repo=repo, doc_id=job["doc_id"], error=exc,
+            lifecycle, job_id, token=lease_token, index_repo=repo, doc_id=job["doc_id"], error=exc,
         )
         return f"indexing_failed:{exc.code}"
+    finally:
+        if embedder is None:
+            encoder.close()
+        if index_repo is None:
+            repo.close()
 
 
 def _remove_own_run(
@@ -255,6 +275,7 @@ def _compensate_and_fail(
     index_repo: QdrantIndexRepository,
     doc_id: str,
     error: IndexingError,
+    token: str,
 ) -> None:
     """Saga compensation (§8.4): running -> compensating -> (failed |
     cleanup_pending). The incomplete run is removed with a doc+run filter ONLY;
@@ -266,12 +287,14 @@ def _compensate_and_fail(
         "error_message": error.message,
         "error_retryable": "1" if error.retryable else "0",
     }
-    lifecycle.transition(
+    moved = lifecycle.transition(
         job_id,
         expected=[JobStatus.RUNNING.value, JobStatus.VALIDATING.value],
         new_status=JobStatus.COMPENSATING.value,
-        extra=error_fields,
+        extra=error_fields, token=token,
     )
+    if not moved.ok:
+        return
     cleanup_ok = True
     if error.run_id:
         try:
@@ -287,19 +310,15 @@ def _compensate_and_fail(
         new_status=(
             JobStatus.FAILED.value if cleanup_ok else JobStatus.CLEANUP_PENDING.value
         ),
-        extra=error_fields,
+        extra=error_fields, token=token,
     )
-
-
-def _refresh(lifecycle: SyncJobLifecycle, job_id: str, fallback: dict[str, Any]) -> dict[str, Any]:
-    return lifecycle.get_job(job_id) or fallback
 
 
 @celery_app.task(name="app.jobs.index_document")
 def index_document(job_id: str) -> str:
     settings = get_settings()
-    lifecycle = SyncJobLifecycle(create_sync_client(settings.redis_url))
-    return run_index(lifecycle, job_id, settings)
+    with create_sync_client(settings.redis_url) as client:
+        return run_index(SyncJobLifecycle(client), job_id, settings)
 
 
 @celery_app.task(name="app.jobs.ping")

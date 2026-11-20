@@ -1,10 +1,10 @@
-from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
 import httpx
 import pytest
 from app.config.settings import Settings
+from app.domain.index_fingerprint import fingerprint_for_embedding
 from app.inference.client import LocalModelsClient, LocalModelsError
 from app.inference.contract import (
     EmbedResponse,
@@ -25,7 +25,10 @@ def make_settings(**overrides: Any) -> Settings:
     return Settings(_env_file=None, **overrides)  # type: ignore[call-arg]
 
 
-SCOPE = RetrievalScope(doc_id="doc-A", accepted_run_id="run-1", index_fingerprint="fp-1")
+SCOPE = RetrievalScope("doc-A", "run-1", fingerprint_for_embedding(
+    EmbedResponse(vectors=[[0.1, 0.2]], model_id="enc", revision="r", dim=2), make_settings(),
+    length_fn_id="custom", chunk_tokens=450, overlap_tokens=64,
+))
 
 
 def test_scope_filter_has_all_three_conditions() -> None:
@@ -181,23 +184,6 @@ async def test_debug_replay_failure_yields_null_and_warning() -> None:
     assert result.context  # retrieval itself unaffected
 
 
-async def test_frozen_candidates_written(tmp_path: Path) -> None:
-    qdrant = FakeQdrant([_point("a", 1, "t"), _point("b", 2, "u")])
-    lm = FakeLM({"a": 0.9, "b": 0.1})
-    await hybrid_search(
-        question="вопрос", scope=SCOPE, settings=make_settings(), qdrant=qdrant,  # type: ignore[arg-type]
-        local_models=lm, bm25=FakeBm25(), length_fn=char_len,  # type: ignore[arg-type]
-        freeze_dir=tmp_path,
-    )
-    files = list(tmp_path.glob("candidates-*.json"))  # noqa: ASYNC240 - test code
-    assert len(files) == 1
-    import json
-
-    payload = json.loads(files[0].read_text(encoding="utf-8"))
-    assert payload["doc_id"] == "doc-A"
-    assert [c["fused_rank"] for c in payload["candidates"]] == [0, 1]
-
-
 async def test_client_rerank_501_raises() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(501, json={"error": "no reranker configured"})
@@ -279,3 +265,38 @@ async def test_qdrant_bad_request_is_not_retried(no_backoff: None) -> None:
             local_models=FakeLM({"a": 0.9}), bm25=FakeBm25(), length_fn=char_len,  # type: ignore[arg-type]
         )
     assert qdrant.query_calls == 1
+
+
+async def test_debug_empty_query_reports_branch_counts() -> None:
+    result = await hybrid_search(
+        question="q", scope=SCOPE, settings=make_settings(), qdrant=FakeQdrant([]),
+        local_models=FakeLM({}), bm25=FakeBm25(), length_fn=char_len, debug=True,
+    )
+    assert result.diagnostics.dense_returned == result.diagnostics.sparse_returned == 0
+    assert result.diagnostics.context_count == result.diagnostics.reranked_count == 0
+
+
+async def test_incompatible_query_encoder_is_rejected_before_search() -> None:
+    from app.storage.qdrant_repo import FingerprintMismatchError
+
+    qdrant = FakeQdrant([])
+    stale_scope = RetrievalScope(SCOPE.doc_id, SCOPE.accepted_run_id, "another-encoder")
+    with pytest.raises(FingerprintMismatchError):
+        await hybrid_search(
+            question="q", scope=stale_scope, settings=make_settings(), qdrant=qdrant,
+            local_models=FakeLM({}), bm25=FakeBm25(), length_fn=char_len,
+        )
+    assert qdrant.query_calls == 0
+
+
+async def test_reranker_cannot_silently_drop_candidates() -> None:
+    class PartialReranker(FakeLM):
+        async def rerank(self, request: Any) -> RerankResponse:
+            return RerankResponse(scores=[], model_id="rr", revision="r")
+
+    with pytest.raises(RetrievalError, match="invalid reranker score list"):
+        await hybrid_search(
+            question="q", scope=SCOPE, settings=make_settings(),
+            qdrant=FakeQdrant([_point("1", 0, "text")]), local_models=PartialReranker({}),
+            bm25=FakeBm25(), length_fn=char_len,
+        )

@@ -1,0 +1,211 @@
+{
+  "method": "The final deterministic count-evidence check was applied to all 150 recorded public API responses of audit-balanced. No new model calls in this replay. The changed case was also submitted again to the final running API (final-live.json).",
+  "changed_request_ids": [
+    "14-08"
+  ],
+  "all": {
+    "n_requests": 150,
+    "n_gold": 133,
+    "n_answerable": 93,
+    "n_no_answer": 40,
+    "n_isolation": 17,
+    "structured_validity_200": {
+      "num": 150,
+      "den": 150,
+      "value": 1.0
+    },
+    "citation_span_validity": {
+      "num": 144,
+      "den": 144,
+      "value": 1.0
+    },
+    "cross_doc_leakage_citations": {
+      "num": 0,
+      "den": 144,
+      "value": 0.0
+    },
+    "isolation_correct_not_found": {
+      "num": 17,
+      "den": 17,
+      "value": 1.0
+    },
+    "answerable_found": {
+      "num": 79,
+      "den": 93,
+      "value": 0.8495
+    },
+    "answerable_not_found": {
+      "num": 14,
+      "den": 93,
+      "value": 0.1505
+    },
+    "answerable_errors": {
+      "num": 0,
+      "den": 93,
+      "value": 0.0
+    },
+    "correct_abstention_negatives": {
+      "num": 40,
+      "den": 40,
+      "value": 1.0
+    },
+    "positive_hit_at_candidates": {
+      "num": 93,
+      "den": 93,
+      "value": 1.0
+    },
+    "context_evidence_coverage_all": {
+      "num": 90,
+      "den": 93,
+      "value": 0.9677
+    },
+    "found_cites_gold_span": {
+      "num": 79,
+      "den": 79,
+      "value": 1.0
+    }
+  },
+  "dev": {
+    "n_requests": 38,
+    "n_gold": 35,
+    "n_answerable": 24,
+    "n_no_answer": 11,
+    "n_isolation": 3,
+    "structured_validity_200": {
+      "num": 38,
+      "den": 38,
+      "value": 1.0
+    },
+    "citation_span_validity": {
+      "num": 31,
+      "den": 31,
+      "value": 1.0
+    },
+    "cross_doc_leakage_citations": {
+      "num": 0,
+      "den": 31,
+      "value": 0.0
+    },
+    "isolation_correct_not_found": {
+      "num": 3,
+      "den": 3,
+      "value": 1.0
+    },
+    "answerable_found": {
+      "num": 19,
+      "den": 24,
+      "value": 0.7917
+    },
+    "answerable_not_found": {
+      "num": 5,
+      "den": 24,
+      "value": 0.2083
+    },
+    "answerable_errors": {
+      "num": 0,
+      "den": 24,
+      "value": 0.0
+    },
+    "correct_abstention_negatives": {
+      "num": 11,
+      "den": 11,
+      "value": 1.0
+    },
+    "positive_hit_at_candidates": {
+      "num": 24,
+      "den": 24,
+      "value": 1.0
+    },
+    "context_evidence_coverage_all": {
+      "num": 23,
+      "den": 24,
+      "value": 0.9583
+    },
+    "found_cites_gold_span": {
+      "num": 19,
+      "den": 19,
+      "value": 1.0
+    }
+  },
+  "holdout": {
+    "n_requests": 112,
+    "n_gold": 98,
+    "n_answerable": 69,
+    "n_no_answer": 29,
+    "n_isolation": 14,
+    "structured_validity_200": {
+      "num": 112,
+      "den": 112,
+      "value": 1.0
+    },
+    "citation_span_validity": {
+      "num": 113,
+      "den": 113,
+      "value": 1.0
+    },
+    "cross_doc_leakage_citations": {
+      "num": 0,
+      "den": 113,
+      "value": 0.0
+    },
+    "isolation_correct_not_found": {
+      "num": 14,
+      "den": 14,
+      "value": 1.0
+    },
+    "answerable_found": {
+      "num": 60,
+      "den": 69,
+      "value": 0.8696
+    },
+    "answerable_not_found": {
+      "num": 9,
+      "den": 69,
+      "value": 0.1304
+    },
+    "answerable_errors": {
+      "num": 0,
+      "den": 69,
+      "value": 0.0
+    },
+    "correct_abstention_negatives": {
+      "num": 29,
+      "den": 29,
+      "value": 1.0
+    },
+    "positive_hit_at_candidates": {
+      "num": 69,
+      "den": 69,
+      "value": 1.0
+    },
+    "context_evidence_coverage_all": {
+      "num": 67,
+      "den": 69,
+      "value": 0.971
+    },
+    "found_cites_gold_span": {
+      "num": 60,
+      "den": 60,
+      "value": 1.0
+    }
+  },
+  "fact_check": {
+    "judge": "qwen3.6:27b-q4_K_M",
+    "complete_answers_all_answerable": {
+      "num": 49,
+      "den": 93
+    },
+    "fact_recall_all_answerable": {
+      "num": 178,
+      "den": 248,
+      "value": 0.7177
+    },
+    "answers_with_forbidden_fact": {
+      "num": 0,
+      "den": 93
+    },
+    "judge_errors": 0,
+    "method": "Same local judge, questions and expected facts as the original comparison. Verdicts for unchanged answers retained from the fresh audit-balanced judge run. The changed case is an abstention and gets zero expected facts."
+  },
+  "app_source_sha256": "f60a00c5050205e9fa9cfe5101f6353e83f713d04e033bb26fda7a152e1bcd51"
+}

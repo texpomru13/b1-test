@@ -1,26 +1,9 @@
-"""Tokenizer-aware chunking with exact canonical offsets.
-
-LangChain RecursiveCharacterTextSplitter runs INSIDE section-bounded segments
-(plan §5.2). Offsets are computed by OUR monotonic search within the parent
-segment: find(chunk, previous_chunk_start + 1) — never a global text.find, and
-never LangChain's add_start_index (its offset estimate mixes token-based overlap
-with character arithmetic and can miss tail chunks in repeated text). Repeated
-paragraphs and identical clauses therefore map to strictly increasing offsets.
-Invariant (verified for every chunk): canonical[char_start:char_end] == chunk.text.
-
-Length functions:
-- HFTokenizerLength — exact, via the `tokenizers` package (no torch) from a
-  tokenizer.json provisioned with the resolved embedding model.
-- ApproxTokenLength — documented conservative fallback for environments where
-  the tokenizer asset is not yet provisioned: ceil(chars / 3) (Cyrillic BPE runs
-  ~3 chars/token); the exact budget is re-enforced at embed time in stage 4.
-The chosen function id is recorded in the parse artifact (index fingerprint input).
-"""
+"""LangChain section-bounded chunks with exact character offsets in the source."""
 
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -75,6 +58,48 @@ class Chunk:
     segments: list[ChunkSegment]
 
 
+class _SourcePiece(str):
+    start: int
+
+
+class _OffsetSplitter(RecursiveCharacterTextSplitter):
+    """Track the actual pieces LangChain reuses for overlap, even with identical text."""
+
+    def _merge_splits(self, splits: Iterable[str], separator: str) -> list[str]:
+        pieces: list[str] = []
+        offset = 0
+        for text in splits:
+            piece = _SourcePiece(text)
+            piece.start = offset
+            pieces.append(piece)
+            offset += len(piece)
+        return super()._merge_splits(pieces, separator)
+
+    def _join_docs(self, docs: list[str], separator: str) -> str:
+        # keep_separator=True includes separators in the pieces themselves.
+        first = docs[0]
+        assert isinstance(first, _SourcePiece)
+        chunk = _SourcePiece(separator.join(docs))
+        chunk.start = first.start
+        return chunk
+
+    def spans(self, source: str) -> Iterator[tuple[int, str]]:
+        end = base = 0
+        for raw in self.split_text(source):
+            # Each recursively merged group starts at zero. An unmerged leaf
+            # (a single character over the token limit) is itself a new group.
+            local = raw.start if isinstance(raw, _SourcePiece) else 0
+            if local == 0:
+                base = end
+            start = base + local
+            end = start + len(raw)
+            if source[start:end] != raw:
+                raise ParseFailedError("chunk offsets disagree with the canonical text")
+            trimmed = raw.strip()
+            if trimmed:
+                yield start + len(raw) - len(raw.lstrip()), trimmed
+
+
 def _segment_bounds(
     canonical: CanonicalDocument, sections: list[SectionSpan]
 ) -> list[tuple[int, int]]:
@@ -96,29 +121,20 @@ def split_into_chunks(
     overlap_tokens: int,
     length_fn: LengthFn,
 ) -> list[Chunk]:
-    splitter = RecursiveCharacterTextSplitter(
+    splitter = _OffsetSplitter(
         chunk_size=chunk_tokens,
         chunk_overlap=overlap_tokens,
         length_function=length_fn,
-        strip_whitespace=True,
+        strip_whitespace=False,
     )
     chunks: list[Chunk] = []
     for seg_start, seg_end in _segment_bounds(canonical, sections):
         segment_text = canonical.text[seg_start:seg_end]
         if not segment_text.strip():
             continue
-        previous_local = -1
-        for chunk_text in splitter.split_text(segment_text):
-            local_start = segment_text.find(chunk_text, previous_local + 1)
-            if local_start < 0:
-                raise ParseFailedError("splitter chunk not found in its parent segment")
-            previous_local = local_start
+        for local_start, chunk_text in splitter.spans(segment_text):
             start = seg_start + local_start
             end = start + len(chunk_text)
-            if canonical.text[start:end] != chunk_text:
-                raise ParseFailedError(
-                    f"chunk offset invariant violated at canonical[{start}:{end}]"
-                )
             pages = canonical.pages_overlapping(start, end)
             if not pages:
                 raise ParseFailedError(f"chunk [{start}:{end}] maps to no page span")

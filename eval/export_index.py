@@ -11,11 +11,8 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-import urllib.request
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-WORK = ROOT / "eval" / "work"
+from paths import ROOT, WORK
 
 
 def main() -> None:
@@ -23,13 +20,11 @@ def main() -> None:
     parser.add_argument("--project", default="b1-eval")
     parser.add_argument("--api", default="http://127.0.0.1:8000")
     args = parser.parse_args()
-    # Mapping from the public API (title = file stem -> fixture id prefix), so the
-    # export also works while the rest of the corpus is still being indexed.
-    with urllib.request.urlopen(f"{args.api}/api/v1/documents?limit=100") as resp:
-        items = json.load(resp)["items"]
-    by_doc = {i["doc_id"]: (i["title"] or "").split("_", 1)[0] for i in items
-              if i["status"] == "succeeded"}
-    by_doc = {d: f for d, f in by_doc.items() if f != "100"}  # timing-only fixture
+    corpus = json.loads((WORK / "corpus.json").read_text(encoding="utf-8"))
+    if corpus["api"] != args.api:
+        parser.error("corpus.json belongs to a different API, upload the corpus first")
+    by_doc = {item["doc_id"]: fid for fid, item in corpus["docs"].items()
+              if item.get("status") == "succeeded" and fid != "100_pages"}
     script = (ROOT / "eval" / "incontainer" / "export_index.py").read_text()
     result = subprocess.run(
         ["docker", "exec", "-i", "-e", f"EVAL_DOC_IDS={','.join(by_doc)}",
@@ -41,6 +36,8 @@ def main() -> None:
     (WORK / "canonical").mkdir(parents=True, exist_ok=True)
     for doc_id, payload in exported.items():
         fid = by_doc[doc_id]
+        if payload.get("error"):
+            raise SystemExit(f"Could not export {fid}: {payload['error']}")
         payload["doc_id"] = doc_id
         payload["fixture_id"] = fid
         (WORK / "index" / f"{fid}.json").write_text(

@@ -17,6 +17,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+import httpx
 from pydantic import SecretStr
 
 from app.config.settings import LLMProvider, LLMThinking, Settings
@@ -41,9 +42,38 @@ class ProviderUnavailable(Exception):
     uncertain outcome, never as a provably unbilled call (§8.6).
     """
 
-    def __init__(self, message: str, *, uncertain: bool = False) -> None:
+    def __init__(self, message: str, *, uncertain: bool = False, retryable: bool = True,
+                 retry_after_s: float | None = None) -> None:
         super().__init__(message)
         self.uncertain = uncertain
+        self.retryable = retryable
+        self.retry_after_s = retry_after_s
+
+
+def _provider_error(provider: str, exc: Exception) -> ProviderUnavailable:
+    status = getattr(exc, "status_code", None)
+    retryable = status in (408, 429, 500, 502, 503, 504)
+    cause: BaseException | None = exc
+    uncertain = False
+    while cause is not None:
+        if isinstance(cause, (httpx.TransportError, TimeoutError)):
+            retryable = True
+            uncertain = isinstance(cause, (httpx.ReadTimeout, httpx.WriteError,
+                                            httpx.RemoteProtocolError, TimeoutError))
+            break
+        cause = cause.__cause__
+    # The Ollama SDK wraps connection-refused errors in a built-in ConnectionError.
+    if isinstance(exc, ConnectionError):
+        retryable = True
+    retry_after = None
+    if status == 429 and (response := getattr(exc, "response", None)) is not None:
+        raw = response.headers.get("Retry-After", "")
+        if raw.isascii() and raw.isdecimal():
+            retry_after = float(raw)
+    return ProviderUnavailable(
+        f"{provider} chat failed: {type(exc).__name__}" + (f" (HTTP {status})" if status else ""),
+        uncertain=uncertain, retryable=retryable, retry_after_s=retry_after,
+    )
 
 
 @dataclass(frozen=True)
@@ -109,15 +139,9 @@ class _OpenAICompatibleAdapter:
             message = await bound.ainvoke(
                 [("system", system), ("user", user)]
             )
-        except ModelOutputInvalid:
-            raise
-        except Exception as exc:  # transport/runtime failure
-            name = type(exc).__name__
-            raise ProviderUnavailable(
-                f"{self.capabilities.provider} chat failed: {name}",
-                uncertain="Timeout" in name or "timeout" in str(exc).lower(),
-            ) from exc
-        content = message.content if isinstance(message.content, str) else str(message.content)
+        except Exception as exc:
+            raise _provider_error(self.capabilities.provider, exc) from exc
+        content = message.content if isinstance(message.content, str) else message.text
         if not content.strip():
             # qwen thinking may land in reasoning_content with no final answer
             raise ModelOutputInvalid(
@@ -150,10 +174,8 @@ class _OllamaAdapter:
         try:
             message = await bound.ainvoke([("system", system), ("user", user)])
         except Exception as exc:
-            raise ProviderUnavailable(
-                f"ollama chat failed: {type(exc).__name__}"
-            ) from exc
-        content = message.content if isinstance(message.content, str) else str(message.content)
+            raise _provider_error("ollama", exc) from exc
+        content = message.content if isinstance(message.content, str) else message.text
         return _parse_json_content(content), _usage_from_message(message)
 
 
@@ -167,15 +189,14 @@ class _AnthropicAdapter:
     ) -> tuple[dict, dict[str, int]]:
         # Anthropic native json_schema output (S4: method='json_schema' ->
         # output_config.format). No temperature/top_p/top_k are ever set.
-        structured = self._model.with_structured_output(
+        model = self._model.model_copy(update={"max_tokens": max_tokens})
+        structured = model.with_structured_output(
             json_schema["schema"], method="json_schema", include_raw=True
         )
         try:
             result = await structured.ainvoke([("system", system), ("user", user)])
         except Exception as exc:
-            raise ProviderUnavailable(
-                f"anthropic chat failed: {type(exc).__name__}"
-            ) from exc
+            raise _provider_error("anthropic", exc) from exc
         parsed = result.get("parsed")
         if parsed is None:
             raise ModelOutputInvalid("anthropic returned no parsed structured output")

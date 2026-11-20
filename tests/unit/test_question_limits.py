@@ -65,3 +65,38 @@ async def test_contract_mismatch_rejected() -> None:
 def test_setting_cannot_exceed_schema_cap() -> None:
     with pytest.raises(ValidationError):
         Settings(_env_file=None, max_question_chars=QUESTION_HARD_MAX_CHARS + 1)  # type: ignore[call-arg]
+
+
+async def test_concurrent_question_is_refused_during_cold_start(monkeypatch) -> None:
+    import asyncio
+
+    from app.api import questions
+    from app.providers.factory import ProviderUnavailable
+
+    class PublishedDoc:
+        async def get_job_id_for_doc(self, doc_id: str) -> str:
+            return "job"
+
+        async def get_job(self, job_id: str) -> dict:
+            return {"status": "succeeded", "accepted_run_id": "r", "index_fingerprint": "fp"}
+
+    app = _app()
+    app.state.redis_repo = PublishedDoc()
+    app.state.qa_semaphore = asyncio.Semaphore(1)
+    initializing, release = asyncio.Event(), asyncio.Event()
+
+    async def slow_runtime(request: Any) -> None:
+        initializing.set()
+        await release.wait()
+        raise ProviderUnavailable("test cold-start failure")
+
+    monkeypatch.setattr(questions, "_qa_runtime", slow_runtime)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        first = asyncio.create_task(c.post(URL, json={"question": "first"}))
+        await initializing.wait()
+        try:
+            async with asyncio.timeout(2):
+                assert (await c.post(URL, json={"question": "second"})).status_code == 429
+        finally:
+            release.set()
+            assert (await first).status_code == 503

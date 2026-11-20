@@ -35,7 +35,7 @@ elif [ -r /proc/meminfo ]; then
 fi
 
 ollama_reachable=false
-if curl -s --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
+if command -v ollama >/dev/null 2>&1 && curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
     ollama_reachable=true
 fi
 
@@ -49,13 +49,13 @@ if command -v nvidia-smi >/dev/null 2>&1; then
     nvidia_present=true
 fi
 # A positive container GPU smoke is recorded ONLY by an actual smoke run
-# (scripts/gpu_smoke.sh, launcher --device nvidia path); never inferred here.
+# indicated by the operator after verifying container access to the GPU.
 nvidia_smoke=false
 if [ "${B1_NVIDIA_SMOKE_OK:-}" = "1" ]; then
     nvidia_smoke=true
 fi
 
-free_disk_gb=$(df -g . 2>/dev/null | awk 'NR==2 {print $4}' || echo 0)
+free_disk_gb=$(df -Pk . | awk 'NR==2 {printf "%.0f", $4/1048576}')
 [ -n "$free_disk_gb" ] || free_disk_gb=0
 
 cat <<EOF

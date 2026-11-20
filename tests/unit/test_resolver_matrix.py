@@ -29,8 +29,8 @@ def linux_cpu_facts(ram: float, **extra: Any) -> dict:
 # --- CPU rows: 12/16/32/64 GB ---
 
 
-def test_cpu_64gb_keeps_27b_quality() -> None:
-    result = resolve(linux_cpu_facts(64.0), {})
+def test_cpu_large_pool_keeps_explicit_27b_quality() -> None:
+    result = resolve(linux_cpu_facts(80.0), {"quality": "quality"})
     assert result["ok"], result
     d = result["decisions"]
     assert d["profile"] == "quality"
@@ -41,7 +41,7 @@ def test_cpu_64gb_keeps_27b_quality() -> None:
 
 
 def test_cpu_32gb_degrades_with_visible_reason() -> None:
-    result = resolve(linux_cpu_facts(32.0), {})
+    result = resolve(linux_cpu_facts(32.0), {"quality": "quality"})
     assert result["ok"]
     d = result["decisions"]
     assert d["profile"] != "quality"
@@ -54,7 +54,7 @@ def test_cpu_16gb_and_12gb_pick_smaller_presets() -> None:
     assert d16["quality_degraded"] is True
     assert d16["embedding_model"].endswith("480M-0826")
     d12 = resolve(linux_cpu_facts(12.0), {})["decisions"]
-    assert d12["profile"] in ("balanced", "low-memory")
+    assert not d12  # even the resident 4B stack exceeds the measured pool
 
 
 def test_cpu_8gb_refuses_instead_of_pretending() -> None:
@@ -77,23 +77,23 @@ def test_mac_64_host_prefers_host_ollama_dmr_gate_blocked() -> None:
     assert d["accelerator_verified"] is True
 
 
-def test_mac_small_vm_forces_sequential_before_downgrade() -> None:
+def test_mac_small_vm_requires_a_smaller_resident_profile() -> None:
     # VM fits each weight alone (14.5 / 19.0) but not both (33.5): 30*0.75-3=19.5
-    result = resolve(mac_facts(host_free=48.0, vm=30.0), {})
+    result = resolve(mac_facts(host_free=48.0, vm=30.0), {"quality": "quality"})
     assert result["ok"]
     d = result["decisions"]
-    assert d["profile"] == "quality"  # models NOT shrunk
-    assert d["model_residency"] == "sequential"
+    assert d["profile"] == "quality-compact"
+    assert d["model_residency"] == "resident-both"
 
 
 def test_mac_36_vm_too_small_degrades() -> None:
-    result = resolve(mac_facts(host_free=36.0, vm=8.0), {})
+    result = resolve(mac_facts(host_free=36.0, vm=12.0), {"quality": "quality"})
     assert result["ok"]
     assert result["decisions"]["quality_degraded"] is True
 
 
 def test_mac_dmr_gate_passed_auto_prefers_dmr() -> None:
-    result = resolve(mac_facts(host_free=64.0, vm=48.0, dmr_gate_passed=True), {})
+    result = resolve(mac_facts(64.0, 48.0, dmr_gate_passed=True), {"quality": "quality"})
     d = result["decisions"]
     assert d["llm_runtime"] == "dmr"
     assert d["dmr_model"] == "ai/qwen3.6:27B"
@@ -189,17 +189,45 @@ def test_saved_profile_never_migrates_silently() -> None:
 def test_mac_container_llm_uses_vm_pool_not_host_free() -> None:
     # host RAM is busy (models elsewhere), but the 63GiB VM holds everything
     facts = mac_facts(host_free=30.0, vm=62.9, host_ollama_reachable=False)
-    result = resolve(facts, {"saved_runtime": "container-ollama"})
+    result = resolve(facts, {"quality": "quality", "saved_runtime": "container-ollama"})
     assert result["ok"], result
     d = result["decisions"]
     assert d["llm_runtime"] == "container-ollama"
-    assert d["profile"] == "quality"  # fits the VM pool with sequential residency
+    assert d["profile"] == "quality-compact"  # both weights must actually fit
 
 
 def test_llm_thinking_default_follows_model() -> None:
-    quality = resolve(linux_cpu_facts(64.0), {})["decisions"]
+    quality = resolve(linux_cpu_facts(80.0), {"quality": "quality"})["decisions"]
     assert quality["llm_thinking"] == "auto"  # no stage-9 evidence for the 27B model
     for model in ("qwen3.5:9b-q4_K_M", "qwen3.5:4b-q4_K_M"):
         d = resolve(mac_facts(64.0, 63.0), {"model": model})["decisions"]
         assert d["llm_model"] == model
         assert d["llm_thinking"] == "off"
+
+def test_default_is_measured_balanced_profile() -> None:
+    assert resolve(linux_cpu_facts(64.0), {})["decisions"]["profile"] == "balanced"
+
+
+def test_explicit_cpu_and_offline_select_container_on_mac() -> None:
+    for override in ({"device": "cpu"}, {"offline": True}):
+        decisions = resolve(mac_facts(64, 48), override)["decisions"]
+        assert decisions["llm_runtime"] == "container-ollama"
+
+
+def test_invalid_runtime_or_device_is_rejected() -> None:
+    for override in ({"provider": "typo"}, {"device": "typo"}, {"device": "metal"}):
+        assert not resolve(linux_cpu_facts(64), override)["ok"]
+
+
+def test_dmr_uses_actual_installed_model_identifier() -> None:
+    result = resolve(mac_facts(64, 48), {"provider": "dmr", "model": "ai/test:9b"})
+    assert result["decisions"]["llm_model"] == "ai/test:9b"
+
+
+def test_cloud_requires_explicit_model() -> None:
+    assert not resolve(linux_cpu_facts(64), {"provider": "openai"})["ok"]
+
+
+def test_explicit_host_ollama_can_run_offline() -> None:
+    result = resolve(mac_facts(64, 48), {"provider": "ollama", "offline": True})
+    assert result["decisions"]["llm_runtime"] == "host-ollama"

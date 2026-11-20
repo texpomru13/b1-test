@@ -88,8 +88,8 @@ class FileStore:
                     chunk = await read(CHUNK_SIZE)
                     if not chunk:
                         break
-                    if not first:
-                        first = chunk[:16]
+                    if len(first) < len(magic):
+                        first += chunk[:len(magic) - len(first)]
                     size += len(chunk)
                     if size > self._max_bytes:
                         raise FileTooLargeError(self._max_bytes)

@@ -25,17 +25,19 @@ import os
 os.environ["RAGAS_DO_NOT_TRACK"] = "true"
 os.environ.pop("OPENAI_API_KEY", None)
 
-import argparse  # noqa: E402
-import json  # noqa: E402
-import re  # noqa: E402
-import statistics  # noqa: E402
-import time  # noqa: E402
-import warnings  # noqa: E402
-from pathlib import Path  # noqa: E402
+import argparse
+import json
+import re
+import statistics
+import sys
+import time
+import warnings
+from pathlib import Path
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 from langchain_ollama import ChatOllama  # noqa: E402
+from paths import ROOT, WORK, gold_path  # noqa: E402
 from ragas import EvaluationDataset, SingleTurnSample, evaluate  # noqa: E402
 from ragas.llms import LangchainLLMWrapper  # noqa: E402
 from ragas.metrics import (  # noqa: E402
@@ -46,8 +48,21 @@ from ragas.metrics import (  # noqa: E402
 )
 from ragas.run_config import RunConfig  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[1]
-WORK = ROOT / "eval" / "work"
+sys.path.insert(0, str(ROOT))
+from app.schemas.qa import AnswerResponse  # noqa: E402
+from pydantic import ValidationError  # noqa: E402
+
+
+def latest_rows(path: Path) -> dict[str, dict]:
+    return {row["req_id"]: row for row in load_jsonl(path)}
+
+
+def verdict_list(value: list, size: int) -> list[bool]:
+    if not isinstance(value, list) or len(value) != size or any(type(v) is not bool for v in value):
+        raise ValueError("judge must return one JSON boolean per fact")
+    return value
+
+
 MARKER = re.compile(r"\s*\[\d+\]")
 
 FACT_PROMPT = """Ты — строгий проверяющий ответов по договору. Тебе дан вопрос, ответ системы,
@@ -97,10 +112,9 @@ def judge_facts(llm: ChatOllama, case: dict, answer: str) -> dict:
         raw = llm.invoke(prompt).content
         try:
             data = json.loads(raw)
-            exp = [bool(x) for x in data["expected"]][: len(case["expected_facts"])]
-            forb = [bool(x) for x in data.get("forbidden", [])][: len(case["forbidden_facts"])]
-            if len(exp) == len(case["expected_facts"]):
-                return {"expected": exp, "forbidden": forb, "attempts": attempt + 1}
+            exp = verdict_list(data["expected"], len(case["expected_facts"]))
+            forb = verdict_list(data["forbidden"], len(case["forbidden_facts"]))
+            return {"expected": exp, "forbidden": forb, "attempts": attempt + 1}
         except (ValueError, KeyError, TypeError):
             continue
     return {"error": "judge output invalid after 3 attempts", "raw": str(raw)[:500]}
@@ -117,17 +131,40 @@ def main() -> None:
     ap.add_argument("--workers", type=int, default=2)
     args = ap.parse_args()
 
-    gold = {c["case_id"]: c for c in load_jsonl(ROOT / "eval" / "gold" / "gold.jsonl")}
+    gold = {c["case_id"]: c for c in load_jsonl(gold_path())}
     index = {json.loads(p.read_text(encoding="utf-8"))["doc_id"]:
              json.loads(p.read_text(encoding="utf-8")) for p in (WORK / "index").glob("*.json")}
     chunk_text = {d: {c["chunk_id"]: c["text"] for c in v["chunks"]} for d, v in index.items()}
     run_dir = WORK / "runs" / args.run
-    recs = [r for r in load_jsonl(run_dir / "responses.jsonl")
-            if r["kind"] == "gold" and r.get("http_status") == 200
-            and gold[r["case_id"]]["answerable"]
-            and (args.split == "all" or gold[r["case_id"]]["split"] == args.split)]
+    response_file = run_dir / "responses.jsonl"
+    if not response_file.is_file():
+        ap.error(f"missing responses: {response_file}")
+    selected = [r for r in load_jsonl(response_file)
+                if args.split in ("all", gold[r["case_id"]]["split"])]
+    if args.limit < 0:
+        ap.error("--limit must be nonnegative")
     if args.limit:
-        recs = recs[: args.limit]
+        selected = selected[:args.limit]
+    if len({r["req_id"] for r in selected}) != len(selected):
+        ap.error("duplicate req_id in responses.jsonl")
+    valid = []
+    for r in selected:
+        if r.get("http_status") == 200:
+            try:
+                AnswerResponse.model_validate(r.get("body"), strict=True)
+            except ValidationError:
+                continue
+            valid.append(r)
+    positives = [r for r in selected if r["kind"] == "gold" and gold[r["case_id"]]["answerable"]]
+    recs = [r for r in valid if r["kind"] == "gold" and gold[r["case_id"]]["answerable"]]
+    judge_meta = run_dir / "judge_model.json"
+    identities = {s["judge"] for path in run_dir.glob("judge-*.json")
+                  if (s := json.loads(path.read_text())).get("judge")}
+    if judge_meta.exists():
+        identities.add(json.loads(judge_meta.read_text())["judge"])
+    if identities - {args.judge}:
+        ap.error(f"saved verdicts use a different judge {sorted(identities)}; use a new --run")
+    judge_meta.write_text(json.dumps({"judge": args.judge}), encoding="utf-8")
 
     chat = ChatOllama(model=args.judge, base_url=args.ollama, temperature=0, seed=7,
                       reasoning=False, num_ctx=16384, num_predict=2048)
@@ -136,7 +173,7 @@ def main() -> None:
 
     # ---- explicit fact check -------------------------------------------------
     facts_path = run_dir / "judge_facts.jsonl"
-    done = {r["req_id"] for r in load_jsonl(facts_path)}
+    done = {k for k, r in latest_rows(facts_path).items() if "error" not in r}
     t0 = time.monotonic()
     with facts_path.open("a", encoding="utf-8") as fh:
         for rec in recs:
@@ -161,11 +198,9 @@ def main() -> None:
     # does answer). The judge decides from the verified quotes; the report lists
     # every case for manual review.
     fp_path = run_dir / "judge_false_positives.jsonl"
-    done_fp = {r["req_id"] for r in load_jsonl(fp_path)}
-    fps = [r for r in load_jsonl(run_dir / "responses.jsonl")
-           if r.get("http_status") == 200 and r["body"].get("found")
-           and (r["kind"] == "isolation" or not gold[r["case_id"]]["answerable"])
-           and (args.split == "all" or gold[r["case_id"]]["split"] == args.split)]
+    done_fp = {k for k, r in latest_rows(fp_path).items() if "error" not in r}
+    fps = [r for r in valid if r["body"]["found"]
+           and (r["kind"] == "isolation" or not gold[r["case_id"]]["answerable"])]
     with fp_path.open("a", encoding="utf-8") as fh:
         for rec in fps:
             if rec["req_id"] in done_fp:
@@ -178,8 +213,9 @@ def main() -> None:
             for _ in range(3):
                 try:
                     data = json.loads(chat_json.invoke(prompt).content)
-                    verdict = {"citations_answer_question":
-                               bool(data["citations_answer_question"]),
+                    if type(data["citations_answer_question"]) is not bool:
+                        raise ValueError("expected a JSON boolean")
+                    verdict = {"citations_answer_question": data["citations_answer_question"],
                                "reason": str(data.get("reason", ""))[:300]}
                     break
                 except (ValueError, KeyError, TypeError):
@@ -188,11 +224,12 @@ def main() -> None:
                                  "case_id": rec["case_id"], "question": rec["question"],
                                  "answer": rec["body"]["answer"], **verdict},
                                 ensure_ascii=False) + "\n")
+            fh.flush()
 
     # ---- RAGAS -----------------------------------------------------------------
     ragas_path = run_dir / "judge_ragas.jsonl"
     if not args.skip_ragas:
-        done_r = {r["req_id"] for r in load_jsonl(ragas_path)}
+        done_r = {k for k, r in latest_rows(ragas_path).items() if None not in r.values()}
         todo = [r for r in recs if r["req_id"] not in done_r]
         llm = LangchainLLMWrapper(chat)
         cfg = RunConfig(timeout=1800, max_retries=3, max_workers=args.workers)
@@ -213,8 +250,7 @@ def main() -> None:
                 for r in sel:
                     case = gold[r["case_id"]]
                     ctx_ids = (r["body"].get("diagnostics") or {}).get("context_chunk_ids", [])
-                    contexts = [chunk_text[r["doc_id"]][c] for c in ctx_ids
-                                if c in chunk_text[r["doc_id"]]] or ["(пустой контекст)"]
+                    contexts = [chunk_text[r["doc_id"]][c] for c in ctx_ids]
                     samples.append(SingleTurnSample(
                         user_input=case["question"],
                         response=MARKER.sub("", r["body"]["answer"]) if found_flag else None,
@@ -237,10 +273,11 @@ def main() -> None:
     # ---- aggregate --------------------------------------------------------------
     # aggregate ONLY the rows of this split (the jsonl files are shared across splits)
     in_split = {r["req_id"] for r in recs}
-    facts = [f for f in load_jsonl(facts_path) if f["req_id"] in in_split]
-    ragas_rows = [r for r in load_jsonl(ragas_path) if r["req_id"] in in_split]
-    fp_rows = [r for r in load_jsonl(fp_path)
-               if args.split == "all" or gold[r["case_id"]]["split"] == args.split]
+    facts = [f for k, f in latest_rows(facts_path).items() if k in in_split]
+    ragas_rows = [r for k, r in latest_rows(ragas_path).items() if k in in_split]
+    fp_ids = {r["req_id"] for r in fps}
+    fp_rows = [r for k, r in latest_rows(fp_path).items() if k in fp_ids]
+    valid_facts = [f for f in facts if "error" not in f]
     exp_tot = sum(len(f.get("expected", [])) for f in facts if "error" not in f)
     exp_hit = sum(sum(f.get("expected", [])) for f in facts if "error" not in f)
     complete = sum(1 for f in facts if "error" not in f and f["expected"] and all(f["expected"]))
@@ -248,16 +285,20 @@ def main() -> None:
     found_facts = [f for f in facts if f.get("found") and "error" not in f]
     summary = {
         "judge": args.judge, "split": args.split,
+        "coverage": {"attempted_answerable": len(positives), "valid_answerable": len(recs),
+                     "failed_responses": len(positives) - len(recs), "judged": len(valid_facts)},
+
         "fact_recall_all_answerable": {"num": exp_hit, "den": exp_tot,
                                        "value": round(exp_hit / exp_tot, 4) if exp_tot else None},
-        "complete_answers_all_answerable": {"num": complete, "den": len(facts)},
+        "complete_answers_all_answerable": {"num": complete, "den": len(valid_facts)},
         "fact_recall_found_only": {
             "num": sum(sum(f["expected"]) for f in found_facts),
             "den": sum(len(f["expected"]) for f in found_facts)},
-        "answers_with_forbidden_fact": {"num": forb_cases, "den": len(facts)},
+        "answers_with_forbidden_fact": {"num": forb_cases, "den": len(valid_facts)},
         "judge_errors": sum(1 for f in facts if "error" in f),
         "false_positives": {
-            "n": len(fp_rows),
+            "n": sum("error" not in r for r in fp_rows),
+            "errors": sum("error" in r for r in fp_rows),
             "quotes_do_not_answer (hallucination)": sum(
                 1 for r in fp_rows if r.get("citations_answer_question") is False),
             "quotes_answer (possible gold error)": sum(
@@ -275,7 +316,9 @@ def main() -> None:
                 summary["ragas"][f"{key}[{scope}]"] = {
                     "mean": round(statistics.fmean(vals), 4) if vals else None,
                     "n": len(vals), "nan": missing}
-    (run_dir / f"judge-{args.split}.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
+    suffix = f"-limit{args.limit}" if args.limit else ""
+    (run_dir / f"judge-{args.split}{suffix}.json").write_text(
+        json.dumps(summary, ensure_ascii=False, indent=1))
     print(json.dumps(summary, ensure_ascii=False, indent=1))
 
 

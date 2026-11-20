@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, Request
 
+from app.api.errors import api_error_responses
 from app.schemas.errors import ApiError, ErrorCode
 from app.schemas.jobs import JobResponse
 
@@ -16,7 +17,8 @@ def _repo(request: Request) -> Any:
     return request.app.state.redis_repo
 
 
-@router.get("/jobs/{job_id}", response_model=JobResponse)
+@router.get("/jobs/{job_id}", response_model=JobResponse,
+            responses=api_error_responses(404, 422, 503))
 async def get_job(request: Request, job_id: str) -> JobResponse:
     record = await _repo(request).get_job(job_id)
     if record is None:

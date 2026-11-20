@@ -53,3 +53,31 @@ def test_point_id_deterministic() -> None:
     assert first == point_id("doc", "run", 0)
     assert first != point_id("doc", "run", 1)
     assert first != point_id("doc", "run2", 0)
+
+
+def test_bootstrap_repairs_an_interrupted_payload_index_creation() -> None:
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    from app.storage.qdrant_repo import PAYLOAD_INDEXES, QdrantIndexRepository
+    from qdrant_client import QdrantClient, models
+
+    client = Mock(spec=QdrantClient)
+    client.collection_exists.return_value = True
+    client.scroll.return_value = ([], None)
+    info = client.get_collection.return_value
+    info.config.params.vectors = {"dense": models.VectorParams(size=3, distance="Cosine")}
+    info.config.params.sparse_vectors = {"bm25": models.SparseVectorParams(modifier="idf")}
+    info.payload_schema = {
+        field: SimpleNamespace(data_type=kind)
+        for field, kind in PAYLOAD_INDEXES.items() if field != "doc_id"
+    }
+
+    QdrantIndexRepository(client, "chunks").ensure_collection(
+        dense_dim=3, computed_fingerprint="fingerprint",
+    )
+    client.create_collection.assert_not_called()
+    client.create_payload_index.assert_called_once_with(
+        collection_name="chunks", field_name="doc_id",
+        field_schema=models.PayloadSchemaType.KEYWORD, wait=True,
+    )

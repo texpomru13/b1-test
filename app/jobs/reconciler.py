@@ -51,7 +51,7 @@ def _requeue(client: redis.Redis, lifecycle: SyncJobLifecycle, job: dict[str, An
     if attempts >= max_attempts:
         lifecycle.transition(
             job_id,
-            expected=[JobStatus.RUNNING.value, JobStatus.VALIDATING.value,
+            token="", expected=[JobStatus.RUNNING.value, JobStatus.VALIDATING.value,
                       JobStatus.RETRY_WAIT.value],
             new_status=JobStatus.FAILED.value,
             extra={"error_code": ERROR_ATTEMPTS_EXHAUSTED,
@@ -62,7 +62,7 @@ def _requeue(client: redis.Redis, lifecycle: SyncJobLifecycle, job: dict[str, An
         return "attempts_exhausted"
     moved = lifecycle.transition(
         job_id,
-        expected=[JobStatus.RUNNING.value, JobStatus.VALIDATING.value],
+        token="", expected=[JobStatus.RUNNING.value, JobStatus.VALIDATING.value],
         new_status=JobStatus.RETRY_WAIT.value,
         # The dispatcher drops intents of jobs it already sent; clearing the flag
         # in the same atomic step makes the requeue an actual re-delivery.
@@ -109,7 +109,7 @@ def _redispatch_stale_retry_wait(
     if attempts >= max_attempts:
         lifecycle.transition(
             job_id,
-            expected=[JobStatus.RETRY_WAIT.value],
+            expected=[JobStatus.RETRY_WAIT.value], token="",
             new_status=JobStatus.FAILED.value,
             extra={"error_code": ERROR_ATTEMPTS_EXHAUSTED,
                    "error_message": f"exceeded {max_attempts} execution attempts "
@@ -119,7 +119,7 @@ def _redispatch_stale_retry_wait(
         return "attempts_exhausted"
     touched = lifecycle.transition(
         job_id,
-        expected=[JobStatus.RETRY_WAIT.value],
+        expected=[JobStatus.RETRY_WAIT.value], token="",
         new_status=JobStatus.RETRY_WAIT.value,  # refreshes updated_at
         extra={"dispatched": "0"},
     )
@@ -155,6 +155,9 @@ def _forward_recover(
     if token is None:
         return False  # someone owns it; let them finish
     try:
+        latest = lifecycle.get_job(job_id) or {}
+        if latest.get("ingestion_run_id") != run_id:
+            return False
         published = lifecycle.publish(job_id, token=token, run_id=run_id)
         if published.ok:
             logger.info("forward_recovery_published", job_id=job_id, run_id=run_id)
@@ -177,7 +180,7 @@ def _finish_cleanup_pending(
         return "cleanup_still_pending"
     lifecycle.transition(
         job_id,
-        expected=[JobStatus.CLEANUP_PENDING.value],
+        expected=[JobStatus.CLEANUP_PENDING.value, JobStatus.COMPENSATING.value], token="",
         new_status=JobStatus.FAILED.value,
     )
     logger.info("cleanup_completed", job_id=job_id, run_id=run_id)
@@ -228,7 +231,9 @@ def reconcile(
             if outcome == "redispatched":
                 counters["redispatched"] += 1
 
-        elif status == JobStatus.CLEANUP_PENDING.value:
+        elif status in (JobStatus.CLEANUP_PENDING.value, JobStatus.COMPENSATING.value):
+            if _lease_alive(client, job_id):
+                continue
             if _finish_cleanup_pending(lifecycle, index_repo, job) == "cleaned":
                 counters["cleaned"] += 1
 

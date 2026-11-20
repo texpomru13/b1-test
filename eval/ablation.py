@@ -16,10 +16,9 @@ import statistics
 import subprocess
 from pathlib import Path
 
+from paths import ROOT, WORK, gold_path
 from spans import ndcg, span_covered
 
-ROOT = Path(__file__).resolve().parents[1]
-WORK = ROOT / "eval" / "work"
 METHODS = ["dense", "sparse", "hybrid_rrf", "hybrid_dbsf", "rrf_rerank"]
 
 
@@ -60,7 +59,7 @@ def main() -> None:
     ap.add_argument("--name", default="balanced")
     ap.add_argument("--report-only", action="store_true")
     args = ap.parse_args()
-    gold = [c for c in load_jsonl(ROOT / "eval" / "gold" / "gold.jsonl") if c["answerable"]]
+    gold = [c for c in load_jsonl(gold_path()) if c["answerable"]]
     index = {p.stem: json.loads(p.read_text(encoding="utf-8"))
              for p in (WORK / "index").glob("*.json")}
     out_dir = WORK / "ablation"

@@ -103,12 +103,12 @@ def test_deadline_stage_budget() -> None:
         exhausted.stage_budget(10.0)
 
 
-async def test_graph_counts_transport_retries_in_llm_budget() -> None:
+async def test_qa_counts_transport_retries_in_llm_budget() -> None:
     from app.providers.factory import ProviderUnavailable
-    from app.qa.graph import OUTCOME_ANSWERED, build_qa_graph, run_qa
-    from app.retrieval.search import RetrievalScope
+    from app.qa.workflow import OUTCOME_ANSWERED, run_qa
 
-    from tests.unit.test_qa_graph import (
+    from tests.unit.test_qa_workflow import (
+        SCOPE,
         VERDICT_OK,
         ScriptedAdapter,
         good_draft,
@@ -121,29 +121,28 @@ async def test_graph_counts_transport_retries_in_llm_budget() -> None:
         good_draft(quote),                            # attempt 2 -> draft ok
         VERDICT_OK,                                   # verifier
     ])
-    graph = build_qa_graph(make_deps(adapter))
-    state = await run_qa(graph, question="q",
-                         scope=RetrievalScope("doc", "run", "fp"), debug=False)
-    assert state["outcome"] == OUTCOME_ANSWERED
+    deps = make_deps(adapter)
+    state = await run_qa(deps, question="q",
+                         scope=SCOPE, debug=False)
+    assert state.outcome == OUTCOME_ANSWERED
     # 2 transport attempts for generation + 1 verifier call = 3 of the budget of 4
-    assert state["llm_calls"] == 3
+    assert state.llm_calls == 3
 
 
-async def test_graph_raises_provider_unavailable_when_llm_down() -> None:
+async def test_qa_raises_provider_unavailable_when_llm_down() -> None:
     from app.providers.factory import ProviderUnavailable
-    from app.qa.graph import build_qa_graph, run_qa
-    from app.retrieval.search import RetrievalScope
+    from app.qa.workflow import run_qa
 
-    from tests.unit.test_qa_graph import ScriptedAdapter, make_deps
+    from tests.unit.test_qa_workflow import SCOPE, ScriptedAdapter, make_deps
 
     adapter = ScriptedAdapter([
         ProviderUnavailable("down"), ProviderUnavailable("down"),
         ProviderUnavailable("down"), ProviderUnavailable("down"),
     ])
-    graph = build_qa_graph(make_deps(adapter))
+    deps = make_deps(adapter)
     with pytest.raises(ProviderUnavailable):  # route maps this to 503, never 200
-        await run_qa(graph, question="q",
-                     scope=RetrievalScope("doc", "run", "fp"), debug=False)
+        await run_qa(deps, question="q",
+                     scope=SCOPE, debug=False)
     assert len(adapter.prompts) == 2  # bounded by LLM_MAX_ATTEMPTS, not unbounded
 
 
@@ -179,3 +178,14 @@ def test_qdrant_client_errors_are_unwrapped() -> None:
     assert throttled.retry is True and throttled.retry_after_s == 3.0
     assert classify_exception(unexpected(400)).retry is False
     assert classify_exception(unexpected(404)).retry is False
+
+
+async def test_retry_after_over_local_budget_returns_immediately() -> None:
+    async def throttled() -> None:
+        raise _status_error(429, {"Retry-After": "99999"})
+
+    async def unexpected_sleep(_: float) -> None:
+        pytest.fail("must not sleep past the retry budget or ignore Retry-After")
+
+    with pytest.raises(httpx.HTTPStatusError):
+        await retry_async(throttled, op_name="test", max_attempts=2, sleep=unexpected_sleep)

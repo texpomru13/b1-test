@@ -1,0 +1,35 @@
+{
+ "judge": "qwen3.6:27b-q4_K_M",
+ "split": "all",
+ "coverage": {
+  "attempted_answerable": 93,
+  "valid_answerable": 93,
+  "failed_responses": 0,
+  "judged": 93
+ },
+ "fact_recall_all_answerable": {
+  "num": 178,
+  "den": 248,
+  "value": 0.7177
+ },
+ "complete_answers_all_answerable": {
+  "num": 49,
+  "den": 93
+ },
+ "fact_recall_found_only": {
+  "num": 178,
+  "den": 212
+ },
+ "answers_with_forbidden_fact": {
+  "num": 0,
+  "den": 93
+ },
+ "judge_errors": 0,
+ "false_positives": {
+  "n": 0,
+  "errors": 0,
+  "quotes_do_not_answer (hallucination)": 0,
+  "quotes_answer (possible gold error)": 0
+ },
+ "ragas": {}
+}

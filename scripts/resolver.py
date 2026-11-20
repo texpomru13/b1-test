@@ -24,7 +24,10 @@ Rules implemented (plan §3.2/§4.2-4.3, ADR 002/005):
 
 from __future__ import annotations
 
+import argparse
 import json
+import re
+import shlex
 import sys
 from typing import Any
 
@@ -103,6 +106,35 @@ def _pick_llm_runtime(facts: dict, overrides: dict, reasons: list[str],
                       errors: list[str]) -> str | None:
     provider = overrides.get("provider") or "auto"
     saved = overrides.get("saved_runtime") or ""
+    device = overrides.get("device") or "auto"
+    if provider not in ("auto", "ollama", "dmr", "openai", "anthropic"):
+        errors.append(f"unknown LLM provider '{provider}'")
+        return None
+    if device not in ("auto", "cpu", "metal", "nvidia"):
+        errors.append(f"unknown device '{device}'")
+        return None
+    if overrides.get("offline"):
+        use_host = provider == "ollama" or saved == "host-ollama" or device == "metal"
+        if (use_host and provider in ("auto", "ollama") and device in ("auto", "metal")
+                and facts.get("os") == "darwin" and facts.get("host_ollama_reachable")):
+            return "host-ollama"
+        if provider not in ("auto", "ollama") or device == "metal":
+            errors.append("offline mode requires the containerized Ollama runtime")
+            return None
+        return "container-ollama-gpu" if device == "nvidia" else "container-ollama"
+    if device != "auto":
+        if provider in ("openai", "anthropic", "dmr"):
+            errors.append(f"--device {device} requires a local Ollama provider")
+            return None
+        if device == "cpu":
+            return "container-ollama"
+        if device == "nvidia":
+            return "container-ollama-gpu"
+        if (facts.get("os") == "darwin" and facts.get("arch") == "arm64"
+                and facts.get("host_ollama_reachable")):
+            return "host-ollama"
+        errors.append("--device metal requires reachable host Ollama on Apple Silicon")
+        return None
     if provider == "auto" and saved:
         # A saved valid profile NEVER migrates silently when a new runtime appears
         # (DEPLOYMENT_SPEC §3); an explicit --provider is the only way to switch.
@@ -130,10 +162,12 @@ def _pick_llm_runtime(facts: dict, overrides: dict, reasons: list[str],
                        "auto-preference stays blocked per ADR 005)")
         return "dmr"
     if provider == "ollama":
-        if facts.get("host_ollama_reachable"):
+        if facts.get("os") == "darwin" and facts.get("host_ollama_reachable"):
             reasons.append("provider=ollama: verified host Ollama endpoint")
             return "host-ollama"
-        reasons.append("provider=ollama: host endpoint absent -> ollama container (CPU)")
+        if facts.get("nvidia_container_smoke_ok"):
+            return "container-ollama-gpu"
+        reasons.append("provider=ollama: using the container CPU runtime")
         return "container-ollama"
     # auto
     if facts.get("os") == "darwin":
@@ -174,7 +208,10 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
     cloud = llm_runtime in ("openai", "anthropic")
 
 
-    requested_profile = overrides.get("quality") or "quality"
+    requested_profile = overrides.get("quality") or "balanced"
+    if cloud and not overrides.get("model"):
+        return {"ok": False, "decisions": {}, "reasons": reasons,
+                "errors": ["a cloud provider requires an explicit --model or LLM_MODEL"]}
     if requested_profile not in PROFILES:
         return {"ok": False, "decisions": {}, "reasons": reasons,
                 "errors": [f"unknown quality profile '{requested_profile}'"]}
@@ -224,56 +261,31 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
                 return {"ok": False, "decisions": {}, "reasons": reasons,
                         "errors": errors}
 
-        residency = "resident-both"
-        fits = False
+        # local-models keeps both weight sets resident for its entire lifetime.
+        retrieval_need = enc_gib + rr_gib
         if _is_split_pools(facts, llm_runtime):
             retrieval_pool = _retrieval_pool_gib(facts)
             llm_pool = _host_pool_gib(facts)
-            if enc_gib + rr_gib <= retrieval_pool and llm_gib <= llm_pool:
-                fits = True
-            elif max(enc_gib, rr_gib) <= retrieval_pool and llm_gib <= llm_pool:
-                residency = "sequential"
-                fits = True
-                reasons.append(
-                    f"profile {profile_name}: both retrieval weights exceed the "
-                    f"Docker VM pool ({enc_gib + rr_gib:.1f} > {retrieval_pool:.1f} "
-                    "GiB) -> sequential residency instead of smaller models")
-            need_desc = (f"retrieval {enc_gib + rr_gib:.1f} GiB vs VM pool "
-                         f"{max(retrieval_pool, 0):.1f} GiB / LLM {llm_gib:.1f} vs "
+            fits = retrieval_need <= retrieval_pool and llm_gib <= llm_pool
+            need_desc = (f"retrieval {retrieval_need:.1f} GiB vs VM pool "
+                         f"{max(retrieval_pool, 0):.1f} / LLM {llm_gib:.1f} vs "
                          f"host pool {max(llm_pool, 0):.1f} GiB")
         else:
-            # Everything containerized: on macOS the shared pool is the Docker VM
-            # allocation; on native Linux it is host RAM (no VM split).
-            base_pool = (
-                facts.get("docker_vm_mem_gib", 0.0)
-                if facts.get("os") == "darwin"
-                else facts.get("host_free_ram_gib", 0.0)
-            )
+            base_pool = (facts.get("docker_vm_mem_gib", 0.0) if facts.get("os") == "darwin"
+                         else facts.get("host_free_ram_gib", 0.0))
             pool = (base_pool - INFRA_RESERVE_GIB) * SAFETY_RATIO
-            resident_need = llm_gib + enc_gib + rr_gib
-            seq_need = llm_gib + max(enc_gib, rr_gib)  # QA-phase peak dominates
-            if resident_need <= pool:
-                fits = True
-            elif seq_need <= pool:
-                residency = "sequential"
-                fits = True
-                reasons.append(
-                    f"profile {profile_name}: resident set {resident_need:.1f} GiB "
-                    f"exceeds the shared pool {pool:.1f} GiB -> sequential residency")
-            need_desc = (f"resident {resident_need:.1f} / sequential {seq_need:.1f} "
-                         f"GiB vs shared pool {max(pool, 0):.1f} GiB")
+            need = llm_gib + retrieval_need
+            fits = need <= pool
+            need_desc = f"resident {need:.1f} GiB vs shared pool {max(pool, 0):.1f} GiB"
 
         if fits:
-            chosen = (profile_name, profile, residency)
+            chosen = (profile_name, profile)
             break
-        if strict or explicit_encoder or explicit_llm or explicit_reranker:
-            errors.append(
-                f"profile '{profile_name}' does not fit the verified memory budget "
-                f"({need_desc}) and substitution is forbidden by --strict-profile / "
-                "explicit model selection")
+        if strict:
+            errors.append(f"profile '{profile_name}' does not fit ({need_desc}); "
+                          "substitution is forbidden by --strict-profile")
             return {"ok": False, "decisions": {}, "reasons": reasons, "errors": errors}
-        degraded_reason = (
-            f"verified memory deficit: profile '{profile_name}' needs {need_desc}")
+        degraded_reason = f"verified memory deficit: profile '{profile_name}' needs {need_desc}"
         reasons.append(degraded_reason + " -> trying the next profile")
 
     if chosen is None:
@@ -281,7 +293,17 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
                       "Desktop memory limit or free host RAM")
         return {"ok": False, "decisions": {}, "reasons": reasons, "errors": errors}
 
-    profile_name, profile, residency = chosen
+    profile_name, profile = chosen
+    model = overrides.get("model") if cloud else profile["llm"]
+    if llm_runtime == "dmr":
+        # Prefer a user-supplied DMR ID, or translate the Ollama preset when known.
+        model = LLMS.get(model, {}).get("dmr_id") or overrides.get("model")
+        if not model:
+            return {"ok": False, "decisions": {}, "reasons": reasons,
+                    "errors": ["specify an installed DMR --model for this profile"]}
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_./:@+-]*", model):
+        return {"ok": False, "decisions": {}, "reasons": reasons,
+                "errors": ["invalid LLM model identifier"]}
     degraded = profile_name != requested_profile
     encoder = ENCODERS[profile["encoder"]]
     reranker = RERANKERS[profile["reranker"]]
@@ -292,9 +314,8 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
         "llm_provider": ("ollama" if llm_runtime in ("host-ollama", "container-ollama",
                                                      "container-ollama-gpu")
                          else llm_runtime),
-        "llm_model": profile["llm"] if not cloud else overrides.get("model", ""),
-        "dmr_model": (LLMS.get(profile["llm"], {}) or {}).get("dmr_id")
-        if llm_runtime == "dmr" else None,
+        "llm_model": model,
+        "dmr_model": model if llm_runtime == "dmr" else None,
         # model-level default reasoning mode for Ollama (env LLM_THINKING wins)
         "llm_thinking": ("auto" if cloud
                          else (LLMS.get(profile["llm"], {}) or {}).get("thinking", "auto")),
@@ -307,7 +328,7 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
         "reranker_model": profile["reranker"],
         "reranker_revision": reranker["revision"],
         "reranker_adapter": reranker["adapter"],
-        "model_residency": residency,
+        "model_residency": "resident-both",
         "quality_degraded": degraded,
         "quality_degraded_reason": degraded_reason if degraded else None,
         "use_ollama_container": llm_runtime in ("container-ollama",
@@ -339,14 +360,58 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
     reasons.append(
         f"resolved profile={profile_name} runtime={llm_runtime} "
         f"encoder={profile['encoder']} reranker={profile['reranker']} "
-        f"residency={residency}")
+        "residency=resident-both")
     return {"ok": True, "decisions": decisions, "reasons": reasons, "errors": []}
 
 
+def shell_environment(result: dict, args: argparse.Namespace) -> str:
+    d = result["decisions"]
+    encoder = d["embedding_model"].replace("/", "--")
+    revision = d["embedding_revision"]
+    variables = {
+        "B1_SAVED_PROVIDER": args.provider, "B1_SAVED_RUNTIME": d["llm_runtime"],
+        "B1_SAVED_MODEL": args.model, "B1_SAVED_QUALITY": args.quality,
+        "B1_SAVED_RERANKER": args.reranker_model, "B1_SAVED_DEVICE": args.device,
+        "B1_API_PORT": args.port,
+        "B1_HF_SEED_DIR": args.seed_dir, "B1_OFFLINE": int(args.offline),
+        "B1_QUALITY_DEGRADED": int(d["quality_degraded"]),
+        "B1_QUALITY_DEGRADED_REASON": d["quality_degraded_reason"] or "",
+        "B1_TOKENIZER_PATH": (f"/models-cache/hub/models--{encoder}/snapshots/{revision}/"
+                              "tokenizer.json"),
+        "B1_LLM_THINKING": d["llm_thinking"],
+    }
+    for key in ("llm_provider", "llm_model", "ollama_base_url", "embedding_model",
+                "embedding_revision", "reranker_model", "reranker_revision",
+                "reranker_adapter", "llm_read_timeout_s", "qa_deadline_s"):
+        variables[f"B1_{key.upper()}"] = d[key]
+    return "\n".join(f"export {key}={shlex.quote(str(value))}" for key, value in variables.items())
+
+
 def main() -> int:
-    payload = json.load(sys.stdin)
-    result = resolve(payload.get("facts", {}), payload.get("overrides", {}))
-    json.dump(result, sys.stdout, ensure_ascii=False, indent=1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--format", choices=("result", "doctor", "env", "summary"),
+                        default="result")
+    for option in ("provider", "model", "device", "quality", "embedding-model", "reranker-model",
+                   "saved-runtime", "saved-encoder", "seed-dir", "port"):
+        parser.add_argument("--" + option, default="")
+    parser.add_argument("--strict-profile", action="store_true")
+    parser.add_argument("--offline", action="store_true")
+    args = parser.parse_args()
+    data = json.load(sys.stdin)
+    if args.format in ("env", "summary"):
+        if args.format == "env":
+            print(shell_environment(data, args))
+        else:
+            for reason in data["reasons"] + data["errors"]:
+                print("    -", reason)
+        return 0
+    # Keep the standalone JSON interface used by earlier callers.
+    facts = data.get("facts", data)
+    if args.saved_encoder:
+        facts["existing_index_encoder"] = args.saved_encoder
+    result = resolve(facts, data.get("overrides", vars(args)))
+    output = {"facts": facts, "resolution": result} if args.format == "doctor" else result
+    print(json.dumps(output, ensure_ascii=False, indent=1))
     return 0 if result["ok"] else 3
 
 

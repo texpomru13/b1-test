@@ -34,9 +34,9 @@ class FakeLifecycle:
         return dict(self.job)
 
     def transition(self, job_id: str, *, expected: list[str], new_status: str,
-                   extra: dict[str, str] | None = None) -> Any:
+                   extra: dict[str, str] | None = None, token: str | None = None) -> Any:
         previous = self.job["status"]
-        ok = previous in expected
+        ok = previous in expected and (token is None or self.lease == token)
         if ok:
             self.job["status"] = new_status
             self.job.update(extra or {})
@@ -44,7 +44,8 @@ class FakeLifecycle:
         return type("R", (), {"ok": ok, "verdict": "OK" if ok else "INVALID_STATE",
                               "previous_status": previous})()
 
-    def set_fields(self, job_id: str, fields: dict[str, str]) -> None:
+    def set_progress(self, job_id: str, fields: dict[str, str], *, token: str) -> None:
+        assert self.lease == token
         self.job.update(fields)
 
     def incr_attempt(self, job_id: str) -> int:
@@ -245,3 +246,18 @@ def test_real_indexing_failure_still_compensates(
     assert repo.deleted == [("doc-1", "run-x")]
     assert lifecycle.job["status"] == "failed"
     assert lifecycle.job["error_code"] == "QDRANT_UNAVAILABLE"
+
+def test_expired_owner_cannot_fail_a_replacement_attempt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lifecycle = FakeLifecycle()
+
+    def indexing(**kwargs: Any) -> IndexOutcome:
+        lifecycle.lease = "replacement"
+        raise IndexingError("QDRANT_UNAVAILABLE", "timeout", retryable=True, run_id="old-run")
+
+    _prepare_indexing(lifecycle, monkeypatch, indexing)
+    tasks.run_index(lifecycle, "job-1", _settings(tmp_path),  # type: ignore[arg-type]
+                    index_repo=FakeIndexRepo(), embedder=object())  # type: ignore[arg-type]
+    assert lifecycle.job["status"] == "running"
+    assert "error_code" not in lifecycle.job

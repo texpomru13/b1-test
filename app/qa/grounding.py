@@ -99,18 +99,46 @@ def _pages_for_span(chunk: ContextChunk, start: int, end: int) -> tuple[int, int
 
 
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
-_SPACED_AMOUNT = re.compile(r"\d{1,3}(?:[   ]\d{3})+")
+_PERCENT_UNIT = r"\s*".join("процент")  # PDF text layers can split this word
+_PERCENT_AMOUNT = re.compile(
+    rf"(\d+(?:[.,]\d+)?)\s*(?:\([^()\d]{{1,100}}\)\s*)?(?:%|{_PERCENT_UNIT})", re.I
+)
+_SPACED_AMOUNT = re.compile(r"(?<!\d)\d{1,3}(?:[^\S\r\n]+\d{3})+(?!\d)")
 
 
 def _numeric_tokens(text: str) -> set[str]:
-    cleaned = text
-    tokens: set[str] = set()
-    for match in _SPACED_AMOUNT.finditer(text):
-        tokens.add(re.sub(r"[   ]", "", match.group(0)))
-        cleaned = cleaned.replace(match.group(0), " ")
-    for match in _NUMBER.finditer(cleaned):
-        tokens.add(match.group(0).replace(",", "."))
+    cleaned = _SPACED_AMOUNT.sub(lambda m: "".join(m.group().split()), text)
+    tokens = {m.group().replace(",", ".") for m in _NUMBER.finditer(cleaned)}
+    # A quoted number of days cannot support the same number stated as a rate.
+    for match in _PERCENT_AMOUNT.finditer(cleaned):
+        tokens.add(match[1].replace(",", ".") + "%")
     return tokens
+
+
+# Narrow fallback for an explicit request for a number answered by a cross-reference.
+# The verifier handles units, conditional values, multipart and indirect questions.
+_NUMERIC_QUESTION = re.compile(
+    r"^\s*(?:какой процент|сколько процентов|какова сумма|каков размер|"
+    r"сколько (?:рублей|дней|часов))\b", re.IGNORECASE
+)
+_REFERRED_VALUE = re.compile(
+    r"согласован|соглашени|определя|установлен|указан|согласно|в соответствии|по тариф",
+    re.IGNORECASE,
+)
+_QUANTITY = re.compile(
+    r"\d|[%½¼¾]|\b(?:нол|нул|один|одн|дв[ауе]|три(?:\b|надц|дц)|тр[её]х|четыр|пят|шест|сем[ьи]|"
+    r"вос[ье]|девят|десят|сорок|сто\b|сот|тысяч|миллион|половин|четверт|треть|"
+    r"полност|в полном|бесплат|безвозмезд|без удержан|не (?:удерж|взима|начисл|требу))",
+    re.IGNORECASE,
+)
+
+
+def check_requested_value(question: str, claims: list[Claim]) -> None:
+    """An agreement or tariff reference alone does not supply a requested amount."""
+    if _NUMERIC_QUESTION.search(question):
+        answer = " ".join(c.text for c in claims)
+        if _REFERRED_VALUE.search(answer) and not _QUANTITY.search(answer):
+            raise ProvenanceError("вместо запрошенной величины приведён порядок её определения")
 
 
 def check_claim_consistency(claim: Claim, quotes: list[str]) -> None:
@@ -152,7 +180,7 @@ def validate_claims(
             chunk = context_by_id.get(key)
             if chunk is None:
                 raise ProvenanceError(
-                    f"evidence references '{evidence.chunk_id}' which is not in the "
+                    "evidence references a source which is not in the "
                     "allowed context (fabricated or truncated away)"
                 )
             quotes.append(locate_quote(chunk, evidence.quote))

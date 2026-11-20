@@ -1,4 +1,4 @@
-"""Diagnose answerable cases that ended found=false: at which QA-graph step were they lost?
+"""Diagnose answerable cases that ended found=false: at which QA step did the repeated request stop?
 
     uv run python eval/diagnose_misses.py --run balanced-9b-nothink [--project b1-eval]
 
@@ -17,12 +17,9 @@ import collections
 import json
 import subprocess
 import time
-from pathlib import Path
 
 import httpx
-
-ROOT = Path(__file__).resolve().parents[1]
-WORK = ROOT / "eval" / "work"
+from paths import WORK
 
 
 def main() -> None:
@@ -48,6 +45,7 @@ def main() -> None:
             since = str(int(time.time()) - 1)
             resp = client.post(f"/api/v1/documents/{rec['doc_id']}/questions",
                                json={"question": rec["question"], "debug": True})
+            request_id = resp.headers["X-Request-ID"]
             time.sleep(1.0)
             # structlog writes to the container's stderr: merge both streams
             logs = subprocess.run(["docker", "logs", "--since", since, f"{args.project}-api-1"],
@@ -60,6 +58,8 @@ def main() -> None:
                         e = json.loads(line)
                     except ValueError:
                         continue
+                    if e.get("request_id") != request_id:
+                        continue
                     if e.get("event") in ("draft_invalid", "provenance_rejected",
                                           "verifier_invalid", "question_answered",
                                           "llm_outcome_uncertain", "verifier_verdict",
@@ -69,29 +69,24 @@ def main() -> None:
                                                              "verdicts") if k in e})
             body = resp.json()
             usage = (body.get("diagnostics") or {}).get("token_usage", {})
-            steps = [e["event"] for e in events if e["event"] != "question_answered"]
             final = next((e for e in events if e["event"] == "question_answered"), {})
-            if body.get("found"):
+            decisions = [e for e in events if e["event"] in (
+                "draft_not_answerable", "provenance_rejected", "draft_invalid", "verifier_invalid"
+            )]
+            if resp.status_code != 200:
+                stage = f"http_{resp.status_code}"
+            elif body.get("found"):
                 stage = "answered_on_reask"
-            elif resp.status_code != 200:
-                stage = f"http_{resp.status_code} on re-ask"
-            elif "provenance_rejected" in steps:
-                errs = " ".join(e.get("error") or "" for e in events
-                                if e["event"] == "provenance_rejected")
-                stage = ("provenance: number in claim absent from quote -> refusal"
-                         if "absent from its evidence" in errs
-                         else "provenance: quote not an exact substring -> refusal")
-            elif "draft_invalid" in steps or "verifier_invalid" in steps:
-                stage = "invalid_json -> refusal"
-            elif "verifier_verdict" in steps:
-                stage = "verifier rejected -> (repair) -> refusal"
-            elif "draft_not_answerable" in steps:
-                stage = "draft said not answerable"
+            elif decisions:
+                last = decisions[-1]
+                stage = last.get("error") or last["event"]
             else:
                 stage = "unclassified"
-            fh.write(json.dumps({"req_id": row["req_id"], "category": row["category"],
+            fh.write(json.dumps({"req_id": row["req_id"], "request_id": request_id,
+                                 "category": row["category"],
                                  "ctx_all": row.get("ctx_all"), "reask_http": resp.status_code,
-                                 "reask_found": body.get("found"), "llm_calls": usage.get("llm_calls"),
+                                 "reask_found": body.get("found"),
+                                 "llm_calls": usage.get("llm_calls"),
                                  "repairs": final.get("repairs"), "events": events, "stage": stage},
                                 ensure_ascii=False) + "\n")
             print(row["req_id"], stage, flush=True)

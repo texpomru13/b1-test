@@ -1,0 +1,525 @@
+{
+ "api": "http://127.0.0.1:8020",
+ "docs": {
+  "10": {
+   "file": "test_documents/10_Страхование_ответственности_Ингосстрах.pdf",
+   "sha256": "0c98b06ab15af509ee66f0297332a3da98ca7b7bf6cabc960649f74f155de31c",
+   "size_bytes": 472071,
+   "doc_id": "7b4a4afc65de4a1daf77f9b9ad5a6516",
+   "job_id": "98ecf9940d2f4ef7a29969ae6e5b4409",
+   "upload_http_ms": 12,
+   "submitted_at": "2026-11-20T12:34:38+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.0
+    ],
+    [
+     "running:parse",
+     1.0
+    ],
+    [
+     "running:embed",
+     2.0
+    ],
+    [
+     "succeeded:publish",
+     43.3
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 43.3,
+   "page_count": 17,
+   "chunk_count": 177
+  },
+  "01": {
+   "file": "test_documents/01_Поставка_Мария-Ра.docx",
+   "sha256": "182beb4f4eee0accd4a923958fa84f4e663a33558d7774b8616b5235f8c7b2e2",
+   "size_bytes": 66652,
+   "doc_id": "c76c316b83334fb4b337892383090372",
+   "job_id": "9cb93b78ce5f42bfaefede0e5935b11f",
+   "upload_http_ms": 5,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "running:parse",
+     0.2
+    ],
+    [
+     "running:split",
+     1.2
+    ],
+    [
+     "running:embed",
+     2.3
+    ],
+    [
+     "succeeded:publish",
+     27.4
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 27.4,
+   "page_count": 8,
+   "chunk_count": 91
+  },
+  "02": {
+   "file": "test_documents/02_Транспортная_экспедиция_Logexim.pdf",
+   "sha256": "81ab8a8784c5d03782af65e91fdae03d28df9d98f202b62639366a283c9326c4",
+   "size_bytes": 616580,
+   "doc_id": "e0c8e6a6109a493f8e345ee83777d8ca",
+   "job_id": "8403da46ecb54fd281b851f8ca9e3d81",
+   "upload_http_ms": 6,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.2
+    ],
+    [
+     "running:split",
+     27.4
+    ],
+    [
+     "running:embed",
+     28.5
+    ],
+    [
+     "succeeded:publish",
+     40.9
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 40.9,
+   "page_count": 7,
+   "chunk_count": 72
+  },
+  "03": {
+   "file": "test_documents/03_VDS_Хостинг_Hoster.docx",
+   "sha256": "a4913b0706c06895982b8015e8e0d400ea6b50537b96478552d4404d945ea7d1",
+   "size_bytes": 285653,
+   "doc_id": "6fdc55ee04964765959a1c6d33072999",
+   "job_id": "9abd182d46b2464bb821860272b1a142",
+   "upload_http_ms": 5,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.2
+    ],
+    [
+     "running:parse",
+     40.9
+    ],
+    [
+     "running:embed",
+     42.0
+    ],
+    [
+     "succeeded:publish",
+     54.3
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 54.3,
+   "page_count": 8,
+   "chunk_count": 99
+  },
+  "04": {
+   "file": "test_documents/04_Аренда_производственного_помещения.pdf",
+   "sha256": "e2bcf18e1d30d8e21674f0ad7f5d4be9de4ed9221bf614cf9488630cb93e06ea",
+   "size_bytes": 916384,
+   "doc_id": "e67d60dbd81243f9a5d1770dc6cf4968",
+   "job_id": "62190d894b9b4aef81eb69507e058d46",
+   "upload_http_ms": 11,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.2
+    ],
+    [
+     "running:parse",
+     54.3
+    ],
+    [
+     "running:embed",
+     55.3
+    ],
+    [
+     "succeeded:publish",
+     68.7
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 68.7,
+   "page_count": 10,
+   "chunk_count": 90
+  },
+  "05": {
+   "file": "test_documents/05_Хостинг_Оптибит.pdf",
+   "sha256": "c5e21742ec576e902a730080b76d3795a2eab0245de7e9ebf437e2ddf847a1a5",
+   "size_bytes": 448289,
+   "doc_id": "e7f69b80b03244ddabe49ae042748e6f",
+   "job_id": "9e0d1c71a23d4556818af6b0b8633bac",
+   "upload_http_ms": 5,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.2
+    ],
+    [
+     "running:parse",
+     68.7
+    ],
+    [
+     "running:embed",
+     69.7
+    ],
+    [
+     "succeeded:publish",
+     100.5
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 100.5,
+   "page_count": 12,
+   "chunk_count": 162
+  },
+  "06": {
+   "file": "test_documents/06_Лицензия_Виртуальная_АТС.pdf",
+   "sha256": "1c7539425bcb030d8599718d91690c7f6f443ce402c8dc33a89755b8d26d61fb",
+   "size_bytes": 3627046,
+   "doc_id": "943face7362c42b9b4e1e96b4e966f22",
+   "job_id": "204c9d68c90c4c979d20652fc3717713",
+   "upload_http_ms": 60,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.2
+    ],
+    [
+     "failed:parse",
+     100.5
+    ]
+   ],
+   "status": "failed",
+   "error": {
+    "code": "OCR_REQUIRED",
+    "message": "document has no usable text layer (scan?); OCR is not part of the mandatory scope",
+    "retryable": false
+   },
+   "terminal_s": 100.5,
+   "page_count": null,
+   "chunk_count": null
+  },
+  "07": {
+   "file": "test_documents/07_Строительный_подряд_Метафракс.pdf",
+   "sha256": "1c1b8237325f4711e8dcb0dab47977f3d267074d62e26a2c27ef4f9f1ee5856c",
+   "size_bytes": 502984,
+   "doc_id": "a69bd5b3e1364e4a9aae351b7bb624c9",
+   "job_id": "2341908336314f43a7574551753946dc",
+   "upload_http_ms": 9,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:parse",
+     100.5
+    ],
+    [
+     "running:embed",
+     102.5
+    ],
+    [
+     "succeeded:publish",
+     167.0
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 167.0,
+   "page_count": 44,
+   "chunk_count": 342
+  },
+  "08": {
+   "file": "test_documents/08_Водоснабжение_Заводские_сети.pdf",
+   "sha256": "b484e47bc89a44ff523bb404ea19da4b0bb9f8030ed9750f9cd8277e1cbca903",
+   "size_bytes": 665415,
+   "doc_id": "d480c4ba7ac840f9aef372a197132611",
+   "job_id": "650c7e085fea4430b2a06e08a46d8875",
+   "upload_http_ms": 9,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:parse",
+     167.0
+    ],
+    [
+     "running:embed",
+     168.1
+    ],
+    [
+     "succeeded:publish",
+     196.7
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 196.7,
+   "page_count": 24,
+   "chunk_count": 156
+  },
+  "09": {
+   "file": "test_documents/09_Туристский_продукт_Ласпи.pdf",
+   "sha256": "8c60c7d73d868d995733d3d5eb46d88dacaa5762e3d50b02c7eb67c619fc1c08",
+   "size_bytes": 372090,
+   "doc_id": "9c4db34036c9422a8ac3febd1ab6589d",
+   "job_id": "65e6d47015884482a49b8eac7b47a926",
+   "upload_http_ms": 7,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:split",
+     196.7
+    ],
+    [
+     "running:embed",
+     197.7
+    ],
+    [
+     "succeeded:publish",
+     224.3
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 224.3,
+   "page_count": 11,
+   "chunk_count": 104
+  },
+  "11": {
+   "file": "test_documents/11_Образовательные_услуги_СПбГИКиТ.pdf",
+   "sha256": "f16dc4974d66c59d5d22ce60ad43173ef6f0ed179f1484d655d86e17e04df330",
+   "size_bytes": 463128,
+   "doc_id": "fddfe43bd5f7459cbf550d34967b1cb7",
+   "job_id": "e0cfe152cb2646d48417587f96bef3e0",
+   "upload_http_ms": 7,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:parse",
+     224.3
+    ],
+    [
+     "running:embed",
+     225.3
+    ],
+    [
+     "succeeded:publish",
+     241.6
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 241.6,
+   "page_count": 6,
+   "chunk_count": 128
+  },
+  "12": {
+   "file": "test_documents/12_Конфиденциальность_Cosh_Labs.docx",
+   "sha256": "517c07dbc5f6a517fc891c063cd3d4d7c89f564f47c56e791823ce65d04b5ce1",
+   "size_bytes": 41482,
+   "doc_id": "ad25070c4f3c4029b46ab36957954847",
+   "job_id": "37321c1de932487ca433f7fe71591305",
+   "upload_http_ms": 2,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:parse",
+     241.6
+    ],
+    [
+     "running:embed",
+     242.6
+    ],
+    [
+     "succeeded:publish",
+     247.7
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 247.7,
+   "page_count": 5,
+   "chunk_count": 44
+  },
+  "13": {
+   "file": "test_documents/13_Обслуживание_пожарной_сигнализации.docx",
+   "sha256": "a121db7a3108aba39ad8625fa68a4f2fc2d16dd325ec626b3bdcbc2a1526d808",
+   "size_bytes": 17853,
+   "doc_id": "ef22350e55f34a47aa65c916ae6d8b1e",
+   "job_id": "e220292b03e94eb3b10bcf1af72d73d3",
+   "upload_http_ms": 3,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:split",
+     247.7
+    ],
+    [
+     "running:embed",
+     248.7
+    ],
+    [
+     "succeeded:publish",
+     254.8
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 254.8,
+   "page_count": 4,
+   "chunk_count": 47
+  },
+  "14": {
+   "file": "test_documents/14_Умный_дом_Ростелеком.pdf",
+   "sha256": "31bfe911c6585eec01c914f0c7d0abdb0214d335bbd934140428328c4e6937ca",
+   "size_bytes": 532436,
+   "doc_id": "325135f391cc4fc79c30185abc7e8207",
+   "job_id": "6cd05f2f856d4b64a3d560f8a7c1b216",
+   "upload_http_ms": 6,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:parse",
+     254.8
+    ],
+    [
+     "running:embed",
+     256.9
+    ],
+    [
+     "succeeded:publish",
+     342.1
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 342.1,
+   "page_count": 47,
+   "chunk_count": 458
+  },
+  "15": {
+   "file": "test_documents/15_Лицензия_Litender.pdf",
+   "sha256": "911d83b47fe4be7e30c4914a328cda62914c0a75cc9295e0a058bb84995db5d7",
+   "size_bytes": 167448,
+   "doc_id": "ee3386bf28d34d7bbc16abf1e1892797",
+   "job_id": "62edf02ae1884aeaa84e7489b9b395f8",
+   "upload_http_ms": 6,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:split",
+     342.1
+    ],
+    [
+     "running:embed",
+     343.1
+    ],
+    [
+     "succeeded:publish",
+     348.1
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 348.1,
+   "page_count": 4,
+   "chunk_count": 41
+  },
+  "100_pages": {
+   "file": "100_pages.pdf",
+   "sha256": "defb698cb961b74a4d747081819b5def319c4bc728658321d64a38372a582efa",
+   "size_bytes": 1671708,
+   "doc_id": "c95c2dba861749b9a48347c14ebb6432",
+   "job_id": "4ec9b87482e34998b54ec3a032ba37ed",
+   "upload_http_ms": 19,
+   "submitted_at": "2026-11-20T12:37:25+00:00",
+   "stages_seen": [
+    [
+     "queued:upload",
+     0.1
+    ],
+    [
+     "running:parse",
+     348.1
+    ],
+    [
+     "running:split",
+     352.2
+    ],
+    [
+     "running:embed",
+     353.2
+    ],
+    [
+     "running:upsert",
+     426.7
+    ],
+    [
+     "running:embed",
+     427.7
+    ],
+    [
+     "succeeded:publish",
+     552.7
+    ]
+   ],
+   "status": "succeeded",
+   "error": null,
+   "terminal_s": 552.7,
+   "page_count": 100,
+   "chunk_count": 896
+  }
+ }
+}

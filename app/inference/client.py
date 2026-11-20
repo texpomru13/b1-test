@@ -6,7 +6,10 @@ torch-based adapters (single-owner rule, ADR 002/ADR 001; measured in spike S8).
 
 from __future__ import annotations
 
+import asyncio
+
 import httpx
+from pydantic import BaseModel, ValidationError
 
 from app.inference.contract import (
     EmbedRequest,
@@ -21,6 +24,21 @@ from app.inference.contract import (
 class LocalModelsError(Exception):
     """Transport or protocol failure talking to local-models."""
 
+def _parse[T: BaseModel](response: httpx.Response, schema: type[T]) -> T:
+    try:
+        return schema.model_validate_json(response.content)
+    except ValidationError as exc:
+        raise LocalModelsError(f"invalid local-models {schema.__name__}") from exc
+
+
+def _vectors(response: httpx.Response, request: EmbedRequest) -> EmbedResponse:
+    result = _parse(response, EmbedResponse)
+    if len(result.vectors) != len(request.texts) or any(
+        len(row) != result.dim for row in result.vectors
+    ):
+        raise LocalModelsError("local-models returned inconsistent vector dimensions or count")
+    return result
+
 
 class LocalModelsClient:
     def __init__(self, base_url: str, *, timeout_s: float = 30.0) -> None:
@@ -33,33 +51,36 @@ class LocalModelsClient:
         try:
             response = await self._client.get("/v1/health")
             response.raise_for_status()
-            return ServiceHealth.model_validate(response.json())
+            return _parse(response, ServiceHealth)
         except httpx.ConnectError:
             return ServiceHealth(status=ServiceStatus.NOT_INITIALIZED)
         except httpx.HTTPError as exc:
             raise LocalModelsError(f"local-models health failed: {type(exc).__name__}") from exc
 
     async def _post_with_policy(self, path: str, payload: dict, *, op: str,
-                                attempts: int) -> dict:
+                                attempts: int) -> httpx.Response:
         from app.reliability.breaker import CircuitOpenError
-        from app.reliability.policy import retry_async
+        from app.reliability.policy import classify_exception, retry_async
 
-        async def once() -> dict:
+        async def once() -> httpx.Response:
             self._breaker.before_call()
             try:
                 response = await self._client.post(path, json=payload)
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
-                if exc.response.status_code in (429, 502, 503, 504):
+                if classify_exception(exc).retry:
                     self._breaker.record_transient_failure()
                 else:
                     self._breaker.record_config_failure()
+                raise
+            except asyncio.CancelledError:
+                self._breaker.record_config_failure()
                 raise
             except httpx.HTTPError:
                 self._breaker.record_transient_failure()
                 raise
             self._breaker.record_success()
-            return dict(response.json())
+            return response
 
         try:
             return await retry_async(once, op_name=op, max_attempts=attempts)
@@ -73,14 +94,14 @@ class LocalModelsClient:
             "/v1/embed", request.model_dump(mode="json"),
             op="local_models.embed", attempts=3,
         )
-        return EmbedResponse.model_validate(raw)
+        return _vectors(raw, request)
 
     async def rerank(self, request: RerankRequest) -> RerankResponse:
         raw = await self._post_with_policy(
             "/v1/rerank", request.model_dump(mode="json"),
             op="local_models.rerank", attempts=2,
         )
-        return RerankResponse.model_validate(raw)
+        return _parse(raw, RerankResponse)
 
     async def aclose(self) -> None:
         await self._client.aclose()
@@ -96,7 +117,7 @@ class LocalModelsSyncClient:
         try:
             response = self._client.get("/v1/health")
             response.raise_for_status()
-            return ServiceHealth.model_validate(response.json())
+            return _parse(response, ServiceHealth)
         except httpx.ConnectError:
             return ServiceHealth(status=ServiceStatus.NOT_INITIALIZED)
         except httpx.HTTPError as exc:
@@ -108,7 +129,7 @@ class LocalModelsSyncClient:
         def once() -> EmbedResponse:
             response = self._client.post("/v1/embed", json=request.model_dump(mode="json"))
             response.raise_for_status()
-            return EmbedResponse.model_validate(response.json())
+            return _vectors(response, request)
 
         try:
             return retry_sync(once, op_name="local_models.embed_sync", max_attempts=3)

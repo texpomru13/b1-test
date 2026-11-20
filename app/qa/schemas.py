@@ -6,8 +6,9 @@ server derives citations from authoritative chunk payload.
 from __future__ import annotations
 
 import enum
+import re
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Evidence(BaseModel):
@@ -18,16 +19,29 @@ class Evidence(BaseModel):
 
 
 class Claim(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     text: str = Field(min_length=1)
     evidence: list[Evidence] = Field(min_length=1)  # every claim needs evidence
+
+    @field_validator("text")
+    @classmethod
+    def _server_citation_markers(cls, value: str) -> str:
+        if re.search(r"\[\d+\]", value):
+            raise ValueError("citation markers belong in evidence, not claim text")
+        return value
 
 
 class DraftAnswer(BaseModel):
     model_config = ConfigDict(extra="forbid")
     answerable: bool
-    claims: list[Claim] = Field(default_factory=list)
-    missing_information: list[str] = Field(default_factory=list)
+    claims: list[Claim]
+    missing_information: list[str]
+
+    @model_validator(mode="after")
+    def _consistent_answer(self) -> DraftAnswer:
+        if self.answerable != bool(self.claims) or (self.answerable and self.missing_information):
+            raise ValueError("answerable requires claims covering all requested information")
+        return self
 
 
 DRAFT_JSON_SCHEMA: dict = {

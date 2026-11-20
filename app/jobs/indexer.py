@@ -9,7 +9,6 @@ run is removed best-effort with a (doc_id AND run_id) filter only.
 from __future__ import annotations
 
 import functools
-import importlib.metadata
 import json
 import uuid
 from collections.abc import Callable
@@ -18,14 +17,15 @@ from pathlib import Path
 from typing import Any
 
 from app.config.settings import Settings
-from app.domain.index_fingerprint import compute_index_fingerprint
+from app.domain.index_fingerprint import fingerprint_for_embedding
+from app.domain.job import document_title
 from app.inference.client import LocalModelsError, LocalModelsSyncClient
 from app.inference.contract import EmbedRequest, InputType
 from app.jobs.lease import LEASE_TTL_MS
 from app.observability.logging import get_logger
 from app.reliability.policy import retry_sync
 from app.retrieval.bm25 import Bm25Adapter
-from app.storage.job_lifecycle_sync import SyncJobLifecycle
+from app.storage.job_lifecycle_sync import LeaseLostError, SyncJobLifecycle
 from app.storage.qdrant_repo import (
     FingerprintMismatchError,
     QdrantIndexRepository,
@@ -75,7 +75,7 @@ def _chunk_payload(
 ) -> dict[str, Any]:
     return {
         "doc_id": job["doc_id"],
-        "doc_title": job.get("title") or None,
+        "doc_title": document_title(job),
         "chunk_index": chunk["index"],
         "page_from": chunk["page_from"],
         "page_to": chunk["page_to"],
@@ -127,17 +127,9 @@ def run_indexing(
             retryable=True,
         ) from exc
 
-    fingerprint = compute_index_fingerprint(
-        embedding_model_id=probe.model_id,
-        embedding_revision=probe.revision,
-        embedding_dim=probe.dim,
-        instruction_version=settings.embedding_instruction_version,
-        chunk_tokens=artifact["chunk_tokens"],
-        overlap_tokens=artifact["overlap_tokens"],
-        length_fn_id=artifact["length_fn"],
-        bm25_language=settings.bm25_language,
-        bm25_avg_len=settings.bm25_avg_len,
-        fastembed_version=importlib.metadata.version("fastembed"),
+    fingerprint = fingerprint_for_embedding(
+        probe, settings, length_fn_id=artifact["length_fn"],
+        chunk_tokens=artifact["chunk_tokens"], overlap_tokens=artifact["overlap_tokens"],
     )
 
     def q_retry[R](op_name: str, fn: Callable[[], R]) -> R:
@@ -167,14 +159,14 @@ def run_indexing(
 
     run_id = uuid.uuid4().hex  # NEW run per attempt: old runs never mix (ADR 003)
     created_at = utc_now_iso()
-    lifecycle.set_fields(job_id, {
+    lifecycle.set_progress(job_id, {
         "stage": "embed",
         "ingestion_run_id": run_id,
         "index_fingerprint": fingerprint,
         "progress_completed": "0",
         "progress_total": str(len(chunks)),
         "progress_unit": "chunks",
-    })
+    }, token=lease_token)
 
     page_count = int(artifact["page_count"])
     chunk_count = len(chunks)
@@ -190,15 +182,26 @@ def run_indexing(
             batch = chunks[start : start + UPSERT_BATCH]
             texts = [chunk["text"] for chunk in batch]
             try:
-                dense = embedder.embed(
+                encoded = embedder.embed(
                     EmbedRequest(texts=texts, input_type=InputType.DOCUMENT)
-                ).vectors
+                )
             except LocalModelsError as exc:
                 raise IndexingError(
                     ERROR_EMBEDDING_UNAVAILABLE,
                     f"embedding batch failed: {exc}",
                     retryable=True,
                 ) from exc
+            if ((encoded.model_id, encoded.revision, encoded.dim)
+                    != (probe.model_id, probe.revision, probe.dim)):
+                raise IndexingError(
+                    ERROR_INDEX_FINGERPRINT_MISMATCH,
+                    "embedding model identity changed during indexing", retryable=False,
+                )
+            dense = encoded.vectors
+            if len(dense) != len(texts) or any(len(vector) != probe.dim for vector in dense):
+                raise IndexingError(
+                    ERROR_INDEX_VERIFY_FAILED, "invalid embedding batch shape", retryable=True,
+                )
             sparse = bm25.embed_documents(texts)
             payloads = [
                 _chunk_payload(
@@ -207,19 +210,19 @@ def run_indexing(
                 )
                 for chunk in batch
             ]
-            lifecycle.set_fields(job_id, {"stage": "upsert"})
+            lifecycle.set_progress(job_id, {"stage": "upsert"}, token=lease_token)
             q_retry("qdrant.upsert", functools.partial(
                 index_repo.upsert_chunk_batch,
                 doc_id=job["doc_id"], run_id=run_id, batch=payloads,
                 dense_vectors=dense, sparse_vectors=sparse,
             ))
             done += len(batch)
-            lifecycle.set_fields(job_id, {
+            lifecycle.set_progress(job_id, {
                 "stage": "embed", "progress_completed": str(done),
-            })
+            }, token=lease_token)
 
         # verification before any publication marker
-        lifecycle.set_fields(job_id, {"stage": "verify"})
+        lifecycle.set_progress(job_id, {"stage": "verify"}, token=lease_token)
         actual = q_retry("qdrant.count", lambda: index_repo.count_run(job["doc_id"], run_id))
         if actual != chunk_count:
             raise IndexingError(
@@ -229,6 +232,8 @@ def run_indexing(
             )
         q_retry("qdrant.head_complete",
                 lambda: index_repo.mark_run_complete_on_head(job["doc_id"], run_id))
+    except LeaseLostError:
+        raise
     except IndexingError as exc:
         if exc.run_id is None:
             exc.run_id = run_id
@@ -241,15 +246,3 @@ def run_indexing(
         ) from exc
 
     return IndexOutcome(run_id=run_id, fingerprint=fingerprint, chunk_count=chunk_count)
-
-
-def _cleanup_incomplete_run(
-    index_repo: QdrantIndexRepository, doc_id: str, run_id: str
-) -> None:
-    """Best-effort removal of the UNPUBLISHED run only (doc_id AND run_id)."""
-    try:
-        index_repo.delete_run(doc_id, run_id)
-        logger.info("incomplete_run_removed", doc_id=doc_id, run_id=run_id)
-    except Exception as exc:
-        logger.warning("incomplete_run_cleanup_failed", doc_id=doc_id, run_id=run_id,
-                       error=type(exc).__name__)

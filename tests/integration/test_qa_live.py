@@ -1,5 +1,5 @@
-"""Live QA acceptance on the full stack (RUN_STACK_TESTS=1): real Giga-3B
-retrieval, real Qwen3-Reranker-8B, real Qwen3.6-27B via Docker Model Runner.
+"""Live QA acceptance on the full stack (RUN_STACK_TESTS=1): the configured
+embedding model, reranker and LLM.
 
 Uploads a Russian DOCX contract (LibreOffice converts in-container), then:
 exact-designation question -> found=true with a valid verifiable citation;
@@ -23,7 +23,7 @@ pytestmark = pytest.mark.skipif(
     reason="requires the running compose stack (set RUN_STACK_TESTS=1)",
 )
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = os.environ.get("B1_TEST_API_URL", "http://127.0.0.1:8000").rstrip("/")
 QA_TIMEOUT = float(os.environ.get("B1_QA_TEST_TIMEOUT", "600"))
 
 CONTRACT = [
@@ -94,7 +94,7 @@ def test_exact_designation_question(doc_id: str) -> None:
     cited = set(diag["cited_chunk_ids"])
     assert cited and cited.issubset(set(diag["context_chunk_ids"]))
     assert diag["token_usage"]["llm_calls"] >= 2  # generation + verification
-    assert "qwen3.6" in diag["model_ids"]["llm"]  # provider-agnostic (dmr/ollama tags differ)
+    assert all(diag["model_ids"].get(name) for name in ("embedding", "reranker", "llm"))
 
 
 def test_no_answer_question(doc_id: str) -> None:

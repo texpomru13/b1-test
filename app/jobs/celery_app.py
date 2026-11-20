@@ -1,8 +1,4 @@
-"""Celery application configured per ADR 003 (acks_late, prefetch 1, JSON only).
-
-Attempt counting against the Redis-side job lifecycle (not Celery retries alone)
-arrives with the real indexing task in stage 2+.
-"""
+"""Celery broker, worker limits and serialization settings for indexing."""
 
 from __future__ import annotations
 
@@ -18,6 +14,7 @@ def create_celery_app(settings: Settings) -> Celery:
         backend=settings.celery_result_backend,
         include=["app.jobs.tasks"],
     )
+    soft_limit = settings.indexing_soft_time_limit_s
     celery_app.conf.update(
         task_acks_late=True,
         worker_prefetch_multiplier=1,
@@ -25,10 +22,9 @@ def create_celery_app(settings: Settings) -> Celery:
         result_serializer="json",
         accept_content=["json"],
         enable_utc=True,
-        # Starting values per IMPLEMENTATION_PLAN.md §8.5; re-measured later.
-        task_soft_time_limit=900,
-        task_time_limit=1080,
-        broker_transport_options={"visibility_timeout": 1200},
+        task_soft_time_limit=soft_limit,
+        task_time_limit=soft_limit + 180,
+        broker_transport_options={"visibility_timeout": soft_limit + 300},
         result_expires=3600,
         worker_send_task_events=False,
         task_default_queue="indexing",

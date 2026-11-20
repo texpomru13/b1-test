@@ -19,7 +19,7 @@ def _connect_error() -> Exception:
 
 
 class FakeLifecycle:
-    def set_fields(self, job_id: str, fields: dict[str, str]) -> None:
+    def set_progress(self, job_id: str, fields: dict[str, str], *, token: str) -> None:
         pass
 
     def renew_lease(self, job_id: str, token: str, *, ttl_ms: int) -> bool:
@@ -126,3 +126,21 @@ def test_upsert_outage_is_bounded_and_carries_run_for_compensation(
     assert excinfo.value.code == "QDRANT_UNAVAILABLE"
     assert excinfo.value.run_id  # the partial run must be removed by the saga
     assert repo.upsert_calls == 3
+
+def test_model_change_between_probe_and_batch_never_writes(settings: Settings) -> None:
+    class ChangingEmbedder(FakeEmbedder):
+        def embed(self, request: Any) -> EmbedResponse:
+            result = super().embed(request)
+            if request.texts != ["probe"]:
+                result.revision = "other revision"
+            return result
+
+    repo = FakeIndexRepo()
+    with pytest.raises(IndexingError, match="identity changed") as excinfo:
+        run_indexing(
+            job={"doc_id": "doc-1"}, job_id="job-1", lease_token="token",
+            settings=settings, lifecycle=FakeLifecycle(),  # type: ignore[arg-type]
+            index_repo=repo, embedder=ChangingEmbedder(), bm25=FakeBm25(),  # type: ignore[arg-type]
+        )
+    assert excinfo.value.code == "INDEX_FINGERPRINT_MISMATCH"
+    assert repo.upsert_calls == 0

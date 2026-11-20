@@ -1,4 +1,4 @@
-"""PDF text extraction: a custom LangChain BaseLoader over pypdf.
+"""Extract physical pages and their text layer using pypdf.
 
 Physical, 1-based pages. Encrypted/corrupt inputs raise typed errors; the
 text-layer statistics feed the mandatory scan/mixed detection (stage 3).
@@ -6,12 +6,9 @@ text-layer statistics feed the mandatory scan/mixed detection (stage 3).
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
-from langchain_core.document_loaders import BaseLoader
-from langchain_core.documents import Document
 from pypdf import PdfReader
 from pypdf.errors import PyPdfError
 
@@ -22,7 +19,7 @@ from app.ingestion.errors import (
     PasswordProtectedError,
 )
 
-# A page with fewer meaningful characters than this has no usable text layer.
+# Ignore short decorations on an image-only page.
 MIN_TEXT_CHARS_PER_PAGE = 20
 # Mixed-document rule: flag when >20% of pages (or >=2 pages in small docs) lack text.
 MIXED_EMPTY_RATIO = 0.2
@@ -73,9 +70,10 @@ def extract_pdf(path: Path, *, max_pages: int) -> PdfExtraction:
                 f"text extraction failed on page {number}: {type(exc).__name__}"
             ) from exc
         meaningful = len("".join(text.split()))
-        pages.append(
-            ExtractedPage(page=number, text=text, has_text=meaningful >= MIN_TEXT_CHARS_PER_PAGE)
-        )
+        # A short text-only page may consist of a date, name or amount. For an
+        # image page, a footer/page number alone is not a usable text layer.
+        has_text = meaningful >= MIN_TEXT_CHARS_PER_PAGE or (meaningful > 0 and not page.images)
+        pages.append(ExtractedPage(page=number, text=text, has_text=has_text))
 
     _check_text_layer(pages)
     return PdfExtraction(pages=pages, page_count=page_count)
@@ -96,19 +94,3 @@ def _check_text_layer(pages: list[ExtractedPage]) -> None:
             "text part would silently misrepresent the document",
             detail=f"pages_with_text={total - empty}/{total}",
         )
-
-
-class PdfPagesLoader(BaseLoader):
-    """LangChain loader: one Document per physical page (metadata: page, 1-based)."""
-
-    def __init__(self, path: Path, *, max_pages: int) -> None:
-        self._path = path
-        self._max_pages = max_pages
-
-    def lazy_load(self) -> Iterator[Document]:
-        extraction = extract_pdf(self._path, max_pages=self._max_pages)
-        for page in extraction.pages:
-            yield Document(
-                page_content=page.text,
-                metadata={"page": page.page, "source": str(self._path)},
-            )

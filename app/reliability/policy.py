@@ -16,6 +16,7 @@ Classification:
 from __future__ import annotations
 
 import asyncio
+import math
 import random
 import time
 from collections.abc import Awaitable, Callable
@@ -28,8 +29,7 @@ from app.observability.logging import get_logger
 logger = get_logger("reliability.retry")
 
 
-NON_RETRYABLE_STATUS = {400, 401, 403, 404, 409, 413, 415, 422}
-RETRYABLE_STATUS = {429, 502, 503, 504}
+RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
 
 
 @dataclass(frozen=True)
@@ -44,7 +44,8 @@ def _status_decision(status: int | None, retry_after_raw: str | None) -> RetryDe
         retry_after = None
         if retry_after_raw is not None:
             try:
-                retry_after = max(0.0, float(retry_after_raw))
+                seconds = float(retry_after_raw)
+                retry_after = seconds if math.isfinite(seconds) and seconds >= 0 else None
             except ValueError:
                 retry_after = None
         return RetryDecision(retry=True, retry_after_s=retry_after)
@@ -79,22 +80,11 @@ def classify_exception(exc: BaseException) -> RetryDecision:
     if qdrant_decision is not None:
         return qdrant_decision
     if isinstance(exc, httpx.HTTPStatusError):
-        status = exc.response.status_code
-        if status in NON_RETRYABLE_STATUS:
-            return RetryDecision(retry=False)
-        if status in RETRYABLE_STATUS:
-            retry_after = None
-            raw = exc.response.headers.get("Retry-After")
-            if raw is not None:
-                try:
-                    retry_after = max(0.0, float(raw))
-                except ValueError:
-                    retry_after = None
-            return RetryDecision(retry=True, retry_after_s=retry_after)
-        return RetryDecision(retry=False)
+        return _status_decision(exc.response.status_code, exc.response.headers.get("Retry-After"))
     if isinstance(exc, httpx.ConnectError | httpx.ConnectTimeout):
         return RetryDecision(retry=True)  # nothing was sent: certain, safe retry
-    if isinstance(exc, httpx.ReadTimeout | httpx.WriteError | httpx.RemoteProtocolError):
+    if isinstance(exc, httpx.ReadTimeout | httpx.WriteTimeout | httpx.NetworkError
+                  | httpx.RemoteProtocolError):
         return RetryDecision(retry=True, uncertain=True)  # may have been processed
     if isinstance(exc, TimeoutError | asyncio.TimeoutError):
         return RetryDecision(retry=True, uncertain=True)
@@ -133,7 +123,8 @@ async def retry_async[T](
                     error=type(exc).__name__,
                     note="request may have been processed/billed by the provider",
                 )
-            if not decision.retry or attempt + 1 >= max_attempts:
+            if (not decision.retry or attempt + 1 >= max_attempts
+                    or (decision.retry_after_s is not None and decision.retry_after_s > cap_s)):
                 raise
             delay = (
                 decision.retry_after_s
@@ -165,7 +156,8 @@ def retry_sync[T](
             if decision.uncertain:
                 logger.warning("outcome_uncertain", op=op_name, attempt=attempt + 1,
                                error=type(exc).__name__)
-            if not decision.retry or attempt + 1 >= max_attempts:
+            if (not decision.retry or attempt + 1 >= max_attempts
+                    or (decision.retry_after_s is not None and decision.retry_after_s > cap_s)):
                 raise
             delay = (
                 decision.retry_after_s

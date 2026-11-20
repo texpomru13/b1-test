@@ -1,4 +1,4 @@
-"""Upload + document routes (stage 2: lifecycle registry only; Qdrant merge at stage 4)."""
+"""Upload and document metadata for accepted and published jobs."""
 
 from __future__ import annotations
 
@@ -7,10 +7,11 @@ from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Form, Header, Request, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
+from app.api.errors import api_error_responses
 from app.domain.fingerprint import upload_fingerprint
-from app.domain.job import TERMINAL_STATUSES, JobStatus
+from app.domain.job import JobStatus, document_title
 from app.schemas.errors import ApiError, ErrorCode
 from app.schemas.jobs import (
     DocumentDetail,
@@ -42,7 +43,8 @@ def _file_store(request: Request) -> FileStore:
     return store
 
 
-@router.post("/documents", status_code=202, response_model=UploadAccepted)
+@router.post("/documents", status_code=202, response_model=UploadAccepted,
+             responses=api_error_responses(409, 413, 415, 422, 503))
 async def upload_document(
     request: Request,
     file: UploadFile,
@@ -131,17 +133,15 @@ def _doc_item(record: dict[str, Any]) -> DocumentItem:
     status = JobStatus(record["status"])
     return DocumentItem(
         doc_id=record["doc_id"],
-        title=record.get("title") or None,
+        title=document_title(record),
         status=status,
-        # Stage 2: nothing is indexed yet; ready requires succeeded + published run
-        # (completed at stage 4 with the Qdrant head-point merge).
-        ready=status == JobStatus.SUCCEEDED,
+        ready=status == JobStatus.SUCCEEDED and bool(record.get("accepted_run_id")),
         job_id=record["job_id"],
         created_at=record.get("created_at", ""),
     )
 
 
-@router.get("/documents", response_model=DocumentList)
+@router.get("/documents", response_model=DocumentList, responses=api_error_responses(422, 503))
 async def list_documents(
     request: Request, limit: int = 20, cursor: str | None = None
 ) -> DocumentList:
@@ -149,7 +149,7 @@ async def list_documents(
         raise ApiError(422, ErrorCode.VALIDATION_ERROR, "limit must be between 1 and 100")
     try:
         offset = int(cursor) if cursor else 0
-        if offset < 0:
+        if not 0 <= offset <= 2**63 - 1 - limit:
             raise ValueError
     except ValueError as exc:
         raise ApiError(422, ErrorCode.VALIDATION_ERROR, "invalid cursor") from exc
@@ -159,11 +159,11 @@ async def list_documents(
     return DocumentList(items=items, next_cursor=str(offset + limit) if has_more else None)
 
 
-@router.get("/documents/{doc_id}/normalized")
+@router.get("/documents/{doc_id}/normalized", response_class=FileResponse,
+            responses={200: {"content": {"application/pdf": {}}},
+                       **api_error_responses(404, 422, 503)})
 async def get_normalized_pdf(request: Request, doc_id: str) -> Any:
     """The server-side PDF that citation page numbers refer to (plan §5.1)."""
-    from fastapi.responses import FileResponse
-
     job_id = await _repo(request).get_job_id_for_doc(doc_id)
     if not job_id:
         raise ApiError(404, ErrorCode.NOT_FOUND, f"document '{doc_id}' is unknown")
@@ -181,7 +181,8 @@ async def get_normalized_pdf(request: Request, doc_id: str) -> Any:
     )
 
 
-@router.get("/documents/{doc_id}", response_model=DocumentDetail)
+@router.get("/documents/{doc_id}", response_model=DocumentDetail,
+            responses=api_error_responses(404, 422, 503))
 async def get_document(request: Request, doc_id: str) -> DocumentDetail:
     job_id = await _repo(request).get_job_id_for_doc(doc_id)
     if not job_id:
@@ -192,12 +193,12 @@ async def get_document(request: Request, doc_id: str) -> DocumentDetail:
     status = JobStatus(record["status"])
     return DocumentDetail(
         doc_id=doc_id,
-        title=record.get("title") or None,
+        title=document_title(record),
         original_filename=record.get("original_filename") or None,
         content_type=record.get("content_type") or None,
         size_bytes=int(record["size_bytes"]) if record.get("size_bytes") else None,
         status=status,
-        ready=status == JobStatus.SUCCEEDED and status in TERMINAL_STATUSES,
+        ready=status == JobStatus.SUCCEEDED and bool(record.get("accepted_run_id")),
         job_id=job_id,
         created_at=record.get("created_at", ""),
         updated_at=record.get("updated_at", ""),

@@ -150,3 +150,23 @@ def test_answer_invariants() -> None:
     ok = AnswerResponse(answer="Неустойка 0,1% [1].", found=True,
                         citations=[_citation()])
     assert ok.found and ok.diagnostics is None
+
+
+async def test_openai_responses_extracts_json_from_text_block(monkeypatch) -> None:
+    from langchain_core.messages import AIMessage
+
+    adapter = build_chat_adapter(make_settings(
+        llm_provider="openai", llm_model="fake", openai_api_key="fake",
+    ))
+
+    class Bound:
+        async def ainvoke(self, messages: list) -> AIMessage:
+            return AIMessage(content=[
+                {"type": "reasoning", "summary": []},
+                {"type": "text", "text": '{"answerable": false}'},
+            ])
+
+    monkeypatch.setattr(type(adapter._model), "bind", lambda self, **kwargs: Bound())
+    parsed, _ = await adapter.generate_json(system="s", user="q", json_schema={"schema": {}},
+                                            max_tokens=20)
+    assert parsed == {"answerable": False}

@@ -16,6 +16,10 @@ def create_sync_client(url: str, *, socket_timeout: float | None = None) -> redi
     return redis.Redis.from_url(url, decode_responses=True, socket_timeout=socket_timeout)
 
 
+class LeaseLostError(Exception):
+    """This delivery no longer owns the job."""
+
+
 class TransitionResult:
     def __init__(self, verdict: str, previous_status: str) -> None:
         self.verdict = verdict  # OK | INVALID_STATE | NOT_FOUND
@@ -46,13 +50,14 @@ class SyncJobLifecycle:
         expected: list[str],
         new_status: str,
         extra: dict[str, str] | None = None,
+        token: str | None = None,
     ) -> TransitionResult:
         flat: list[str] = []
         for key, value in (extra or {}).items():
             flat.extend([key, value])
         raw = self._transition(
-            keys=[keys.job_key(job_id)],
-            args=[",".join(expected), new_status, utc_now_iso(), *flat],
+            keys=[keys.job_key(job_id)] + ([keys.lease_key(job_id)] if token is not None else []),
+            args=[",".join(expected), new_status, utc_now_iso(), token or "", *flat],
         )
         verdict, previous = (str(part) for part in raw)
         return TransitionResult(verdict, previous)
@@ -60,6 +65,12 @@ class SyncJobLifecycle:
     def set_fields(self, job_id: str, fields: dict[str, str]) -> None:
         payload = {**fields, "updated_at": utc_now_iso()}
         self._client.hset(keys.job_key(job_id), mapping=payload)  # type: ignore[arg-type]
+
+    def set_progress(self, job_id: str, fields: dict[str, str], *, token: str) -> None:
+        result = self.transition(job_id, expected=["running"], new_status="running",
+                                 extra=fields, token=token)
+        if not result.ok:
+            raise LeaseLostError(result.verdict)
 
     def incr_attempt(self, job_id: str) -> int:
         return int(self._client.hincrby(keys.job_key(job_id), "attempt", 1))
@@ -83,8 +94,8 @@ class SyncJobLifecycle:
         return bool(self._renew(keys=[keys.lease_key(job_id)], args=[token, str(ttl_ms)]))
 
     def release_lease(self, job_id: str, token: str) -> None:
-        # Best-effort owner-only release (compare-and-delete via renewal to 1ms).
-        self._renew(keys=[keys.lease_key(job_id)], args=[token, "1"])
+        # PEXPIRE with zero deletes the key atomically after the owner check.
+        self._renew(keys=[keys.lease_key(job_id)], args=[token, "0"])
 
     def publish(self, job_id: str, *, token: str, run_id: str) -> TransitionResult:
         raw = self._publish(

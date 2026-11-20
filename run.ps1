@@ -8,7 +8,7 @@ param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
 $ErrorActionPreference = "Stop"
 
 function Fail($msg, $code) {
-    Write-Error $msg
+    [Console]::Error.WriteLine($msg)
     exit $code
 }
 

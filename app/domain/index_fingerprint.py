@@ -6,8 +6,11 @@ component invalidates the index; swapping LLM/reranker does NOT appear here.
 from __future__ import annotations
 
 import hashlib
+import importlib.metadata
 import json
 
+from app.config.settings import Settings
+from app.inference.contract import EmbedResponse
 from app.ingestion.canonical import NORMALIZATION_ID
 from app.ingestion.pipeline import PARSER_VERSION
 from app.retrieval.lexical import LEXICAL_NORMALIZER_ID
@@ -46,3 +49,16 @@ def compute_index_fingerprint(
     }
     payload = json.dumps(components, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def fingerprint_for_embedding(
+    embedding: EmbedResponse, settings: Settings, *, length_fn_id: str,
+    chunk_tokens: int, overlap_tokens: int,
+) -> str:
+    return compute_index_fingerprint(
+        embedding_model_id=embedding.model_id, embedding_revision=embedding.revision,
+        embedding_dim=embedding.dim, instruction_version=settings.embedding_instruction_version,
+        chunk_tokens=chunk_tokens, overlap_tokens=overlap_tokens, length_fn_id=length_fn_id,
+        bm25_language=settings.bm25_language, bm25_avg_len=settings.bm25_avg_len,
+        fastembed_version=importlib.metadata.version("fastembed"),
+    )

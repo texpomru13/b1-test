@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI
 from pydantic import ValidationError
 
@@ -19,6 +21,7 @@ from app.api.questions import router as questions_router
 from app.config.settings import Settings, get_settings
 from app.inference.client import LocalModelsClient
 from app.observability.logging import configure_logging, get_logger
+from app.retrieval.bm25 import Bm25Adapter
 from app.storage.file_store import FileStore
 from app.storage.qdrant_repo import QdrantChunkRepository, create_qdrant_client
 from app.storage.redis_repo import RedisJobRepository, create_redis_client
@@ -44,9 +47,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.settings = app_settings
+        try:
+            app.state.bm25 = await asyncio.to_thread(
+                Bm25Adapter, language=app_settings.bm25_language,
+                avg_len=float(app_settings.bm25_avg_len),
+                cache_dir=app_settings.fastembed_cache_dir,
+                local_files_only=app_settings.offline,
+            )
+        except Exception as exc:
+            mode = "offline cache" if app_settings.offline else "cache/download"
+            raise RuntimeError(
+                f"Cannot initialize Qdrant/bm25 ({app_settings.bm25_language}) from {mode}. "
+                "Check FASTEMBED_CACHE_DIR and prepare this profile once online."
+            ) from exc
         app.state.redis_repo = RedisJobRepository(create_redis_client(app_settings.redis_url))
         app.state.qdrant_repo = QdrantChunkRepository(
-            create_qdrant_client(app_settings.qdrant_url),
+            create_qdrant_client(
+                app_settings.qdrant_url,
+                timeout_s=app_settings.qdrant_timeout_s,
+                api_key=(app_settings.qdrant_api_key.get_secret_value()
+                         if app_settings.qdrant_api_key else None),
+            ),
             app_settings.qdrant_collection,
         )
         app.state.local_models = LocalModelsClient(
@@ -56,9 +77,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             Path(app_settings.documents_dir),
             max_bytes=app_settings.max_file_mb * 1024 * 1024,
         )
-        import asyncio as _asyncio
-
-        app.state.qa_semaphore = _asyncio.Semaphore(app_settings.max_concurrent_qa)
+        app.state.health_http = httpx.AsyncClient()
+        app.state.qa_semaphore = asyncio.Semaphore(app_settings.max_concurrent_qa)
+        app.state.qa_init_lock = asyncio.Lock()
         app.state.qa_runtime = None  # built lazily on the first question
         logger.info(
             "startup_complete",
@@ -68,6 +89,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             yield
         finally:
+            await app.state.health_http.aclose()
             await app.state.local_models.aclose()
             await app.state.qdrant_repo.aclose()
             await app.state.redis_repo.aclose()

@@ -171,3 +171,16 @@ async def test_documents_list_and_detail(client: httpx.AsyncClient, fake_repo: F
 
     missing = await client.get("/api/v1/documents/unknown")
     assert missing.status_code == 404
+
+async def test_upload_without_title_exposes_original_filename(
+    client: httpx.AsyncClient, fake_repo: FakeRepo
+) -> None:
+    uploaded = await client.post("/api/v1/documents", files={"file": PDF_PART})
+    details = await client.get(uploaded.json()["document_url"])
+    assert details.json()["title"] == PDF_PART[0]
+    job = fake_repo.jobs[uploaded.json()["job_id"]]
+    job["status"] = "succeeded"
+    listing = (await client.get("/api/v1/documents")).json()["items"]
+    assert listing[0]["ready"] is False
+    job["accepted_run_id"] = "published"
+    assert (await client.get(uploaded.json()["document_url"])).json()["ready"] is True

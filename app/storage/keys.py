@@ -87,9 +87,12 @@ return 1
 """
 
 # Guarded state transition. KEYS: 1=job. ARGV: 1=expected statuses csv (''=any),
-# 2=new status, 3=updated_at iso, 4..=extra field pairs.
+# 2=new status, 3=updated_at iso, 4=lease token (optional), 5..=extra field pairs.
 # Returns {verdict, previous_status}.
 TRANSITION_LUA = """
+if #KEYS == 2 and (redis.call('GET', KEYS[2]) or '') ~= ARGV[4] then
+    return {'STALE_TOKEN', ''}
+end
 local cur = redis.call('HGET', KEYS[1], 'status')
 if not cur then
     return {'NOT_FOUND', ''}
@@ -104,8 +107,8 @@ if ARGV[1] ~= '' then
     end
 end
 redis.call('HSET', KEYS[1], 'status', ARGV[2], 'updated_at', ARGV[3])
-if #ARGV > 3 then
-    redis.call('HSET', KEYS[1], unpack(ARGV, 4))
+if #ARGV > 4 then
+    redis.call('HSET', KEYS[1], unpack(ARGV, 5))
 end
 return {'OK', cur}
 """

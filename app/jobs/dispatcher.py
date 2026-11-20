@@ -113,7 +113,10 @@ def main(settings: Settings | None = None) -> None:  # pragma: no cover - proces
     signal.signal(signal.SIGINT, _handle_signal)
 
     index_repo = QdrantIndexRepository(
-        create_sync_qdrant_client(resolved.qdrant_url), resolved.qdrant_collection
+        create_sync_qdrant_client(
+            resolved.qdrant_url, timeout_s=resolved.qdrant_timeout_s,
+            api_key=resolved.qdrant_api_key.get_secret_value() if resolved.qdrant_api_key else None,
+        ), resolved.qdrant_collection
     )
     recovered = recover_stuck(client)
     logger.info("dispatcher_started", recovered_intents=recovered)

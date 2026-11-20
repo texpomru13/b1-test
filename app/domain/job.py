@@ -1,8 +1,11 @@
-"""Job lifecycle domain: states and stages per IMPLEMENTATION_PLAN.md §8.3 / ADR 003."""
+"""Document titles and public indexing states."""
 
 from __future__ import annotations
 
 import enum
+from collections.abc import Mapping
+from pathlib import PureWindowsPath
+from typing import Any
 
 
 class JobStatus(enum.StrEnum):
@@ -19,28 +22,15 @@ class JobStatus(enum.StrEnum):
 
 TERMINAL_STATUSES: frozenset[JobStatus] = frozenset({JobStatus.SUCCEEDED, JobStatus.FAILED})
 
-# Allowed transitions (stage-2 subset is exercised; the full set arrives with stages 4/7).
-ALLOWED_TRANSITIONS: dict[JobStatus, frozenset[JobStatus]] = {
-    JobStatus.ACCEPTED: frozenset({JobStatus.QUEUED, JobStatus.RUNNING, JobStatus.FAILED}),
-    JobStatus.QUEUED: frozenset({JobStatus.RUNNING, JobStatus.FAILED}),
-    JobStatus.RUNNING: frozenset(
-        {JobStatus.VALIDATING, JobStatus.RETRY_WAIT, JobStatus.COMPENSATING,
-         JobStatus.SUCCEEDED, JobStatus.FAILED}
-    ),
-    JobStatus.VALIDATING: frozenset(
-        {JobStatus.SUCCEEDED, JobStatus.RETRY_WAIT, JobStatus.COMPENSATING, JobStatus.FAILED}
-    ),
-    JobStatus.RETRY_WAIT: frozenset({JobStatus.RUNNING, JobStatus.FAILED}),
-    JobStatus.COMPENSATING: frozenset({JobStatus.FAILED, JobStatus.CLEANUP_PENDING}),
-    JobStatus.CLEANUP_PENDING: frozenset({JobStatus.FAILED}),
-    JobStatus.SUCCEEDED: frozenset(),
-    JobStatus.FAILED: frozenset(),
-}
+def document_title(record: Mapping[str, Any]) -> str:
+    if title := record.get("title"):
+        return str(title)
+    filename = PureWindowsPath(record.get("original_filename") or "").name.strip()
+    return filename or str(record["doc_id"])
 
 
 class JobStage(enum.StrEnum):
     UPLOAD = "upload"
-    STUB = "stub"  # stage-2 controlled stub; real stages (parse/split/embed/...) arrive later
     PARSE = "parse"
     NORMALIZE = "normalize"
     SPLIT = "split"

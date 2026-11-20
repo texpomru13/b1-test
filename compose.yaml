@@ -35,12 +35,12 @@ services:
     entrypoint: ["python", "-m", "app_lm.models_init"]
     environment:
       HF_HOME: /models-cache
-      HF_HUB_OFFLINE: "0"
+      HF_HUB_OFFLINE: ${B1_OFFLINE:-0}
       OFFLINE: ${B1_OFFLINE:-0}
-      B1_EMBEDDING_MODEL: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct}
-      B1_EMBEDDING_REVISION: ${B1_EMBEDDING_REVISION:-2cf0fdc97194aaedf10ac0e6bf798834acd31042}
-      B1_RERANKER_MODEL: ${B1_RERANKER_MODEL:-Qwen/Qwen3-Reranker-8B}
-      B1_RERANKER_REVISION: ${B1_RERANKER_REVISION:-77d193c791ed757ca307ee72715aa132723da912}
+      B1_EMBEDDING_MODEL: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct-480M-0826}
+      B1_EMBEDDING_REVISION: ${B1_EMBEDDING_REVISION:-1763d603adac8057bd6482a708001b0ed2e0a903}
+      B1_RERANKER_MODEL: ${B1_RERANKER_MODEL:-BAAI/bge-reranker-v2-m3}
+      B1_RERANKER_REVISION: ${B1_RERANKER_REVISION:-953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e}
     volumes:
       - hf_models:/models-cache
       - ${B1_HF_SEED_DIR:-./.runtime/empty-seed}:/seed-cache:ro
@@ -49,13 +49,13 @@ services:
   local-models:
     build: services/local-models
     environment:
-      LM_MODEL_ID: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct}
-      LM_REVISION: ${B1_EMBEDDING_REVISION:-2cf0fdc97194aaedf10ac0e6bf798834acd31042}
+      LM_MODEL_ID: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct-480M-0826}
+      LM_REVISION: ${B1_EMBEDDING_REVISION:-1763d603adac8057bd6482a708001b0ed2e0a903}
       LM_DEVICE: cpu
       LM_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-4}
-      LM_RERANKER_MODEL: ${B1_RERANKER_MODEL:-Qwen/Qwen3-Reranker-8B}
-      LM_RERANKER_REVISION: ${B1_RERANKER_REVISION:-77d193c791ed757ca307ee72715aa132723da912}
-      LM_RERANKER_ADAPTER: ${B1_RERANKER_ADAPTER:-qwen_yes_no}
+      LM_RERANKER_MODEL: ${B1_RERANKER_MODEL:-BAAI/bge-reranker-v2-m3}
+      LM_RERANKER_REVISION: ${B1_RERANKER_REVISION:-953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e}
+      LM_RERANKER_ADAPTER: ${B1_RERANKER_ADAPTER:-cross_encoder}
       LM_RERANKER_BATCH: ${RERANKER_BATCH_SIZE:-2}
       LM_QUALITY_DEGRADED: ${B1_QUALITY_DEGRADED:-0}
       LM_QUALITY_DEGRADED_REASON: ${B1_QUALITY_DEGRADED_REASON:-}
@@ -102,15 +102,15 @@ services:
     command:
       - |
         if [ "${B1_OFFLINE:-0}" = "1" ]; then
-          ollama ls | grep -q "${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M}" \
+          ollama ls | grep -q "${B1_LLM_MODEL:-qwen3.5:9b-q4_K_M}" \
             && echo "model present (offline)" \
-            || { echo "OFFLINE: model ${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M} is missing"; exit 4; }
+            || { echo "OFFLINE: model ${B1_LLM_MODEL:-qwen3.5:9b-q4_K_M} is missing"; exit 4; }
         else
-          ollama pull "${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M}"
+          ollama pull "${B1_LLM_MODEL:-qwen3.5:9b-q4_K_M}"
         fi
     environment:
       OLLAMA_HOST: http://ollama:11434
-      B1_LLM_MODEL: ${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M}
+      B1_LLM_MODEL: ${B1_LLM_MODEL:-qwen3.5:9b-q4_K_M}
       B1_OFFLINE: ${B1_OFFLINE:-0}
     depends_on:
       ollama:
@@ -128,6 +128,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/1}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      OFFLINE: ${B1_OFFLINE:-0}
       LOCAL_MODELS_URL: ${LOCAL_MODELS_URL:-http://local-models:8081}
       DOCUMENTS_DIR: /data/documents
       LLM_PROVIDER: ${B1_LLM_PROVIDER:-ollama}
@@ -155,7 +156,7 @@ services:
       LOCAL_CONTEXT_TOKENS:
       LLM_MAX_OUTPUT_TOKENS:
       LLM_REASONING_BUDGET_TOKENS:
-      LLM_THINKING:
+      LLM_THINKING: ${LLM_THINKING:-${B1_LLM_THINKING:-off}}
       LLM_TEMPERATURE:
       # -- limits
       MAX_FILE_MB:
@@ -172,11 +173,14 @@ services:
       FAILED_SOURCE_TTL_S:
       LOCAL_MODELS_TIMEOUT_S:
       QDRANT_COLLECTION:
-      LLM_MODEL: ${B1_LLM_MODEL:-qwen3.6:27b-q4_K_M}
+      QDRANT_API_KEY:
+      QDRANT_TIMEOUT_S:
+      INDEXING_SOFT_TIME_LIMIT_S:
+      LLM_MODEL: ${B1_LLM_MODEL:-qwen3.5:9b-q4_K_M}
       OLLAMA_BASE_URL: ${B1_OLLAMA_BASE_URL:-http://ollama:11434}
-      DMR_BASE_URL: ${B1_DMR_BASE_URL:-http://model-runner.docker.internal/engines/v1}
-      EMBEDDING_MODEL: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct}
-      EMBEDDING_TOKENIZER_PATH: ${B1_TOKENIZER_PATH:-/models-cache/hub/models--ai-sage--Giga-Embeddings-instruct/snapshots/2cf0fdc97194aaedf10ac0e6bf798834acd31042/tokenizer.json}
+      DMR_BASE_URL: ${DMR_BASE_URL:-${B1_DMR_BASE_URL:-http://model-runner.docker.internal/engines/v1}}
+      EMBEDDING_MODEL: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct-480M-0826}
+      EMBEDDING_TOKENIZER_PATH: ${B1_TOKENIZER_PATH:-/models-cache/hub/models--ai-sage--Giga-Embeddings-instruct-480M-0826/snapshots/1763d603adac8057bd6482a708001b0ed2e0a903/tokenizer.json}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     volumes:

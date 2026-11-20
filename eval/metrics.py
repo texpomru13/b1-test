@@ -16,19 +16,16 @@ import argparse
 import json
 import math
 import statistics
+import sys
 from pathlib import Path
 from typing import Any
-
-import sys  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.schemas.qa import AnswerResponse
-from spans import chunk_relevant, ndcg, span_covered
+from paths import WORK, gold_path
 from pydantic import ValidationError
-
-ROOT = Path(__file__).resolve().parents[1]
-WORK = ROOT / "eval" / "work"
+from spans import chunk_relevant, ndcg, span_covered
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -57,7 +54,8 @@ def ratio(num: int, den: int) -> dict[str, Any]:
 def outcome(rec: dict) -> str:
     st = rec.get("http_status")
     if st == 200:
-        return "found" if rec["body"].get("found") else "not_found"
+        found = isinstance(rec.get("body"), dict) and rec["body"].get("found") is True
+        return "found" if found else "not_found"
     if st is None:
         return "client_error"
     return f"http_{st}"
@@ -69,7 +67,7 @@ def main() -> None:
     ap.add_argument("--split", default="all", choices=["all", "dev", "holdout"])
     args = ap.parse_args()
 
-    gold = {c["case_id"]: c for c in load_jsonl(ROOT / "eval" / "gold" / "gold.jsonl")}
+    gold = {c["case_id"]: c for c in load_jsonl(gold_path())}
     index = {p.stem: json.loads(p.read_text(encoding="utf-8"))
              for p in (WORK / "index").glob("*.json")}
     by_doc_id = {v["doc_id"]: v for v in index.values()}
@@ -80,6 +78,9 @@ def main() -> None:
     if args.split != "all":
         records = [r for r in records if gold[r["case_id"]]["split"] == args.split]
 
+    expected_gold = {cid for cid, c in gold.items() if args.split in ("all", c["split"])}
+    if len({r["req_id"] for r in records}) != len(records):
+        ap.error("duplicate req_id in responses.jsonl; one observation per request is required")
     rows = []
     agg: dict[str, Any] = {"outcomes": {}, "by_category": {}}
     schema_ok = schema_total = 0
@@ -95,17 +96,20 @@ def main() -> None:
                                "case_id": case["case_id"], "category": case["category"],
                                "answerable": case["answerable"], "outcome": oc,
                                "wall_ms": rec.get("wall_ms")}
+        verified_citations: list[tuple[int, int]] = []
         target = by_doc_id[rec["doc_id"]]
         tfid = target["fixture_id"]
         if rec.get("http_status") == 200:
             schema_total += 1
             try:
-                AnswerResponse.model_validate(body)
+                AnswerResponse.model_validate(body, strict=True)
                 schema_ok += 1
                 row["schema_valid"] = True
             except ValidationError as exc:
                 row["schema_valid"] = False
                 row["schema_error"] = str(exc)[:300]
+                row["outcome"] = oc = "invalid_schema"
+                body = {}
             text, pages = target["canonical_text"], target["pages"]
             bad = []
             for c in body.get("citations", []):
@@ -121,7 +125,9 @@ def main() -> None:
                       and c["page"] == page_of(pages, c["char_start"])
                       and c["page_to"] == page_of(pages, c["char_end"] - 1))
                 cit_ok += ok
-                if not ok:
+                if ok:
+                    verified_citations.append((c["char_start"], c["char_end"]))
+                else:
                     bad.append(f"citation {c['id']} span/page mismatch")
             row["citation_problems"] = bad
             walls.append(rec["wall_ms"])
@@ -131,9 +137,10 @@ def main() -> None:
         agg["outcomes"].setdefault(rec["kind"], {}).setdefault(oc, 0)
         agg["outcomes"][rec["kind"]][oc] += 1
 
-        if rec["kind"] == "gold" and case["answerable"] and rec.get("http_status") == 200:
+        if rec["kind"] == "gold" and case["answerable"] and row.get("schema_valid"):
             diag = body.get("diagnostics") or {}
-            cands = list((diag.get("rerank_scores") or {}).keys())  # reranked order
+            scores = diag.get("rerank_scores") or {}
+            cands = sorted(scores, key=scores.__getitem__, reverse=True)
             ctx = diag.get("context_chunk_ids") or []
             rng = chunk_rng[tfid]
             spans = case["gold_spans"]
@@ -147,10 +154,7 @@ def main() -> None:
             row["ndcg10_rerank"] = ndcg(cand_r, spans, 10, list(rng.values()))
             for k in (1, 3, 5, 8, 20, 60):
                 row[f"recall@{k}"] = sum(span_covered(s, cand_r[:k]) for s in spans) / len(spans)
-            cited = [(c["char_start"], c["char_end"]) for c in body.get("citations", [])]
-            row["cited_gold_overlap"] = (
-                any(chunk_relevant(c, spans) for c in cited) if cited else None
-            )
+            row["cited_gold_overlap"] = any(chunk_relevant(c, spans) for c in verified_citations)
             row["n_candidates"] = len(cands)
             row["n_context"] = len(ctx)
         rows.append(row)
@@ -167,7 +171,8 @@ def main() -> None:
 
     agg.update({
         "run": args.run, "split": args.split,
-        "n_requests": len(rows), "n_gold": len(gold_rows),
+        "n_requests": len(rows), "n_gold": len(gold_rows), "n_gold_planned": len(expected_gold),
+        "missing_gold": sorted(expected_gold - {r["case_id"] for r in gold_rows}),
         "n_answerable": len(pos), "n_no_answer": len(neg), "n_isolation": len(iso),
         "structured_validity_200": ratio(schema_ok, schema_total),
         "citation_span_validity": ratio(cit_ok, cit_total),
@@ -205,7 +210,8 @@ def main() -> None:
         good = sum((r["outcome"] == "found") if r["answerable"] else
                    (r["outcome"] == "not_found") for r in rs)
         agg["by_category"][cat] = ratio(good, len(rs))
-    (run_dir / f"metrics-{args.split}.json").write_text(json.dumps(agg, ensure_ascii=False, indent=1))
+    (run_dir / f"metrics-{args.split}.json").write_text(
+        json.dumps(agg, ensure_ascii=False, indent=1))
     with (run_dir / f"cases-{args.split}.jsonl").open("w", encoding="utf-8") as fh:
         for r in rows:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")

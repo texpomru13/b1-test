@@ -3,7 +3,7 @@
 Implements contract v1 (mirrors app/inference/contract.py):
   GET  /v1/health  -> {status, loaded_model, revision, device, residency, ...}
   POST /v1/embed   -> dense vectors (query/document instruction handling)
-  POST /v1/rerank  -> 501 until stage 5
+  POST /v1/rerank  -> per-candidate relevance scores
 
 Design (ADR 001/002, spikes S6/S8): one resident encoder; inference runs in a
 single worker thread behind a lock (bulkhead) so the event loop never blocks and
@@ -16,11 +16,12 @@ import asyncio
 import enum
 import os
 import threading
-from typing import Any
+from typing import Any, Literal
 
 import psutil
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from langchain_core.embeddings import Embeddings
 from pydantic import BaseModel, Field
 
 CONTRACT_VERSION = 1
@@ -32,7 +33,7 @@ QUERY_INSTRUCTION_V1 = (
 )
 
 
-class ServiceStatus(str, enum.Enum):
+class ServiceStatus(enum.StrEnum):
     OK = "ok"
     LOADING = "loading"
     NOT_INITIALIZED = "not_initialized"
@@ -41,21 +42,45 @@ class ServiceStatus(str, enum.Enum):
 
 class EmbedRequest(BaseModel):
     texts: list[str] = Field(min_length=1)
-    input_type: str  # "query" | "document"
+    input_type: Literal["query", "document"]
     model_id: str | None = None
+
+
+class RerankDocument(BaseModel):
+    id: str
+    text: str
 
 
 class RerankRequest(BaseModel):
     query: str
-    documents: list[dict[str, str]] = Field(min_length=1)
+    documents: list[RerankDocument] = Field(min_length=1)
     model_id: str | None = None
+
+
+class GigaEmbeddings(Embeddings):
+    """LangChain interface for the pinned Giga encoder and its query instruction."""
+
+    def __init__(self, model: Any, batch_size: int) -> None:
+        self.model = model
+        self.batch_size = batch_size
+        self.lock = threading.Lock()
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        with self.lock:
+            vectors = self.model.encode(
+                texts, batch_size=self.batch_size, normalize_embeddings=True
+            )
+        return vectors.tolist()
+
+    def embed_query(self, text: str) -> list[float]:
+        return self.embed_documents([QUERY_INSTRUCTION_V1 + text])[0]
 
 
 class ModelHolder:
     def __init__(self) -> None:
         self.status = ServiceStatus.NOT_INITIALIZED
         self.error: str | None = None
-        self.model: Any = None
+        self.embeddings: Embeddings | None = None
         self.model_id = os.environ.get(
             "LM_MODEL_ID", "ai-sage/Giga-Embeddings-instruct-480M-0826"
         )
@@ -65,7 +90,6 @@ class ModelHolder:
         self.quality_degraded = os.environ.get("LM_QUALITY_DEGRADED", "") == "1"
         self.degraded_reason = os.environ.get("LM_QUALITY_DEGRADED_REASON", "")
         self.dim: int | None = None
-        self.lock = threading.Lock()
         # Reranker (mandatory for QA from stage 5; loaded AFTER the encoder).
         self.reranker_model_id = os.environ.get("LM_RERANKER_MODEL", "")
         self.reranker_revision = os.environ.get("LM_RERANKER_REVISION", "")
@@ -73,9 +97,9 @@ class ModelHolder:
         self.reranker_batch = int(os.environ.get("LM_RERANKER_BATCH", "4"))
         self.reranker: Any = None
         self.reranker_status = (
-            ServiceStatus.NOT_INITIALIZED if self.reranker_model_id else ServiceStatus.OK
+            ServiceStatus.NOT_INITIALIZED if self.reranker_model_id else ServiceStatus.ERROR
         )
-        self.reranker_error: str | None = None
+        self.reranker_error = None if self.reranker_model_id else "LM_RERANKER_MODEL is required"
         self.reranker_lock = threading.Lock()
 
     @property
@@ -100,11 +124,11 @@ class ModelHolder:
                 trust_remote_code=True,  # revision pinned to the S6-audited commit
                 device=self.device,
             )
-            probe = model.encode(["проверка размерности"], normalize_embeddings=True)
-            self.dim = int(probe.shape[1])
-            self.model = model
+            embeddings = GigaEmbeddings(model, self.batch_size)
+            self.dim = len(embeddings.embed_documents(["проверка размерности"])[0])
+            self.embeddings = embeddings
             self.status = ServiceStatus.OK
-        except Exception as exc:  # noqa: BLE001 - surfaced via /v1/health
+        except Exception as exc:
             self.status = ServiceStatus.ERROR
             self.error = f"{type(exc).__name__}: {exc}"
             return
@@ -124,19 +148,9 @@ class ModelHolder:
                     batch_size=self.reranker_batch,
                 )
                 self.reranker_status = ServiceStatus.OK
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 self.reranker_status = ServiceStatus.ERROR
                 self.reranker_error = f"{type(exc).__name__}: {exc}"
-
-    def encode(self, texts: list[str], input_type: str) -> list[list[float]]:
-        assert self.model is not None
-        if input_type == "query":
-            texts = [QUERY_INSTRUCTION_V1 + text for text in texts]
-        with self.lock:  # single in-flight inference (bulkhead)
-            vectors = self.model.encode(
-                texts, batch_size=self.batch_size, normalize_embeddings=True
-            )
-        return [[float(value) for value in row] for row in vectors]
 
 
 holder = ModelHolder()
@@ -175,7 +189,8 @@ def health() -> JSONResponse:
 
 @app.post("/v1/embed")
 async def embed(request: EmbedRequest) -> JSONResponse:
-    if holder.status != ServiceStatus.OK:
+    embeddings = holder.embeddings
+    if embeddings is None:
         return JSONResponse(
             status_code=503,
             content={"error": f"model is {holder.status.value}", "detail": holder.error},
@@ -186,9 +201,10 @@ async def embed(request: EmbedRequest) -> JSONResponse:
             content={"error": "requested model_id does not match the resolved profile",
                      "resolved": holder.model_id},
         )
-    if request.input_type not in ("query", "document"):
-        return JSONResponse(status_code=422, content={"error": "invalid input_type"})
-    vectors = await asyncio.to_thread(holder.encode, request.texts, request.input_type)
+    if request.input_type == "query":
+        vectors = [await embeddings.aembed_query(text) for text in request.texts]
+    else:
+        vectors = await embeddings.aembed_documents(request.texts)
     return JSONResponse(
         status_code=200,
         content={
@@ -225,14 +241,14 @@ async def rerank(request: RerankRequest) -> JSONResponse:
             content={"error": "requested reranker model_id does not match the profile",
                      "resolved": holder.reranker_model_id},
         )
-    texts = [doc["text"] for doc in request.documents]
+    texts = [doc.text for doc in request.documents]
     scores = await asyncio.to_thread(_rerank_locked, request.query, texts)
     return JSONResponse(
         status_code=200,
         content={
             "scores": [
-                {"id": doc["id"], "score": score}
-                for doc, score in zip(request.documents, scores)
+                {"id": doc.id, "score": score}
+                for doc, score in zip(request.documents, scores, strict=True)
             ],
             "model_id": holder.reranker_model_id,
             "revision": holder.reranker_revision,

@@ -10,8 +10,8 @@ decimal amount must not be mistaken for a clause number without line context):
     amounts never match, or
   * `Приложение` with an optional `№`/number (end of line allowed).
 - The heading line must be at most MAX_HEADING_CHARS long.
-- The section label is the trimmed heading line; text before the first heading
-  has section=None (never invented).
+- Headings retain their original labels. A line introducing a numbered
+  obligation uses the clause number. The preamble has section=None.
 """
 
 from __future__ import annotations
@@ -28,8 +28,27 @@ _NUM_HEADING = re.compile(
 _APP_HEADING = re.compile(r"^\s{0,3}Приложение(?:\s*№?\s*\d+)?\s*(?:$|[:.\s])")
 
 
-def _is_heading(line: str) -> bool:
-    return bool(_NUM_HEADING.match(line) or _APP_HEADING.match(line))
+def _section_label(line: str) -> str | None:
+    if _APP_HEADING.match(line):
+        return line.strip()
+    match = _NUM_HEADING.match(line)
+    if not match:
+        return None
+    title = line[match.end():].strip()
+    # A numbered obligation often wraps onto the next PDF line. Keep its
+    # actual clause number for navigation instead of presenting a sentence
+    # fragment as the name of a section.
+    if (len(title.split()) > 8 or title.endswith((",", ";", ":"))
+            or _CLAUSE_VERB.search(title)):
+        return match["num"]
+    return line.strip()
+
+
+_CLAUSE_VERB = re.compile(
+    r"\b(?:обязуется|обязаны?|долж(?:ен|на|ны)|вправе|уплачива\w*|"
+    r"составля(?:ет|ют)|возмеща\w*|нес[её]т|предоставляет|переда[её]т)\b",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -43,9 +62,10 @@ def detect_sections(canonical_text: str) -> list[SectionSpan]:
     headings: list[tuple[int, str]] = []
     offset = 0
     for line in canonical_text.split("\n"):
-        stripped = line.strip()
-        if 0 < len(line) <= MAX_HEADING_CHARS and _is_heading(line):
-            headings.append((offset, stripped[:MAX_LABEL_CHARS]))
+        if 0 < len(line) <= MAX_HEADING_CHARS:
+            label = _section_label(line)
+            if label:
+                headings.append((offset, label[:MAX_LABEL_CHARS]))
         offset += len(line) + 1  # +1 for the split "\n"
 
     sections: list[SectionSpan] = []

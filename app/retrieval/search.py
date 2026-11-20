@@ -15,14 +15,13 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
+import math
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from app.config.settings import FusionMethod, Settings
+from app.domain.index_fingerprint import fingerprint_for_embedding
 from app.inference.client import LocalModelsClient, LocalModelsError
 from app.inference.contract import (
     EmbedRequest,
@@ -31,13 +30,10 @@ from app.inference.contract import (
     RerankRequest,
 )
 from app.ingestion.chunker import LengthFn
-from app.observability.logging import get_logger
 from app.reliability.policy import retry_async
 from app.retrieval.bm25 import Bm25Adapter
-from app.storage.qdrant_repo import DENSE_NAME, SPARSE_NAME
+from app.storage.qdrant_repo import DENSE_NAME, SPARSE_NAME, FingerprintMismatchError
 from qdrant_client import AsyncQdrantClient, models
-
-logger = get_logger("retrieval.search")
 
 # Conservative token estimates for parts that do not exist until stage 6 wires
 # the real prompts; re-measured there (§6.3: the real limit is recomputed per call).
@@ -142,7 +138,6 @@ async def hybrid_search(
     bm25: Bm25Adapter,
     length_fn: LengthFn,
     debug: bool = False,
-    freeze_dir: Path | None = None,
 ) -> RetrievalResult:
     import asyncio
 
@@ -159,6 +154,12 @@ async def hybrid_search(
         raise RetrievalError(
             ERROR_EMBEDDING_UNAVAILABLE, f"query embedding failed: {exc}"
         ) from exc
+    fingerprint = fingerprint_for_embedding(
+        dense_response, settings, length_fn_id=getattr(length_fn, "id", "custom"),
+        chunk_tokens=settings.chunk_tokens, overlap_tokens=settings.chunk_overlap_tokens,
+    )
+    if fingerprint != scope.index_fingerprint:
+        raise FingerprintMismatchError(scope.index_fingerprint, fingerprint)
     dense_query = dense_response.vectors[0]
     sparse_query = await asyncio.to_thread(bm25.embed_query, question)
     diag.model_ids["embedding"] = dense_response.model_id
@@ -210,11 +211,9 @@ async def hybrid_search(
     diag.fused_returned = len(candidates)
     diag.stage_ms["fusion"] = int((time.monotonic() - timer) * 1000)
 
-    if freeze_dir is not None:
-        _freeze_candidates(freeze_dir, question, scope, candidates)
-
+    if debug:
+        await _replay_branch_counts(qdrant, settings, flt, dense_query, sparse_query, diag)
     if not candidates:
-        diag.reranked_count = 0
         return RetrievalResult(context=[], allowed_chunk_ids=[], diagnostics=diag)
 
     # 3) mandatory rerank (fail closed)
@@ -234,6 +233,10 @@ async def hybrid_search(
         ) from exc
     diag.model_ids["reranker"] = rerank_response.model_id
     scores = {entry.id: entry.score for entry in rerank_response.scores}
+    if (len(rerank_response.scores) != len(candidates)
+            or set(scores) != {d.id for d in documents}
+            or not all(math.isfinite(score) for score in scores.values())):
+        raise RetrievalError(ERROR_RERANKER_UNAVAILABLE, "invalid reranker score list")
     # descending score, tie-break by ascending id (stable, documented)
     ordered = sorted(candidates, key=lambda p: (-scores[str(p.id)], str(p.id)))
     diag.reranked_count = len(ordered)
@@ -272,12 +275,6 @@ async def hybrid_search(
     diag.context_count = len(context)
     diag.context_chunk_ids = [chunk.chunk_id for chunk in context]
     diag.stage_ms["context"] = int((time.monotonic() - timer) * 1000)
-
-    # 5) diagnostics replay (report-only; ADR 004)
-    if debug:
-        await _replay_branch_counts(
-            qdrant, settings, flt, dense_query, sparse_query, diag
-        )
 
     return RetrievalResult(
         context=context,
@@ -321,37 +318,3 @@ async def _replay_branch_counts(
         diag.diagnostic_warnings.append(
             f"branch count replay failed: {type(exc).__name__}"
         )
-
-
-def _freeze_candidates(
-    freeze_dir: Path,
-    question: str,
-    scope: RetrievalScope,
-    candidates: list[Any],
-) -> None:
-    """Persist fused candidates for honest encoder/reranker comparison (stage 9)."""
-    try:
-        freeze_dir.mkdir(parents=True, exist_ok=True)
-        key = hashlib.sha256(
-            f"{scope.doc_id}|{scope.accepted_run_id}|{question}".encode()
-        ).hexdigest()[:16]
-        payload = {
-            "question": question,
-            "doc_id": scope.doc_id,
-            "accepted_run_id": scope.accepted_run_id,
-            "index_fingerprint": scope.index_fingerprint,
-            "candidates": [
-                {
-                    "chunk_id": str(point.id),
-                    "chunk_index": (point.payload or {}).get("chunk_index"),
-                    "fused_rank": rank,
-                    "fused_score": float(point.score) if point.score is not None else None,
-                }
-                for rank, point in enumerate(candidates)
-            ],
-        }
-        (freeze_dir / f"candidates-{key}.json").write_text(
-            json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8"
-        )
-    except OSError as exc:
-        logger.warning("freeze_candidates_failed", error=type(exc).__name__)

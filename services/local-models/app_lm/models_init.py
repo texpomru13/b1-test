@@ -29,23 +29,50 @@ def _snapshot_dir(root: Path, model_id: str, revision: str) -> Path:
     return root / "hub" / f"models--{model_id.replace('/', '--')}" / "snapshots" / revision
 
 
+def _complete(snapshot: Path) -> bool:
+    required = ["config.json", "tokenizer.json"]
+    shard_index = snapshot / "model.safetensors.index.json"
+    if shard_index.is_file():
+        try:
+            shards = json.loads(shard_index.read_text())["weight_map"].values()
+            if not shards:
+                return False
+            required.extend(set(shards))
+        except (ValueError, KeyError, AttributeError):
+            return False
+    else:
+        required.append("model.safetensors")
+    # The Giga encoders include locally loaded custom code and pooling modules.
+    if "models--ai-sage--" in str(snapshot):
+        required.extend(["configuration_gigarembed.py", "modeling_gigarembed.py",
+                         "modules.json", "1_Pooling/config.json"])
+    return all((snapshot / name).is_file() and (snapshot / name).stat().st_size > 0
+               for name in required)
+
+
 def _present(model_id: str, revision: str) -> bool:
-    target = _snapshot_dir(CACHE, model_id, revision)
-    return target.exists() and any(target.iterdir())
+    return _complete(_snapshot_dir(CACHE, model_id, revision))
 
 
 def _seed_copy(model_id: str, revision: str) -> bool:
-    source_repo = SEED / "hub" / f"models--{model_id.replace('/', '--')}"
-    source_snap = _snapshot_dir(SEED, model_id, revision)
-    if not source_snap.exists():
+    source = _snapshot_dir(SEED, model_id, revision)
+    if not _complete(source):
         return False
-    target_repo = CACHE / "hub" / f"models--{model_id.replace('/', '--')}"
+    target = _snapshot_dir(CACHE, model_id, revision)
     print(f"[models-init] seeding {model_id}@{revision[:8]} from the host cache",
           flush=True)
-    # Copy the whole repo dir (blobs + snapshots + refs); dereference symlinks.
-    if target_repo.exists():
-        shutil.rmtree(target_repo)
-    shutil.copytree(source_repo, target_repo, symlinks=False)
+    # Preserve other revisions and copy only the pinned snapshot, following its
+    # links into the seed's shared blob store. Resume an interrupted seed copy.
+    def copy_file(src: str, dst: str) -> str:
+        path = Path(dst)
+        if path.is_file() and path.stat().st_size == Path(src).stat().st_size:
+            return dst
+        tmp = path.with_suffix(path.suffix + ".part")
+        shutil.copy2(src, tmp)
+        tmp.replace(path)
+        return dst
+
+    shutil.copytree(source, target, dirs_exist_ok=True, copy_function=copy_file)
     return _present(model_id, revision)
 
 
@@ -58,7 +85,7 @@ def _download(model_id: str, revision: str) -> None:
                   f"(attempt {attempt})", flush=True)
             snapshot_download(model_id, revision=revision)  # resumes partial files
             return
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             if attempt == MAX_DOWNLOAD_ATTEMPTS:
                 raise
             delay = 5 * attempt

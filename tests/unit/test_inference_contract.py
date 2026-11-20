@@ -44,3 +44,17 @@ def test_empty_texts_rejected() -> None:
 
     with pytest.raises(ValidationError):
         EmbedRequest(texts=[], input_type=InputType.DOCUMENT)
+
+
+def test_embedding_response_matches_the_requested_batch() -> None:
+    import httpx
+    import pytest
+    from app.inference.client import LocalModelsError, _vectors
+
+    request = EmbedRequest(texts=["один", "два"], input_type=InputType.DOCUMENT)
+    for vectors in ([[1.0, 2.0]], [[1.0], [2.0]]):
+        response = httpx.Response(200, json={
+            "model_id": "encoder", "revision": "1", "dim": 2, "vectors": vectors,
+        })
+        with pytest.raises(LocalModelsError):
+            _vectors(response, request)

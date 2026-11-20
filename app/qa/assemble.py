@@ -5,14 +5,14 @@ deduplicated by span with stable ordering.
 
 from __future__ import annotations
 
-from app.qa.graph import QaState
 from app.qa.grounding import LocatedQuote
+from app.qa.workflow import QaResult
 from app.schemas.qa import AnswerResponse, Citation
 
 
-def assemble_answer(state: QaState) -> AnswerResponse:
-    draft = state["draft"]
-    located = state["located"]
+def assemble_answer(state: QaResult) -> AnswerResponse:
+    draft = state.draft
+    located = state.located
     assert draft is not None and located is not None
 
     citations: list[Citation] = []

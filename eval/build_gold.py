@@ -17,12 +17,12 @@ from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from paths import ROOT, WORK
+
 DRAFTS = ROOT / "eval" / "gold" / "drafts"
-INDEX = ROOT / "eval" / "work" / "index"
-OUT = ROOT / "eval" / "gold" / "gold.jsonl"
+INDEX = WORK / "index"
+OUT = WORK / "gold.jsonl"
 CATEGORIES = {"exact", "paraphrase", "multi", "negation", "no_answer"}
 # Split by DOCUMENT (plan §11.2): dev documents are never used for reporting
 # headline numbers, holdout documents are never used for tuning.
@@ -63,6 +63,8 @@ def main() -> int:
             facts = raw.get("expected_facts", [])
             if category not in CATEGORIES:
                 problems.append(f"unknown category {category!r}")
+            if not question:
+                problems.append("empty question")
             if (category == "no_answer") == answerable:
                 problems.append("answerable flag contradicts category")
             if answerable and (not quotes or not facts):
@@ -108,19 +110,23 @@ def main() -> int:
                               "substrings; NOT human-reviewed",
                 "notes": raw.get("notes", ""),
             })
+    if rejected or not cases:
+        for case_id, question, problems in rejected:
+            print(f"REJECTED {case_id}: {question[:70]!r}: {'; '.join(problems)}")
+        return 1
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    with OUT.open("w", encoding="utf-8") as fh:
+    tmp = OUT.with_suffix(".tmp")
+    with tmp.open("w", encoding="utf-8") as fh:
         for case in cases:
             fh.write(json.dumps(case, ensure_ascii=False) + "\n")
+    tmp.replace(OUT)
     by_cat: dict[str, int] = {}
     for case in cases:
         by_cat[case["category"]] = by_cat.get(case["category"], 0) + 1
     splits = {s: sum(c["split"] == s for c in cases) for s in ("dev", "holdout")}
-    print(f"accepted {len(cases)} cases -> {OUT.relative_to(ROOT)}; by category {by_cat}; "
+    print(f"accepted {len(cases)} cases -> {OUT}; by category {by_cat}; "
           f"splits {splits}")
-    for case_id, question, problems in rejected:
-        print(f"REJECTED {case_id}: {question[:70]!r}: {'; '.join(problems)}")
-    return 1 if rejected else 0
+    return 0
 
 
 if __name__ == "__main__":

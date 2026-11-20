@@ -19,6 +19,7 @@ from typing import Any
 import httpx
 import pytest
 from app.config.settings import Settings
+from app.domain.index_fingerprint import fingerprint_for_embedding
 from app.inference.client import LocalModelsClient
 from app.ingestion.canonical import build_canonical
 from app.ingestion.chunker import ApproxTokenLength, split_into_chunks
@@ -40,7 +41,6 @@ QDRANT_PORT = 6416
 QDRANT_URL = f"http://127.0.0.1:{QDRANT_PORT}"
 LM_QWEN_PORT, LM_BGE_PORT = 18082, 18083
 COLLECTION = "retrieval_stage5"
-FP = "fp-stage5-test"
 
 LM_DIR = Path(__file__).resolve().parents[2] / "services" / "local-models"
 
@@ -199,22 +199,26 @@ async def _index_contract(
     lm = LocalModelsClient(f"http://127.0.0.1:{LM_QWEN_PORT}", timeout_s=120)
     from app.inference.contract import EmbedRequest, InputType
 
-    dense = (
-        await lm.embed(EmbedRequest(texts=[c.text for c in chunks],
-                                    input_type=InputType.DOCUMENT))
-    ).vectors
+    embedded = await lm.embed(
+        EmbedRequest(texts=[c.text for c in chunks], input_type=InputType.DOCUMENT)
+    )
+    fingerprint = fingerprint_for_embedding(
+        embedded, _settings(), length_fn_id=ApproxTokenLength.id,
+        chunk_tokens=120, overlap_tokens=20,
+    )
+    dense = embedded.vectors
     await lm.aclose()
     bm25 = Bm25Adapter(language="russian", avg_len=256.0)
     sparse = bm25.embed_documents([c.text for c in chunks])
 
     repo = QdrantIndexRepository(stack["sync_qc"], COLLECTION)
-    repo.ensure_collection(dense_dim=len(dense[0]), computed_fingerprint=FP)
+    repo.ensure_collection(dense_dim=len(dense[0]), computed_fingerprint=fingerprint)
     payloads = [
         {
             "doc_id": doc_id, "doc_title": "Договор", "chunk_index": c.index,
             "page_from": c.page_from, "page_to": c.page_to, "section": c.section,
             "text": c.text, "char_start": c.char_start, "char_end": c.char_end,
-            "ingestion_run_id": run_id, "index_fingerprint": FP,
+            "ingestion_run_id": run_id, "index_fingerprint": fingerprint,
             "source_sha256": "test", "created_at": "t", "page_count": len(pages),
             "chunk_count": len(chunks), "is_document_head": c.index == 0,
             "run_complete": False, "segments": [],
@@ -226,6 +230,7 @@ async def _index_contract(
     repo.mark_run_complete_on_head(doc_id, run_id)
     gold = next(c for c in chunks if "0,1%" in c.text or "0,5%" in c.text)
     return {
+        "scope": RetrievalScope(doc_id, run_id, fingerprint),
         "chunks": chunks,
         "point_ids": {point_id(doc_id, run_id, c.index) for c in chunks},
         "gold_chunk_index": gold.index,
@@ -236,6 +241,7 @@ async def _index_contract(
 def _settings() -> Settings:
     return Settings(  # type: ignore[call-arg]
         _env_file=None, qdrant_url=QDRANT_URL, qdrant_collection=COLLECTION,
+        chunk_tokens=120, chunk_overlap_tokens=20,
         local_models_url=f"http://127.0.0.1:{LM_QWEN_PORT}",
     )
 
@@ -249,8 +255,8 @@ def corpus(stack: dict[str, Any]) -> dict[str, Any]:
     info_a = asyncio.run(_index_contract(stack, doc_a, run_a, CONTRACT_A_PAGES))
     info_b = asyncio.run(_index_contract(stack, doc_b, run_b, CONTRACT_B_PAGES))
     return {
-        "a": {"scope": RetrievalScope(doc_a, run_a, FP), **info_a},
-        "b": {"scope": RetrievalScope(doc_b, run_b, FP), **info_b},
+        "a": info_a,
+        "b": info_b,
     }
 
 

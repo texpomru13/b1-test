@@ -150,3 +150,32 @@ def test_ellipsis_gap_is_bounded() -> None:
 def test_any_changed_character_is_still_rejected() -> None:
     with pytest.raises(ProvenanceError):  # 'е' -> 'и': not verbatim
         locate_quote(pdf_chunk(), "Туроператор ни несет ответственности")
+
+
+def test_coverage_for_numeric_questions_and_equivalent_values() -> None:
+    from app.qa.grounding import check_requested_value
+
+    def claims(text: str) -> list[Claim]:
+        return [Claim(text=text, evidence=[Evidence(chunk_id="source-1", quote=text)])]
+
+    with pytest.raises(ProvenanceError):
+        check_requested_value("Какова сумма платежа?", claims("Сумма определяется соглашением."))
+    for value in ("десять процентов", "половина суммы", "0", "в полном объёме"):
+        check_requested_value("Какой процент удерживается?", claims(f"Согласовано {value}."))
+    check_requested_value("Указано ли, какой процент удерживается?", claims("По соглашению."))
+
+
+def test_number_alone_cannot_ground_a_percentage() -> None:
+    from app.qa.grounding import check_claim_consistency
+
+    claim = Claim(text="Ставка 10%.", evidence=[Evidence(chunk_id="1", quote="Срок 10 дней.")])
+    with pytest.raises(ProvenanceError):
+        check_claim_consistency(claim, ["Срок 10 дней."])
+    check_claim_consistency(claim, ["Ставка 10 процентов."])
+
+
+def test_percent_value_survives_parenthetical_words_and_pdf_spaces() -> None:
+    from app.qa.grounding import check_claim_consistency
+
+    claim = Claim(text="Сбор 0,4%.", evidence=[Evidence(chunk_id="1", quote="сбор")])
+    check_claim_consistency(claim, ["сбор в размере 0,4 (н оль целых четыре десятых) п роцента"])

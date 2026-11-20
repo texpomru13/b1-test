@@ -1,0 +1,34 @@
+{
+ "run": "audit-balanced",
+ "api": "http://127.0.0.1:8020",
+ "started_at": "2026-11-20T12:46:47.953650+00:00",
+ "git_head": "75b5f345550d0b311f5a2bc676287e8041f14d41",
+ "app_source_sha256": "cd36fa7b034a0fa893aa29cd95c8ec7104816f2fdfb5e5a560ae1c975a38fca7",
+ "initial_split": "all",
+ "doc_ids": {
+  "01": "c76c316b83334fb4b337892383090372",
+  "02": "e0c8e6a6109a493f8e345ee83777d8ca",
+  "03": "6fdc55ee04964765959a1c6d33072999",
+  "04": "e67d60dbd81243f9a5d1770dc6cf4968",
+  "05": "e7f69b80b03244ddabe49ae042748e6f",
+  "07": "a69bd5b3e1364e4a9aae351b7bb624c9",
+  "08": "d480c4ba7ac840f9aef372a197132611",
+  "09": "9c4db34036c9422a8ac3febd1ab6589d",
+  "10": "7b4a4afc65de4a1daf77f9b9ad5a6516",
+  "11": "fddfe43bd5f7459cbf550d34967b1cb7",
+  "12": "ad25070c4f3c4029b46ab36957954847",
+  "13": "ef22350e55f34a47aa65c916ae6d8b1e",
+  "14": "325135f391cc4fc79c30185abc7e8207",
+  "15": "ee3386bf28d34d7bbc16abf1e1892797"
+ },
+ "ready": {
+  "status": "ready",
+  "components": {
+   "redis": "ok",
+   "qdrant": "ok",
+   "local_models": "ok",
+   "llm": "ok"
+  },
+  "model_ready": true
+ }
+}

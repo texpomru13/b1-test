@@ -27,7 +27,10 @@ from app.storage.redis_repo import RedisJobRepository, create_redis_client
 async def main() -> None:
     settings = get_settings()
     repo = RedisJobRepository(create_redis_client(settings.redis_url))
-    qdrant = create_qdrant_client(settings.qdrant_url, timeout_s=60)
+    qdrant = create_qdrant_client(
+        settings.qdrant_url, timeout_s=settings.qdrant_timeout_s,
+        api_key=settings.qdrant_api_key.get_secret_value() if settings.qdrant_api_key else None,
+    )
     out: dict[str, dict] = {}
     for doc_id in [d for d in os.environ["EVAL_DOC_IDS"].split(",") if d]:
         job_id = await repo.get_job_id_for_doc(doc_id)

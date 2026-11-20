@@ -31,8 +31,8 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-WORK = ROOT / "eval" / "work"
+from paths import ROOT, WORK, gold_path
+
 OUT = WORK / "compare"
 sys.path.insert(0, str(ROOT / "services" / "local-models"))
 sys.path.insert(0, str(ROOT / "eval"))
@@ -62,7 +62,7 @@ def load_jsonl(path: Path) -> list[dict]:
 
 
 def load_inputs() -> tuple[list[dict], dict[str, dict]]:
-    gold = [c for c in load_jsonl(ROOT / "eval" / "gold" / "gold.jsonl") if c["answerable"]]
+    gold = [c for c in load_jsonl(gold_path()) if c["answerable"]]
     index = {p.stem: json.loads(p.read_text(encoding="utf-8"))
              for p in (WORK / "index").glob("*.json")}
     return gold, index
@@ -133,6 +133,8 @@ def metrics(ranked: dict[str, list[str]], gold: list[dict], index: dict[str, dic
         row["all_spans@8"] = float(all(span_covered(s, r[:8]) for s in spans))
         row["ndcg@10"] = ndcg(r, spans, 10, list(rng.values()))
         rows.append(row)
+    if not rows:
+        return {"n": 0}
     return {"n": len(rows), **{k: round(statistics.fmean(x[k] for x in rows), 4)
                                for k in rows[0]}}
 
@@ -154,7 +156,7 @@ def cmd_rerank(model_id: str, encoders: list[str], device: str, batch: int) -> N
             tok = rr._tokenizer
             real_pad = tok.pad
 
-            def pad_to_device(*a, **kw):  # noqa: ANN002, ANN003
+            def pad_to_device(*a, **kw):
                 return real_pad(*a, **kw).to(device)
 
             tok.pad = pad_to_device  # type: ignore[method-assign]

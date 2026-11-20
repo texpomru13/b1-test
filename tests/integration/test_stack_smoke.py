@@ -16,7 +16,7 @@ pytestmark = pytest.mark.skipif(
     reason="requires the running compose stack (set RUN_STACK_TESTS=1)",
 )
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = os.environ.get("B1_TEST_API_URL", "http://127.0.0.1:8000")
 
 
 def test_live() -> None:
@@ -37,11 +37,11 @@ def test_ready_becomes_fully_green() -> None:
         if status_code == 200:
             break
         assert body["components"]["local_models"] in (
-            "loading", "not_initialized", "unavailable: ConnectError"
+            "ok", "loading", "not_initialized", "unavailable: ConnectError"
         ), body  # only honest transitional states are acceptable
         time.sleep(5)
     assert status_code == 200, body
-    assert body["components"] == {"redis": "ok", "qdrant": "ok", "local_models": "ok"}
+    assert body["components"] == {"redis": "ok", "qdrant": "ok", "local_models": "ok", "llm": "ok"}
     assert body["model_ready"] is True
 
 

@@ -15,9 +15,19 @@ jobs:
         with:
           version: "0.13.7"
       - name: Sync environment (frozen)
-        run: uv sync --frozen
+        run: |
+          uv lock --check
+          uv sync --frozen
       - name: Ruff
-        run: uv run ruff check app tests
+        run: uv run ruff check app tests scripts services/local-models/app_lm eval
+      - name: Validate launcher and Compose configuration
+        run: |
+          sh -n run
+          sh -n scripts/probe.sh
+          sh -n eval/demo.sh
+          for overlay in compose.*.yaml; do
+            docker compose -f compose.yaml -f "$overlay" config --quiet
+          done
       - name: Mypy
         run: uv run mypy
       - name: Unit tests

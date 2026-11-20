@@ -67,7 +67,7 @@ class Settings(BaseSettings):
 
     # --- Profile selection (launcher/compose-level: consumed by ./run) ---
     device: Device = Device.AUTO
-    quality_profile: str = "quality"
+    quality_profile: str = "balanced"
     profile_strict: bool = False
     offline: bool = False
 
@@ -105,8 +105,6 @@ class Settings(BaseSettings):
     reranker_model: str = "auto"
     reranker_batch_size: int = Field(default=2, gt=0)
 
-    # Optional dir for frozen fused candidates (honest reranker comparison, stage 9).
-    freeze_candidates_dir: str | None = None
 
     # --- Retrieval ---
     dense_top_k: int = Field(default=60, gt=0)
@@ -129,6 +127,8 @@ class Settings(BaseSettings):
 
     # --- Storage ---
     qdrant_url: str = "http://qdrant:6333"
+    qdrant_api_key: SecretStr | None = None
+    qdrant_timeout_s: int = Field(default=30, gt=0)
     qdrant_collection: str = "document_chunks"
     redis_url: str = "redis://redis:6379/0"
     celery_broker_url: str = "redis://redis:6379/1"
@@ -157,6 +157,7 @@ class Settings(BaseSettings):
     # --- Reliability ---
     qdrant_max_attempts: int = Field(default=3, gt=0)
     llm_max_attempts: int = Field(default=2, gt=0)
+    indexing_soft_time_limit_s: int = Field(default=900, gt=0)
     job_max_attempts: int = Field(default=3, gt=0)
     reconcile_interval_s: int = Field(default=30, gt=0)
     failed_source_ttl_s: int = Field(default=7 * 86400, gt=0)

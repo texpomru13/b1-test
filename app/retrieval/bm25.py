@@ -23,18 +23,13 @@ class SparseVector:
 
 class Bm25Adapter:
     def __init__(self, *, language: str, avg_len: float,
-                 cache_dir: str | None = None) -> None:
+                 cache_dir: str | None = None, local_files_only: bool = False) -> None:
         from fastembed import SparseTextEmbedding
 
-        if cache_dir:
-            self._model = SparseTextEmbedding(
-                model_name=BM25_MODEL_ID, language=language, avg_len=avg_len,
-                cache_dir=cache_dir,
-            )
-        else:
-            self._model = SparseTextEmbedding(
-                model_name=BM25_MODEL_ID, language=language, avg_len=avg_len
-            )
+        self._model = SparseTextEmbedding(
+            model_name=BM25_MODEL_ID, language=language, avg_len=avg_len,
+            cache_dir=cache_dir, local_files_only=local_files_only,
+        )
         self.language = language
         self.avg_len = avg_len
 

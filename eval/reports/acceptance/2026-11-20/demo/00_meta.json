@@ -1,0 +1,15 @@
+{
+  "timestamp_utc": "20261120T123749Z",
+  "api": "http://127.0.0.1:8020",
+  "git_head": "75b5f345550d0b311f5a2bc676287e8041f14d41",
+  "ready": {
+    "status": "ready",
+    "components": {
+      "redis": "ok",
+      "qdrant": "ok",
+      "local_models": "ok",
+      "llm": "ok"
+    },
+    "model_ready": true
+  }
+}

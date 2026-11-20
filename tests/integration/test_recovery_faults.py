@@ -78,14 +78,22 @@ def services() -> Iterator[dict[str, Any]]:
         env={**os.environ,
              "LM_MODEL_ID": "ai-sage/Giga-Embeddings-instruct-480M-0826",
              "LM_REVISION": "1763d603adac8057bd6482a708001b0ed2e0a903",
+             "LM_RERANKER_MODEL": "BAAI/bge-reranker-v2-m3",
+             "LM_RERANKER_REVISION": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+             "LM_RERANKER_ADAPTER": "cross_encoder",
              "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1"},
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     try:
         deadline = time.time() + 300
         while time.time() < deadline:
+            if lm.poll() is not None:
+                pytest.fail(f"local-models exited before readiness (code {lm.returncode})")
             try:
-                if httpx.get(f"{LM_URL}/v1/health", timeout=3).json()["status"] == "ok":
+                health = httpx.get(f"{LM_URL}/v1/health", timeout=3).json()
+                if health["status"] == "error":
+                    pytest.fail(f"local-models startup failed: {health}")
+                if health["status"] == "ok":
                     break
             except httpx.HTTPError:
                 pass

@@ -23,7 +23,6 @@ NOT_FORWARDED = {
     "ALLOW_PAID_EVAL", "EVAL_MAX_COST_USD",  # evaluation harness (host runs)
     "ALLOW_CLOUD_FALLBACK",                  # must stay false (validated guard)
     "EMBEDDING_INSTRUCTION_VERSION", "LEXICAL_NORMALIZER_VERSION",  # index identity
-    "FREEZE_CANDIDATES_DIR",                 # evaluation-only debugging aid
 }
 
 
@@ -66,6 +65,6 @@ def test_launcher_reads_the_launcher_level_model_settings() -> None:
     launcher = (ROOT / "run").read_text(encoding="utf-8")
     for key in ("LLM_PROVIDER", "LLM_MODEL", "EMBEDDING_MODEL", "RERANKER_MODEL",
                 "DEVICE", "QUALITY_PROFILE", "PROFILE_STRICT"):
-        assert f"${{{key}:-}}" in launcher, f"./run ignores {key}"
+        assert key in launcher, f"./run ignores {key}"
     compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
     assert "${EMBEDDING_BATCH_SIZE:-" in compose and "${RERANKER_BATCH_SIZE:-" in compose

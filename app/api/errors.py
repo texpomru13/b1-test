@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+from http import HTTPStatus
+from typing import Any
+
 import structlog
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import TimeoutError as RedisTimeoutError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api.middleware import REQUEST_ID_HEADER
 from app.schemas.errors import ApiError, ErrorBody, ErrorCode, ErrorEnvelope
 
 logger = structlog.get_logger("api.errors")
@@ -25,17 +31,38 @@ _STATUS_TO_CODE: dict[int, ErrorCode] = {
 }
 
 
+def api_error_responses(*statuses: int) -> dict[int | str, dict[str, Any]]:
+    return {
+        status: {"model": ErrorEnvelope, "description": HTTPStatus(status).phrase}
+        for status in statuses
+    }
+
+
 def _envelope(
-    request: Request, status_code: int, code: ErrorCode, message: str, retryable: bool
+    request: Request, status_code: int, code: ErrorCode, message: str, retryable: bool,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     request_id = getattr(request.state, "request_id", None)
     body = ErrorEnvelope(
         error=ErrorBody(code=code, message=message, retryable=retryable, request_id=request_id)
     )
-    return JSONResponse(status_code=status_code, content=body.model_dump(mode="json"))
+    response = JSONResponse(status_code=status_code, content=body.model_dump(mode="json"),
+                            headers=headers)
+    if request_id:
+        response.headers[REQUEST_ID_HEADER] = request_id
+    if retryable and status_code in (429, 503):
+        response.headers.setdefault("Retry-After", "5")
+    return response
 
 
 def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(RedisConnectionError)
+    @app.exception_handler(RedisTimeoutError)
+    async def handle_registry_unavailable(request: Request, exc: Exception) -> JSONResponse:
+        logger.warning("registry_unavailable", error=type(exc).__name__)
+        return _envelope(request, 503, ErrorCode.DEPENDENCY_UNAVAILABLE,
+                         "job registry is unavailable", retryable=True)
+
     @app.exception_handler(ApiError)
     async def handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
         return _envelope(request, exc.status_code, exc.code, exc.message, exc.retryable)
@@ -46,7 +73,8 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         code = _STATUS_TO_CODE.get(exc.status_code, ErrorCode.INTERNAL)
         retryable = exc.status_code in (429, 503, 504)
-        return _envelope(request, exc.status_code, code, str(exc.detail), retryable)
+        return _envelope(request, exc.status_code, code, str(exc.detail), retryable,
+                         headers=dict(exc.headers or {}))
 
     @app.exception_handler(RequestValidationError)
     async def handle_validation_error(

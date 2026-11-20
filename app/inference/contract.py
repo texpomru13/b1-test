@@ -10,8 +10,9 @@ Routes (server): GET /v1/health, POST /v1/embed, POST /v1/rerank.
 from __future__ import annotations
 
 import enum
+from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, FiniteFloat
 
 CONTRACT_VERSION = 1
 
@@ -36,11 +37,11 @@ class EmbedRequest(BaseModel):
 
 
 class EmbedResponse(BaseModel):
-    vectors: list[list[float]]
+    vectors: list[list[FiniteFloat]] = Field(min_length=1)
     model_id: str
     revision: str
-    dim: int
-    contract_version: int = CONTRACT_VERSION
+    dim: int = Field(gt=0)
+    contract_version: Literal[1] = 1
 
 
 class RerankDocument(BaseModel):
@@ -57,14 +58,14 @@ class RerankRequest(BaseModel):
 class RerankScore(BaseModel):
     id: str
     # Raw model score; scale is model-specific and NOT comparable across models.
-    score: float
+    score: FiniteFloat
 
 
 class RerankResponse(BaseModel):
     scores: list[RerankScore]
     model_id: str
     revision: str
-    contract_version: int = CONTRACT_VERSION
+    contract_version: Literal[1] = 1
 
 
 class ServiceHealth(BaseModel):
@@ -73,4 +74,4 @@ class ServiceHealth(BaseModel):
     revision: str | None = None
     device: str | None = None
     residency: str | None = None
-    contract_version: int = CONTRACT_VERSION
+    contract_version: Literal[1] = 1

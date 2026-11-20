@@ -16,6 +16,7 @@ and every citation (if any) must come from the queried document.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import time
@@ -23,9 +24,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
-
-ROOT = Path(__file__).resolve().parents[1]
-WORK = ROOT / "eval" / "work"
+from paths import ROOT, WORK, gold_path
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -65,7 +64,7 @@ def main() -> None:
     parser.add_argument("--timeout-s", type=float, default=960.0)
     args = parser.parse_args()
 
-    gold = load_jsonl(ROOT / "eval" / "gold" / "gold.jsonl")
+    gold = load_jsonl(gold_path())
     fixtures = sorted({c["doc_fixture_id"] for c in gold})
     doc_ids = {fid: json.loads((WORK / "index" / f"{fid}.json").read_text())["doc_id"]
                for fid in fixtures}
@@ -80,13 +79,27 @@ def main() -> None:
     client = httpx.Client(base_url=args.api, timeout=args.timeout_s)
 
     meta_path = run_dir / "meta.json"
-    if not meta_path.exists():
-        sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True,
-                             text=True).stdout.strip()
+    sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True,
+                         text=True, check=True).stdout.strip()
+    source_hash = hashlib.sha256()
+    for directory in (ROOT / "app", ROOT / "services" / "local-models" / "app_lm"):
+        for path in sorted(directory.rglob("*.py")):
+            source_hash.update(path.relative_to(ROOT).as_posix().encode() + b"\0")
+            source_hash.update(hashlib.sha256(path.read_bytes()).digest())
+    source_digest = source_hash.hexdigest()
+    if meta_path.exists():
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        if (meta["api"] != args.api or meta["git_head"] != sha or meta.get("doc_ids") != doc_ids
+                or meta.get("app_source_sha256") != source_digest):
+            parser.error("this run has a different API, code revision or index; use a new --run")
+    else:
+        ready = client.get("/health/ready")
+        ready.raise_for_status()
         meta_path.write_text(json.dumps({
             "run": args.run, "api": args.api, "started_at": datetime.now(UTC).isoformat(),
-            "git_head": sha, "split": args.split,
-            "ready": client.get("/health/ready").json(),
+            "git_head": sha, "app_source_sha256": source_digest,
+            "initial_split": args.split, "doc_ids": doc_ids,
+            "ready": ready.json(),
         }, ensure_ascii=False, indent=1))
 
     todo = [r for r in reqs if r["req_id"] not in done]
@@ -101,6 +114,7 @@ def main() -> None:
                 resp = client.post(f"/api/v1/documents/{doc_id}/questions",
                                    json={"question": req["question"], "debug": True})
                 record["http_status"] = resp.status_code
+                record["request_id"] = resp.headers.get("X-Request-ID")
                 try:
                     record["body"] = resp.json()
                 except ValueError:

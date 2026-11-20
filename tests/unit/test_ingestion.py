@@ -1,3 +1,4 @@
+from itertools import pairwise
 from pathlib import Path
 
 import pytest
@@ -73,6 +74,11 @@ def test_section_detection_russian() -> None:
     assert not any(label.startswith("4.20") for label in labels)  # lowercase after number
 
 
+def test_wrapped_obligation_uses_the_clause_number() -> None:
+    contract = "4. Ответственность сторон\n4.2 За нарушение срока Поставщик уплачивает\nштраф."
+    assert section_at(detect_sections(contract), contract.index("штраф")) == "4.2"
+
+
 def test_preamble_has_no_invented_section() -> None:
     sections = detect_sections(CONTRACT_TEXT)
     assert section_at(sections, 0) is None  # title line before the first heading
@@ -98,7 +104,7 @@ def test_chunk_offsets_with_repeated_paragraphs() -> None:
     previous_start = -1
     for chunk in chunks:
         assert doc.text[chunk.char_start : chunk.char_end] == chunk.text  # invariant
-        assert chunk.char_start > previous_start or chunk.char_start >= 0
+        assert chunk.char_start > previous_start
         previous_start = chunk.char_start
     # identical clause appears in both sections -> same text, different offsets
     texts = [c.text for c in chunks]
@@ -106,6 +112,17 @@ def test_chunk_offsets_with_repeated_paragraphs() -> None:
     assert any(chunks[i].section != chunks[j].section
                for i in range(len(chunks)) for j in range(i + 1, len(chunks))
                if texts[i] == texts[j]) or len(set(texts)) == len(texts)
+
+
+@pytest.mark.parametrize("overlap", [0, 2])
+def test_repeated_content_covers_all_pages_with_real_overlap(overlap: int) -> None:
+    doc = build_canonical([ExtractedPage(page=i, text="aa " * 8, has_text=True)
+                           for i in range(1, 11)])
+    chunks = split_into_chunks(doc, [], chunk_tokens=8, overlap_tokens=overlap, length_fn=len)
+    covered = {i for c in chunks for i in range(c.char_start, c.char_end)}
+    assert all(i in covered for i, char in enumerate(doc.text) if not char.isspace())
+    assert all(a.char_end - b.char_start <= overlap for a, b in pairwise(chunks))
+    assert chunks[-1].page_to == 10
 
 
 def test_multi_page_chunk_has_segments() -> None:
@@ -144,6 +161,12 @@ def test_pdf_text_extraction(tmp_path: Path) -> None:
     assert extraction.page_count == 2
     assert "Penalty terms" in extraction.pages[0].text
     assert extraction.pages[0].page == 1 and extraction.pages[1].page == 2
+
+
+def test_short_text_page_is_a_valid_document(tmp_path: Path) -> None:
+    pdf = _write(tmp_path, "amount.pdf", make_text_pdf(["USD 25"]))
+    extracted = extract_pdf(pdf, max_pages=100)
+    assert extracted.pages[0].has_text
 
 
 def test_page_limit_101_rejected(tmp_path: Path) -> None:

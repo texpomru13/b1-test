@@ -10,6 +10,7 @@ import uuid
 from typing import Any
 
 from qdrant_client import AsyncQdrantClient, QdrantClient, models
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 from app.retrieval.bm25 import SparseVector
 
@@ -53,12 +54,16 @@ def doc_run_filter(doc_id: str, run_id: str) -> models.Filter:
     )
 
 
-def create_qdrant_client(url: str, *, timeout_s: float = 5.0) -> AsyncQdrantClient:
-    return AsyncQdrantClient(url=url, timeout=int(timeout_s))
+def create_qdrant_client(
+    url: str, *, timeout_s: int = 5, api_key: str | None = None
+) -> AsyncQdrantClient:
+    return AsyncQdrantClient(url=url, timeout=timeout_s, api_key=api_key)
 
 
-def create_sync_qdrant_client(url: str, *, timeout_s: float = 30.0) -> QdrantClient:
-    return QdrantClient(url=url, timeout=int(timeout_s))
+def create_sync_qdrant_client(
+    url: str, *, timeout_s: int = 30, api_key: str | None = None
+) -> QdrantClient:
+    return QdrantClient(url=url, timeout=timeout_s, api_key=api_key)
 
 
 class QdrantChunkRepository:
@@ -86,29 +91,27 @@ class QdrantIndexRepository:
         self._client = client
         self.collection_name = collection_name
 
+    def close(self) -> None:
+        self._client.close()
+
     def ensure_collection(self, *, dense_dim: int, computed_fingerprint: str) -> None:
         if not self._client.collection_exists(self.collection_name):
-            self._client.create_collection(
-                collection_name=self.collection_name,
-                vectors_config={
-                    DENSE_NAME: models.VectorParams(
-                        size=dense_dim, distance=models.Distance.COSINE
-                    )
-                },
-                sparse_vectors_config={
-                    SPARSE_NAME: models.SparseVectorParams(
-                        modifier=models.Modifier.IDF
-                    )
-                },
-            )
-            for field, schema in PAYLOAD_INDEXES.items():
-                self._client.create_payload_index(
+            try:
+                self._client.create_collection(
                     collection_name=self.collection_name,
-                    field_name=field,
-                    field_schema=schema,
-                    wait=True,
+                    vectors_config={
+                        DENSE_NAME: models.VectorParams(
+                            size=dense_dim, distance=models.Distance.COSINE
+                        )
+                    },
+                    sparse_vectors_config={
+                        SPARSE_NAME: models.SparseVectorParams(modifier=models.Modifier.IDF)
+                    },
                 )
-            return
+            except UnexpectedResponse as exc:
+                # Two workers may both see an empty server during first startup.
+                if exc.status_code != 409:
+                    raise
         info = self._client.get_collection(self.collection_name)
         vectors = info.config.params.vectors
         if not isinstance(vectors, dict) or DENSE_NAME not in vectors:
@@ -132,6 +135,19 @@ class QdrantIndexRepository:
         existing_fp = self._any_existing_fingerprint()
         if existing_fp is not None and existing_fp != computed_fingerprint:
             raise FingerprintMismatchError(existing_fp, computed_fingerprint)
+
+        # Also recover a collection created before an interrupted index bootstrap.
+        for field, schema in PAYLOAD_INDEXES.items():
+            actual = info.payload_schema.get(field)
+            if actual is None:
+                self._client.create_payload_index(
+                    collection_name=self.collection_name, field_name=field,
+                    field_schema=schema, wait=True,
+                )
+            elif actual.data_type != schema:
+                raise SchemaMismatchError(
+                    f"payload field '{field}' is indexed as {actual.data_type}, expected {schema}"
+                )
 
     def _any_existing_fingerprint(self) -> str | None:
         points, _ = self._client.scroll(
