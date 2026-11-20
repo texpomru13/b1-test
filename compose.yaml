@@ -1,9 +1,6 @@
-# CPU baseline compose (DEPLOYMENT_SPEC): raw `docker compose up --build` starts
-# the full container-only CPU path with defaults. The launcher (`./run`) exports
-# B1_* variables from .runtime/resolved.env BEFORE compose interpolation and adds
-# profile overrides (compose.mac/dmr/cloud/gpu/offline.yaml).
-# Images pinned by tag@digest (ADR 001); model weights live in named volumes,
-# never inside images.
+# The defaults run the full service on CPU. The launcher resolves B1_* settings
+# and selects overrides for the host hardware, LLM provider and offline mode.
+# Named volumes hold the model weights and application data.
 name: b1-rag
 
 services:

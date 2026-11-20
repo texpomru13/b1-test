@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "20261120T144444Z",
+  "api": "http://127.0.0.1:8023",
+  "ready": {
+    "status": "ready",
+    "components": {
+      "redis": "ok",
+      "qdrant": "ok",
+      "local_models": "ok",
+      "llm": "ok"
+    },
+    "model_ready": true
+  }
+}

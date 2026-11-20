@@ -1,12 +1,8 @@
-"""models-init (stage 8.3): one-shot provisioning of pinned model snapshots into
-the persistent hf_models volume.
+"""Provision the pinned encoder and reranker snapshots in the shared model cache.
 
-Per asset: already present -> skip; present in the optional read-only seed cache
-(developer host cache) -> copy; otherwise download the PINNED revision with
-bounded retries. OFFLINE=1 never downloads — missing assets are LISTED and the
-init fails with a nonzero exit. Writes /runtime/models.lock.json (the model
-manifest) and never bakes weights into any image.
-"""
+Use a complete local snapshot or seed copy when available. Online mode can
+download missing weights. On success, write models.lock.json in B1_RUNTIME_DIR
+(the model cache by default)."""
 
 from __future__ import annotations
 

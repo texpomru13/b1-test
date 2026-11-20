@@ -1,8 +1,7 @@
 """FastEmbed BM25 sparse adapter (Qdrant/bm25, Russian).
 
-Documents use `embed` (tf-saturated weights), queries use `query_embed`
-(deduplicated unit weights) — the asymmetry verified in spike S3. The lexical
-preprocessing (lexical.py) is applied symmetrically to both sides.
+Documents use `embed` for term-frequency weights. Queries use `query_embed`
+for deduplicated terms with unit weights. Both use the same lexical preprocessing.
 """
 
 from __future__ import annotations

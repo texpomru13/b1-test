@@ -1,10 +1,7 @@
-"""Indexing stage: parse artifact -> embedded, BM25-encoded, verified, published run.
+"""Write dense and BM25 vectors to Qdrant for a single indexing attempt.
 
-Flow per ADR 003: new ingestion_run_id per attempt; lease renewed on every batch;
-count verification; run_complete marker on the REAL head chunk (index 0); then
-lease-gated Redis CAS publication. Partial failures never publish; the incomplete
-run is removed best-effort with a (doc_id AND run_id) filter only.
-"""
+After verifying the chunk count, mark the first chunk as complete. The worker
+can then publish this run ID in Redis."""
 
 from __future__ import annotations
 
@@ -133,8 +130,7 @@ def run_indexing(
     )
 
     def q_retry[R](op_name: str, fn: Callable[[], R]) -> R:
-        # Bounded retry on a temporarily unavailable vector store (§8.6); schema
-        # and fingerprint mismatches are not transient and are never retried.
+        # Retry transient Qdrant errors. Schema and fingerprint mismatches are permanent.
         return retry_sync(fn, op_name=op_name,
                           max_attempts=settings.qdrant_max_attempts)
 
@@ -157,7 +153,7 @@ def run_indexing(
             retryable=True,
         ) from exc
 
-    run_id = uuid.uuid4().hex  # NEW run per attempt: old runs never mix (ADR 003)
+    run_id = uuid.uuid4().hex
     created_at = utc_now_iso()
     lifecycle.set_progress(job_id, {
         "stage": "embed",

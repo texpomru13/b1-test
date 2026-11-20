@@ -13,6 +13,7 @@ A gold span counts as covered when ANY of its occurrences is covered.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import statistics
@@ -155,6 +156,7 @@ def main() -> None:
             for k in (1, 3, 5, 8, 20, 60):
                 row[f"recall@{k}"] = sum(span_covered(s, cand_r[:k]) for s in spans) / len(spans)
             row["cited_gold_overlap"] = any(chunk_relevant(c, spans) for c in verified_citations)
+            row["cited_all_gold_spans"] = all(span_covered(s, verified_citations) for s in spans)
             row["n_candidates"] = len(cands)
             row["n_context"] = len(ctx)
         rows.append(row)
@@ -171,6 +173,7 @@ def main() -> None:
 
     agg.update({
         "run": args.run, "split": args.split,
+        "gold_sha256": hashlib.sha256(gold_path().read_bytes()).hexdigest(),
         "n_requests": len(rows), "n_gold": len(gold_rows), "n_gold_planned": len(expected_gold),
         "missing_gold": sorted(expected_gold - {r["case_id"] for r in gold_rows}),
         "n_answerable": len(pos), "n_no_answer": len(neg), "n_isolation": len(iso),
@@ -193,6 +196,9 @@ def main() -> None:
             sum(r["outcome"] not in ("found", "not_found") for r in pos), len(pos)),
         "found_cites_gold_span": ratio(
             sum(bool(r.get("cited_gold_overlap")) for r in pos if r["outcome"] == "found"),
+            sum(r["outcome"] == "found" for r in pos)),
+        "found_covers_all_gold_spans": ratio(
+            sum(bool(r.get("cited_all_gold_spans")) for r in pos if r["outcome"] == "found"),
             sum(r["outcome"] == "found" for r in pos)),
         "correct_abstention_negatives": ratio(
             sum(r["outcome"] == "not_found" for r in neg), len(neg)),

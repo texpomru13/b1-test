@@ -20,6 +20,7 @@ import re
 from dataclasses import dataclass
 
 from app.qa.schemas import Claim
+from app.retrieval.clauses import local_list_lead
 from app.retrieval.search import ContextChunk
 
 
@@ -160,9 +161,26 @@ def check_claim_consistency(claim: Claim, quotes: list[str]) -> None:
             )
 
 
+_PERMISSION = re.compile(r"\b(?:вправе|име\w*\s+прав[оа]|разреш|"
+                         r"запрещ|допуска[ею]|дозвол|мож(?:но|ет)|могут|нельзя)", re.I)
+_ASKS_PERMISSION = re.compile(r"\b(?:вправе ли|разреш\w* ли|запрещ\w* ли|допускается ли|"
+                              r"мож(?:но|ет) ли|могут ли|име\w* ли.{0,80}\bправ[оа]\b)", re.I)
+_NUMBERED_ACTION = re.compile(r"^\s*\d+(?:\.\d+)+[.)]?\s+[а-яё]+(?:ть|ти|чь)(?:ся|сь)?\b", re.I)
+
+
+def _check_item_permission(question: str, claim: Claim, quotes: list[LocatedQuote]) -> None:
+    # An isolated numbered infinitive names an action. Without a governing
+    # statement there is no evidence of who may do it or whether it is prohibited.
+    if (_ASKS_PERMISSION.search(question) and _PERMISSION.search(claim.text)
+            and all(_NUMBERED_ACTION.match(q.chunk.text) for q in quotes)
+            and not any(_PERMISSION.search(q.quote_raw) for q in quotes)):
+        raise ProvenanceError("перечисление действий без вводной фразы не устанавливает право")
+
+
 def validate_claims(
     claims: list[Claim],
     context_by_id: dict[str, ContextChunk],
+    *, question: str = "",
 ) -> dict[int, list[LocatedQuote]]:
     """Deterministic §7.2 checks for every claim; returns located quotes per claim.
 
@@ -171,6 +189,7 @@ def validate_claims(
     single allowed correction.
     """
     located: dict[int, list[LocatedQuote]] = {}
+    chunks = {chunk.chunk_id: chunk for chunk in context_by_id.values()}
     for index, claim in enumerate(claims):
         quotes: list[LocatedQuote] = []
         for evidence in claim.evidence:
@@ -183,7 +202,25 @@ def validate_claims(
                     "evidence references a source which is not in the "
                     "allowed context (fabricated or truncated away)"
                 )
-            quotes.append(locate_quote(chunk, evidence.quote))
+            quote = locate_quote(chunk, evidence.quote)
+            # Give the verifier and the reader the same governing sentence. The
+            # item alone can name an action with no indication whether it is allowed.
+            ancestor = chunk
+            while ancestor.list_heading_id:
+                parent = chunks.get(ancestor.list_heading_id)
+                if parent is None:
+                    raise ProvenanceError("в контексте отсутствует вводная фраза перечня")
+                quotes.append(locate_quote(parent, parent.text))
+                ancestor = parent
+            if not chunk.list_heading_id:
+                lead = local_list_lead(chunk.text, quote.char_start - chunk.char_start)
+                if lead:
+                    quotes.append(locate_quote(chunk, lead))
+            quotes.append(quote)
+        # A model can also explicitly cite the heading, or cite several of its
+        # children. Use the authoritative span just once per claim.
+        quotes = list({(q.chunk.chunk_id, q.char_start, q.char_end): q for q in quotes}.values())
+        _check_item_permission(question, claim, quotes)
         check_claim_consistency(claim, [q.quote_raw for q in quotes])
         located[index] = quotes
     return located

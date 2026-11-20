@@ -1,0 +1,233 @@
+{
+  "tests": {
+    "passed": 246,
+    "unit": 211,
+    "integration": 35,
+    "skipped": 0
+  },
+  "public_api_demo": {
+    "steps": 13,
+    "initial_documents": 0,
+    "indexed_documents": 2,
+    "accepted_uploads": [
+      {
+        "doc_id": "2554bed392df477e92c90d22ce595688",
+        "job_id": "e9ae9c2f7e164dccaa80c41bbbb92696",
+        "status": "accepted",
+        "status_url": "/api/v1/jobs/e9ae9c2f7e164dccaa80c41bbbb92696",
+        "document_url": "/api/v1/documents/2554bed392df477e92c90d22ce595688"
+      },
+      {
+        "doc_id": "ee50abdd254741f4a3e63bffe8f33cbb",
+        "job_id": "3a889f2feffd40c6b35120906073bdf8",
+        "status": "accepted",
+        "status_url": "/api/v1/jobs/3a889f2feffd40c6b35120906073bdf8",
+        "document_url": "/api/v1/documents/ee50abdd254741f4a3e63bffe8f33cbb"
+      }
+    ],
+    "results": {
+      "07_exact": true,
+      "08_paraphrase": true,
+      "09_no_answer": false,
+      "10_debug": true,
+      "11_isolation_b_asked_about_a": false,
+      "12_doc_b_own_question": true
+    }
+  },
+  "indexing_limits": {
+    "101-pages": {
+      "http_status": 202,
+      "input_sha256": "a273211336f91083fa9e5345dd3561f584501ca11974b4c5997f920166214673",
+      "accepted_s": 0.006,
+      "first_running_s": null,
+      "terminal_s": 1.02,
+      "job": {
+        "job_id": "d9aa5d1c510942adbcd5d548cf4d746c",
+        "doc_id": "2dba701676714425ae3f0de8b072f2f4",
+        "status": "failed",
+        "stage": "parse",
+        "attempt": 1,
+        "progress": {
+          "completed": 0,
+          "total": null,
+          "unit": "chunks"
+        },
+        "created_at": "2026-11-20T14:30:02.914357+00:00",
+        "updated_at": "2026-11-20T14:30:03.083798+00:00",
+        "error": {
+          "code": "PAGE_LIMIT_EXCEEDED",
+          "message": "document has 101 pages; the limit is 100",
+          "retryable": false
+        }
+      },
+      "document": {
+        "doc_id": "2dba701676714425ae3f0de8b072f2f4",
+        "title": "101-pages.pdf",
+        "original_filename": "101-pages.pdf",
+        "content_type": "application/pdf",
+        "size_bytes": 29030,
+        "status": "failed",
+        "ready": false,
+        "job_id": "d9aa5d1c510942adbcd5d548cf4d746c",
+        "created_at": "2026-11-20T14:30:02.914357+00:00",
+        "updated_at": "2026-11-20T14:30:03.083798+00:00",
+        "page_count": null,
+        "chunk_count": null
+      }
+    },
+    "scan": {
+      "http_status": 202,
+      "input_sha256": "1c7539425bcb030d8599718d91690c7f6f443ce402c8dc33a89755b8d26d61fb",
+      "accepted_s": 0.041,
+      "first_running_s": null,
+      "terminal_s": 1.06,
+      "job": {
+        "job_id": "8ab070df01044c4e84a638b3736279e0",
+        "doc_id": "9419e46b519c4768b8eb03d3751142a4",
+        "status": "failed",
+        "stage": "parse",
+        "attempt": 1,
+        "progress": {
+          "completed": 0,
+          "total": null,
+          "unit": "chunks"
+        },
+        "created_at": "2026-11-20T14:30:03.964065+00:00",
+        "updated_at": "2026-11-20T14:30:04.148639+00:00",
+        "error": {
+          "code": "OCR_REQUIRED",
+          "message": "document has no usable text layer (scan?); OCR is not part of the mandatory scope",
+          "retryable": false
+        }
+      },
+      "document": {
+        "doc_id": "9419e46b519c4768b8eb03d3751142a4",
+        "title": "06_Лицензия_Виртуальная_АТС.pdf",
+        "original_filename": "06_Лицензия_Виртуальная_АТС.pdf",
+        "content_type": "application/pdf",
+        "size_bytes": 3627046,
+        "status": "failed",
+        "ready": false,
+        "job_id": "8ab070df01044c4e84a638b3736279e0",
+        "created_at": "2026-11-20T14:30:03.964065+00:00",
+        "updated_at": "2026-11-20T14:30:04.148639+00:00",
+        "page_count": null,
+        "chunk_count": null
+      }
+    },
+    "100-pages": {
+      "http_status": 202,
+      "input_sha256": "defb698cb961b74a4d747081819b5def319c4bc728658321d64a38372a582efa",
+      "accepted_s": 0.021,
+      "first_running_s": 1.03,
+      "terminal_s": 222.79,
+      "job": {
+        "job_id": "fa98ce9745964e1fb220ee28ebde2821",
+        "doc_id": "0520fa19b2c248029ba1e7fa53fe8161",
+        "status": "succeeded",
+        "stage": "publish",
+        "attempt": 1,
+        "progress": {
+          "completed": 896,
+          "total": 896,
+          "unit": "chunks"
+        },
+        "created_at": "2026-11-20T14:30:05.001661+00:00",
+        "updated_at": "2026-11-20T14:33:47.633329+00:00",
+        "error": null
+      },
+      "document": {
+        "doc_id": "0520fa19b2c248029ba1e7fa53fe8161",
+        "title": "100_pages.pdf",
+        "original_filename": "100_pages.pdf",
+        "content_type": "application/pdf",
+        "size_bytes": 1671708,
+        "status": "succeeded",
+        "ready": true,
+        "job_id": "fa98ce9745964e1fb220ee28ebde2821",
+        "created_at": "2026-11-20T14:30:05.001661+00:00",
+        "updated_at": "2026-11-20T14:33:47.633329+00:00",
+        "page_count": 100,
+        "chunk_count": 896
+      }
+    }
+  },
+  "unavailable_dependencies": {
+    "redis": {
+      "readiness_http": 503,
+      "readiness": {
+        "status": "not_ready",
+        "components": {
+          "redis": "unavailable: ConnectionError",
+          "qdrant": "ok",
+          "local_models": "ok",
+          "llm": "ok"
+        },
+        "model_ready": true
+      },
+      "question_http": 503,
+      "retry_after": "5",
+      "question": {
+        "error": {
+          "code": "DEPENDENCY_UNAVAILABLE",
+          "message": "job registry is unavailable",
+          "retryable": true,
+          "request_id": "1cb505d17d804981b58244114b16b5b3"
+        }
+      }
+    },
+    "qdrant": {
+      "readiness_http": 503,
+      "readiness": {
+        "status": "not_ready",
+        "components": {
+          "redis": "ok",
+          "qdrant": "unavailable: ResponseHandlingException",
+          "local_models": "ok",
+          "llm": "ok"
+        },
+        "model_ready": true
+      },
+      "question_http": 503,
+      "retry_after": "5",
+      "question": {
+        "error": {
+          "code": "DEPENDENCY_UNAVAILABLE",
+          "message": "QDRANT_UNAVAILABLE: hybrid query failed: ResponseHandlingException",
+          "retryable": true,
+          "request_id": "f6e0d5a03ab54f8096176068c981b03b"
+        }
+      }
+    },
+    "llm": {
+      "readiness_http": 503,
+      "readiness": {
+        "status": "not_ready",
+        "components": {
+          "redis": "ok",
+          "qdrant": "ok",
+          "local_models": "ok",
+          "llm": "unavailable: ConnectError"
+        },
+        "model_ready": false
+      },
+      "question_http": 503,
+      "retry_after": "5",
+      "question": {
+        "error": {
+          "code": "DEPENDENCY_UNAVAILABLE",
+          "message": "ollama chat failed: ConnectError",
+          "retryable": true,
+          "request_id": "b4e740999230404a80285ca3ccb3e33e"
+        }
+      }
+    }
+  },
+  "qa_benchmark_index": {
+    "collection": "document_chunks",
+    "points": 2918,
+    "documents": 18,
+    "qa_documents": 14,
+    "frozen_during_evaluation": true
+  }
+}

@@ -44,6 +44,12 @@ def test_token_budgets_must_fit_local_context() -> None:
         make(local_context_tokens=8000, context_budget_tokens=6000)
 
 
+def test_call_budget_allows_a_draft_and_verification() -> None:
+    with pytest.raises(ValidationError, match="max_llm_calls_per_question"):
+        make(max_llm_calls_per_question=1)
+    assert make(max_llm_calls_per_question=2).max_llm_calls_per_question == 2
+
+
 def test_paid_eval_requires_cost_cap() -> None:
     with pytest.raises(ValidationError, match="EVAL_MAX_COST_USD"):
         make(allow_paid_eval=True)

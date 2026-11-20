@@ -1,6 +1,5 @@
-# local-models service image (CPU). Separate dependency environment per ADR 001:
-# transformers 4.57.x / sentence-transformers 5.7.x for Giga remote code.
-# Weights are NOT baked into the image: a HF cache volume is mounted read-only.
+# Build the retrieval models' Python environment. The runtime reads the weights
+# from a mounted Hugging Face cache.
 FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/

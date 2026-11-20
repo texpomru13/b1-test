@@ -18,7 +18,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import subprocess
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -75,12 +74,17 @@ def main() -> None:
     run_dir = WORK / "runs" / args.run
     run_dir.mkdir(parents=True, exist_ok=True)
     out_path = run_dir / "responses.jsonl"
-    done = {r["req_id"] for r in load_jsonl(out_path)}
+    previous = load_jsonl(out_path)
+    done = {r["req_id"]: r for r in previous}
+    if len(previous) != len(done):
+        parser.error("duplicate request IDs in saved responses")
+    for req in reqs:
+        saved = done.get(req["req_id"])
+        if saved and any(saved.get(key) != value for key, value in req.items()):
+            parser.error(f"saved question or target differs for {req['req_id']}; use a new --run")
     client = httpx.Client(base_url=args.api, timeout=args.timeout_s)
 
     meta_path = run_dir / "meta.json"
-    sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True,
-                         text=True, check=True).stdout.strip()
     source_hash = hashlib.sha256()
     for directory in (ROOT / "app", ROOT / "services" / "local-models" / "app_lm"):
         for path in sorted(directory.rglob("*.py")):
@@ -89,7 +93,7 @@ def main() -> None:
     source_digest = source_hash.hexdigest()
     if meta_path.exists():
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        if (meta["api"] != args.api or meta["git_head"] != sha or meta.get("doc_ids") != doc_ids
+        if (meta["api"] != args.api or meta.get("doc_ids") != doc_ids
                 or meta.get("app_source_sha256") != source_digest):
             parser.error("this run has a different API, code revision or index; use a new --run")
     else:
@@ -97,7 +101,7 @@ def main() -> None:
         ready.raise_for_status()
         meta_path.write_text(json.dumps({
             "run": args.run, "api": args.api, "started_at": datetime.now(UTC).isoformat(),
-            "git_head": sha, "app_source_sha256": source_digest,
+            "app_source_sha256": source_digest,
             "initial_split": args.split, "doc_ids": doc_ids,
             "ready": ready.json(),
         }, ensure_ascii=False, indent=1))

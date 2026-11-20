@@ -1,17 +1,8 @@
-"""Hybrid retrieval with a mandatory reranker (plan §6, ADR 004).
+"""Retrieve and rerank evidence within one published document.
 
-- ONE Qdrant query_points call builds the fused candidate list: two prefetch
-  branches (dense + bm25), the immutable scope filter in BOTH branches AND at the
-  root, server-side fusion (RRF default / DBSF configurable). No Python merging.
-- The reranker is mandatory and fails CLOSED: its unavailability is an error,
-  never a dense-only answer.
-- Context budget is computed for the target LLM with a separate reasoning
-  reserve (§6.3): whole chunks are selected in rerank order until either
-  CONTEXT_TOP_K or the token budget is reached; everything not selected is
-  excluded from the allowed spans (no partial chunk truncation).
-- debug=true adds a diagnostic query_batch_points REPLAY on the same published
-  run (report-only; never feeds candidates) — ADR 004.
-"""
+One Qdrant query fuses the dense and BM25 branches. The reranker orders the
+candidates, then the context limit and token budget determine which chunks the
+model can cite. Debug mode measures branch sizes in a separate diagnostic query."""
 
 from __future__ import annotations
 
@@ -32,11 +23,11 @@ from app.inference.contract import (
 from app.ingestion.chunker import LengthFn
 from app.reliability.policy import retry_async
 from app.retrieval.bm25 import Bm25Adapter
+from app.retrieval.clauses import list_rerank_documents
 from app.storage.qdrant_repo import DENSE_NAME, SPARSE_NAME, FingerprintMismatchError
 from qdrant_client import AsyncQdrantClient, models
 
-# Conservative token estimates for parts that do not exist until stage 6 wires
-# the real prompts; re-measured there (§6.3: the real limit is recomputed per call).
+# Reserve space for the instructions, response schema and framing of source text.
 SYSTEM_AND_SCHEMA_RESERVE_TOKENS = 1500
 SAFETY_MARGIN_TOKENS = 512
 
@@ -89,6 +80,7 @@ class ContextChunk:
     rerank_score: float
     # Per-page spans for chunks crossing page boundaries: [{page, char_start, char_end}]
     segments: list[dict[str, int]] = field(default_factory=list)
+    list_heading_id: str | None = None
 
 
 @dataclass
@@ -99,7 +91,7 @@ class Diagnostics:
     reranked_count: int = 0
     context_count: int = 0
     context_chunk_ids: list[str] = field(default_factory=list)
-    cited_chunk_ids: list[str] | None = None  # filled by QA (stage 6); never mixed
+    cited_chunk_ids: list[str] | None = None  # attached to verified claims
     rerank_scores: dict[str, float] = field(default_factory=dict)
     stage_ms: dict[str, int] = field(default_factory=dict)
     model_ids: dict[str, str] = field(default_factory=dict)
@@ -222,6 +214,9 @@ async def hybrid_search(
         RerankDocument(id=str(point.id), text=str((point.payload or {})["text"]))
         for point in candidates
     ]
+    documents, list_headings = list_rerank_documents(
+        documents, {str(p.id): int((p.payload or {})["chunk_index"]) for p in candidates},
+    )
     try:
         rerank_response = await local_models.rerank(
             RerankRequest(query=question, documents=documents)
@@ -270,6 +265,7 @@ async def hybrid_search(
                 char_end=int(payload["char_end"]),
                 rerank_score=scores[str(point.id)],
                 segments=list(payload.get("segments") or []),
+                list_heading_id=list_headings.get(str(point.id)),
             )
         )
     diag.context_count = len(context)

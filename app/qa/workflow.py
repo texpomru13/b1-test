@@ -161,7 +161,7 @@ async def run_qa(
                 logger.info("draft_not_answerable", repairs=attempt)
                 result.outcome = OUTCOME_NOT_FOUND
                 return result
-            located = validate_claims(draft.claims, sources)
+            located = validate_claims(draft.claims, sources, question=question)
             check_requested_value(question, draft.claims)
             if result.llm_calls >= settings.max_llm_calls_per_question:
                 result.outcome = OUTCOME_NOT_FOUND

@@ -1,14 +1,8 @@
-"""local-models service: the single owner of retrieval model weights.
+"""Serve document and query embeddings and rerank search candidates.
 
-Implements contract v1 (mirrors app/inference/contract.py):
-  GET  /v1/health  -> {status, loaded_model, revision, device, residency, ...}
-  POST /v1/embed   -> dense vectors (query/document instruction handling)
-  POST /v1/rerank  -> per-candidate relevance scores
-
-Design (ADR 001/002, spikes S6/S8): one resident encoder; inference runs in a
-single worker thread behind a lock (bulkhead) so the event loop never blocks and
-two encodes never run concurrently. API/worker processes are HTTP clients only.
-"""
+The API and worker share this service's loaded models through /v1/embed and
+/v1/rerank. Inference runs off the event loop with a lock for each model.
+The readiness endpoint is /v1/health."""
 
 from __future__ import annotations
 
@@ -90,7 +84,6 @@ class ModelHolder:
         self.quality_degraded = os.environ.get("LM_QUALITY_DEGRADED", "") == "1"
         self.degraded_reason = os.environ.get("LM_QUALITY_DEGRADED_REASON", "")
         self.dim: int | None = None
-        # Reranker (mandatory for QA from stage 5; loaded AFTER the encoder).
         self.reranker_model_id = os.environ.get("LM_RERANKER_MODEL", "")
         self.reranker_revision = os.environ.get("LM_RERANKER_REVISION", "")
         self.reranker_adapter_name = os.environ.get("LM_RERANKER_ADAPTER", "qwen_yes_no")
@@ -121,7 +114,7 @@ class ModelHolder:
             model = SentenceTransformer(
                 self.model_id,
                 revision=self.revision,
-                trust_remote_code=True,  # revision pinned to the S6-audited commit
+                trust_remote_code=True,  # the pinned Giga snapshot supplies its model code
                 device=self.device,
             )
             embeddings = GigaEmbeddings(model, self.batch_size)

@@ -1,9 +1,7 @@
-"""Parsing pipeline: stored file -> canonical text, page map, sections, chunks.
+"""Extract pages, canonical text, sections and chunks from PDF or DOCX.
 
-Produces the parse artifact `parse/parsed.json` (+ canonical.txt) inside the
-document directory; stage 4 consumes it for embedding/indexing. All recorded
-parameters are index-fingerprint inputs.
-"""
+The indexer reads parse/parsed.json. The accompanying canonical.txt is the
+reference text for citation offsets."""
 
 from __future__ import annotations
 

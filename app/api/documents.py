@@ -95,8 +95,8 @@ async def upload_document(
             },
         )
     except Exception as exc:
-        # File stays on disk; the janitor removes unreferenced docs after the grace
-        # period (plan §8.2: file+Redis cannot commit atomically -> 503, retry safe).
+        # Redis may have committed before the connection failed. The janitor
+        # checks for a document reference before removing the uploaded file.
         logger.warning("submit_failed_redis", doc_id=doc_id, error=type(exc).__name__)
         raise ApiError(
             503, ErrorCode.DEPENDENCY_UNAVAILABLE,
@@ -163,7 +163,7 @@ async def list_documents(
             responses={200: {"content": {"application/pdf": {}}},
                        **api_error_responses(404, 422, 503)})
 async def get_normalized_pdf(request: Request, doc_id: str) -> Any:
-    """The server-side PDF that citation page numbers refer to (plan §5.1)."""
+    """Download the PDF used to assign citation page numbers."""
     job_id = await _repo(request).get_job_id_for_doc(doc_id)
     if not job_id:
         raise ApiError(404, ErrorCode.NOT_FOUND, f"document '{doc_id}' is unknown")

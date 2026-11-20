@@ -38,3 +38,5 @@ spikes/
 
 # Evaluation outputs (regenerable: logs, local doc ids, index exports, fixtures)
 eval/work/
+# Local demo captures. Previously published examples are already tracked.
+eval/reports/demo/*/

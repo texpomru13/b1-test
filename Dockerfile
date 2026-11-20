@@ -1,5 +1,4 @@
-# App image for API and worker (same image, different command).
-# Pinned base per ADR 001; no torch/transformers in this environment (single-owner rule).
+# Shared image for the API, worker and dispatcher. The local-models image runs inference.
 FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/
@@ -13,8 +12,7 @@ RUN uv sync --frozen --no-dev
 
 FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b AS runtime
 
-# LibreOffice (headless) + fixed fonts for deterministic DOCX->PDF pagination
-# (plan §5.1: answer pages refer to the SERVER-normalized PDF; fonts pinned in image).
+# DOCX citation pages refer to the PDF produced with these fonts and LibreOffice.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libreoffice-writer \

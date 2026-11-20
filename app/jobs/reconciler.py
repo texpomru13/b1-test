@@ -1,21 +1,8 @@
-"""Reconciler (ADR 003 / plan §8): repairs every crash window the saga leaves.
+"""Recover abandoned indexing jobs and clean up their data.
 
-- Jobs stuck in running/validating with an EXPIRED lease (a live worker always
-  holds the lease — it is taken before `running` and kept by a heartbeat):
-  * forward recovery when the run is actually complete (count matches + head
-    marked): re-acquire the lease and finish the publication CAS;
-  * otherwise -> retry_wait + a fresh outbox intent with the `dispatched` flag
-    cleared, so the dispatcher really re-sends the job (the next attempt creates
-    a NEW ingestion_run_id; bounded by JOB_MAX_ATTEMPTS counted in Redis).
-- Jobs sitting in retry_wait with no owner and no pending intent for longer
-  than RETRY_WAIT_REDISPATCH_AFTER_S: re-dispatched (safety net against a lost
-  delivery; duplicates are harmless — the consumer dedupes by lease and status).
-- cleanup_pending jobs: retry the run-scoped compensation, then finish as failed.
-- succeeded jobs: delete leftover points of NON-accepted runs (doc-scoped
-  must_not accepted_run — never another doc, never the accepted run).
-- failed jobs older than FAILED_SOURCE_TTL_S: remove source files (job record
-  and its terminal status remain).
-"""
+For an expired worker lease, publish a complete verified run or queue another
+attempt. Resume interrupted cleanup, remove obsolete runs after publication and
+expire source files for failed jobs according to the retention setting."""
 
 from __future__ import annotations
 

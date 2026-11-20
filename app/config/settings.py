@@ -1,16 +1,7 @@
-"""Application settings: the env-var contract from IMPLEMENTATION_PLAN.md §10.3.
+"""Validated environment settings shared by the API, indexer and launcher.
 
-Unknown keys in a dotenv file are rejected (extra="forbid"); invalid values fail
-fast at startup with a readable per-field report. Secrets are SecretStr and never
-appear in dumps or logs.
-
-Every field here has an effect. Most are read by the app processes (api, worker,
-dispatcher). A small group is launcher/compose-level: those are consumed by
-`./run` (profile resolution) and `compose.yaml` (the local-models service) and
-are declared here only so that one `.env` validates for both. They are marked
-"launcher/compose-level" below. compose.yaml passes the app-level variables
-through to the containers, so `.env` and the shell environment work in the
-Docker path as well as on the host.
+Compose forwards the application settings to each process. The launcher resolves
+the hardware and model profile. Both read the same optional `.env` file.
 """
 
 from __future__ import annotations
@@ -146,13 +137,14 @@ class Settings(BaseSettings):
     local_models_url: str = "http://local-models:8081"
     local_models_timeout_s: int = Field(default=300, gt=0)
 
-    # --- Evaluation ---
+    # Accepted for older host .env files. The HTTP evaluation client cannot enforce billing.
     allow_paid_eval: bool = False
     eval_max_cost_usd: float | None = Field(default=None, gt=0.0)
 
     # --- Grounding (claim verification is mandatory and has no switch) ---
     max_repair_attempts: int = Field(default=1, ge=0)
-    max_llm_calls_per_question: int = Field(default=4, gt=0)
+    # An answer needs at least one draft and one independent verification.
+    max_llm_calls_per_question: int = Field(default=4, ge=2)
 
     # --- Reliability ---
     qdrant_max_attempts: int = Field(default=3, gt=0)

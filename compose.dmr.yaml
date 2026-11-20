@@ -1,4 +1,4 @@
-# Explicit DMR profile (ADR 005): llama.cpp/Metal via Docker Model Runner.
+# Use Docker Model Runner as the local LLM provider.
 # The dmr endpoint is reached as http://model-runner.docker.internal/engines/v1;
 # the Docker socket is NEVER mounted into app containers.
 services:

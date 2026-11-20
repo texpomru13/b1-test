@@ -23,6 +23,7 @@ from typing import Any
 import pytest
 import redis as redis_sync
 from app.config.settings import Settings
+from app.ingestion.errors import ParseError
 from app.jobs import tasks
 from app.jobs.dispatcher import dispatch_one
 from app.jobs.indexer import IndexOutcome
@@ -271,6 +272,33 @@ async def test_second_delivery_of_an_owned_job_is_a_noop(
     assert tasks.run_index(lifecycle, job_id, settings) == "lease_unavailable"
     assert lifecycle.get_job(job_id) == before  # status, attempt, timestamps intact
     assert rc.get(keys.lease_key(job_id)) == owner_token  # the owner keeps its lease
+
+
+async def test_stale_parse_failure_leaves_replacement_job_untouched(
+    rc: redis_sync.Redis, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lifecycle = SyncJobLifecycle(rc)
+    job_id, _ = await _seed(tmp_path)
+
+    def lose_lease_during_parse(**kwargs: Any) -> None:
+        rc.delete(keys.lease_key(job_id))
+        assert lifecycle.transition(job_id, expected=["running"], new_status="retry_wait",
+                                    token="").ok
+        replacement = lifecycle.acquire_lease(job_id, ttl_ms=60_000)
+        assert replacement is not None
+        assert lifecycle.transition(
+            job_id, expected=["retry_wait"], new_status="running", token=replacement,
+            extra={"attempt": "2", "stage": "split"},
+        ).ok
+        raise ParseError("old worker finished parsing after its lease expired")
+
+    monkeypatch.setattr(tasks, "parse_document", lose_lease_during_parse)
+    assert tasks.run_index(lifecycle, job_id, _settings(tmp_path)) == "lease_lost"
+    job = lifecycle.get_job(job_id)
+    assert job is not None
+    assert (job["status"], job["stage"], job["attempt"]) == ("running", "split", "2")
+    assert "error_code" not in job
+    assert rc.exists(keys.lease_key(job_id)) == 1
 
 
 async def test_heartbeat_outlives_the_ttl_and_expiry_follows_a_dead_owner(

@@ -45,12 +45,21 @@ partial — хотя бы одна существенная часть вопр�
 
 
 def render_sources(sources: dict[str, ContextChunk]) -> str:
+    ids = {chunk.chunk_id: key for key, chunk in sources.items()}
     blocks: list[str] = []
     for short_id, chunk in sources.items():
         header = f"[{short_id}]"
         if chunk.section:
             header += f" (раздел: {chunk.section})"
+        if chunk.list_heading_id:
+            parent = ids.get(chunk.list_heading_id)
+            header += (f" (подпункт перечня, начало в [{parent}])" if parent
+                       else " (вводная фраза перечня отсутствует)")
         blocks.append(f"{header}\n<<<\n{chunk.text}\n>>>")
+    if any(chunk.list_heading_id for chunk in sources.values()):
+        blocks.append("У подпункта перечня действие и вводная фраза образуют одно условие. "
+                      "Сохрани субъект, запрет, разрешение и оговорки вводной фразы. "
+                      "Приведи дословные доказательства из обоих источников.")
     return "\n\n".join(blocks)
 
 

@@ -184,3 +184,17 @@ async def test_upload_without_title_exposes_original_filename(
     assert listing[0]["ready"] is False
     job["accepted_run_id"] = "published"
     assert (await client.get(uploaded.json()["document_url"])).json()["ready"] is True
+
+
+@pytest.mark.parametrize(("status", "retryable"), [
+    ("running", True), ("retry_wait", True), ("compensating", False),
+    ("cleanup_pending", False), ("failed", False), ("succeeded", False),
+])
+async def test_questions_for_unpublished_document_report_if_waiting_can_help(
+    client: httpx.AsyncClient, fake_repo: FakeRepo, status: str, retryable: bool,
+) -> None:
+    uploaded = (await client.post("/api/v1/documents", files={"file": PDF_PART})).json()
+    fake_repo.jobs[uploaded["job_id"]]["status"] = status
+    response = await client.post(uploaded["document_url"] + "/questions", json={"question": "Q?"})
+    assert response.status_code == 409
+    assert response.json()["error"]["retryable"] is retryable

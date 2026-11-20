@@ -1,7 +1,7 @@
 """Extract physical pages and their text layer using pypdf.
 
-Physical, 1-based pages. Encrypted/corrupt inputs raise typed errors; the
-text-layer statistics feed the mandatory scan/mixed detection (stage 3).
+Physical pages are numbered from one. The text layer determines whether a
+document can be indexed directly or requires OCR.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from app.ingestion.errors import (
 
 # Ignore short decorations on an image-only page.
 MIN_TEXT_CHARS_PER_PAGE = 20
-# Mixed-document rule: flag when >20% of pages (or >=2 pages in small docs) lack text.
+# Reject a mixed document when at least two pages and over 20% lack a text layer.
 MIXED_EMPTY_RATIO = 0.2
 
 

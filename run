@@ -1,5 +1,5 @@
 #!/bin/sh
-# One-command launcher (DEPLOYMENT_SPEC.md, stage 8). POSIX sh; works as `sh ./run`.
+# POSIX launcher for the Docker Compose services.
 # Default local path needs ONLY Docker Engine/Desktop with Compose v2 — no host
 # Python/uv/jq, no manual .env, no YAML editing. The profile resolver runs inside
 # the pinned python base image; its decisions are written atomically to

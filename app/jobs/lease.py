@@ -1,4 +1,4 @@
-"""Job lease ownership with a heartbeat (ADR 003 §5).
+"""Renew the worker's Redis lease throughout document indexing.
 
 A worker owns a job from the moment it starts executing it until it finishes:
 the lease is acquired BEFORE the job becomes `running` and a background

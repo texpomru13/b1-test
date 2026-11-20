@@ -1,9 +1,6 @@
-"""Assemble eval/reports/REPORT.md (in Russian) from measured artifacts.
+"""Build a Markdown report from measurements in the evaluation work directory.
 
-    python3 eval/report.py --runs balanced-9b-t0,balanced-9b-nothink,low-4b-off
-
-Only numbers that exist in eval/work/** are printed; missing artifacts are shown
-as `not_run`. Every rate is printed with its numerator/denominator.
+    python3 eval/report.py --runs balanced-check
 """
 
 from __future__ import annotations
@@ -50,7 +47,7 @@ def run_section(name: str) -> list[str]:
     meta = load(WORK / "runs" / name / "meta.json")
     if meta is None:
         return [*lines, "not_run", ""]
-    lines.append(f"Начат {meta['started_at']}, API {meta['api']}, git `{meta['git_head'][:12]}`.")
+    lines.append(f"Начало измерений — {meta['started_at']}. Адрес API — {meta['api']}.")
     lines.append("")
     for split in ("all", "holdout", "dev"):
         m = load(WORK / "runs" / name / f"metrics-{split}.json")
@@ -78,6 +75,8 @@ def run_section(name: str) -> list[str]:
             f"| Вопрос без ответа → ошибка | 0 | {fmt(m.get('negatives_errors'))} | — |",
             f"| found=true с цитатой из gold-фрагмента | — | "
             f"{fmt(m.get('found_cites_gold_span'))} | — |",
+            f"| Выданные ответы, в которых цитаты покрывают все эталонные выдержки | — | "
+            f"{fmt(m.get('found_covers_all_gold_spans'))} | — |",
             f"| Средняя доля gold-фрагментов в контексте | — | "
             f"{m.get('mean_span_recall_context')} | — |",
             f"| nDCG@10 (после реранкера) | — | {m.get('ndcg@10_rerank')} | — |",
@@ -151,20 +150,20 @@ def main() -> None:
     runs = [r for r in args.runs.split(",") if r]
     gold = [json.loads(x) for x in gold_path().read_text().splitlines() if x]
     lines = [
-        "# Отчёт об оценке (этап 9)", "",
-        f"Сформирован {datetime.now(UTC).isoformat(timespec='seconds')} из артефактов "
-        f"`{WORK}` (как воспроизвести — `eval/README.md`).", "",
-        f"Gold-набор: {len(gold)} вопросов по "
+        "# Оценка ответов по документам", "",
+        f"Дата отчёта — {datetime.now(UTC).isoformat(timespec='seconds')}.", "",
+        f"Эталон содержит {len(gold)} вопросов по "
         f"{len({c['doc_fixture_id'] for c in gold})} документам "
         f"(dev {sum(c['split'] == 'dev' for c in gold)}, "
-        f"holdout {sum(c['split'] == 'holdout' for c in gold)}); составлен агентом, цитаты "
-        "проверены машинно, человеком НЕ ревьюился.", "",
+        f"holdout {sum(c['split'] == 'holdout' for c in gold)}). Вопросы составлены моделями, "
+        "цитаты сверены с каноническим текстом автоматически. Независимой экспертной разметки нет.",
+        "",
     ]
     for r in runs:
         lines += run_section(r)
     abl = load(WORK / "ablation" / "balanced.metrics.json")
-    lines += ["## Абляция поиска (те же gold-фрагменты, опубликованный индекс balanced)", ""]
     if abl:
+        lines += ["## Сравнение способов поиска на одном индексе", ""]
         keys = ["recall@1", "recall@5", "recall@8", "recall@20", "recall@60", "hit@60",
                 "all_spans@8", "ndcg@10", "mrr"]
         for split in ("all", "holdout"):
@@ -174,12 +173,9 @@ def main() -> None:
             for meth, vals in abl[split].items():
                 lines.append(f"| {meth} | " + " | ".join(str(vals.get(k)) for k in keys) + " |")
             lines.append("")
-    else:
-        lines += ["not_run", ""]
     comp = load(WORK / "compare" / "report.json")
-    lines += ["## Сравнение энкодеров и реранкеров (фиксированные фрагменты, "
-              "замороженные кандидаты)", ""]
     if comp:
+        lines += ["## Сравнение моделей на одних фрагментах и кандидатах", ""]
         keys = ["recall@1", "recall@5", "recall@8", "recall@20", "recall@60", "all_spans@8",
                 "ndcg@10"]
         lines += ["| Энкодер | Режим | " + " | ".join(keys) + " | кодирование, с |",
@@ -199,8 +195,6 @@ def main() -> None:
                     lines.append(f"| {rr} | {k2} | " + " | ".join(str(v.get(k)) for k in keys)
                                  + f" | {e['score_s']} |")
         lines.append("")
-    else:
-        lines += ["not_run", ""]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(args.output)

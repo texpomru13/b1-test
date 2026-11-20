@@ -1,8 +1,5 @@
 """Section heading detector for Russian contracts.
 
-Documented heuristics (plan §5.2: boundaries matter more than even length, and a
-decimal amount must not be mistaken for a clause number without line context):
-
 - A heading line starts (after up to 3 spaces) with either
   * a clause number `4`, `4.2`, `4.2.1` (dot-separated, <= 4 components,
     optionally followed by `.` or `)`) AND a title starting with an UPPERCASE

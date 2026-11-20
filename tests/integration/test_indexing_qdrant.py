@@ -1,5 +1,5 @@
 """Stage-4 acceptance on REAL services: ephemeral Redis + Qdrant containers and
-the host local-models service (Giga-480M at 127.0.0.1:18081).
+the shared Giga-480M encoder fixture.
 
 Covers: points carry BOTH vectors and all mandatory payload fields; BM25 IDF +
 query/document encoding; unpublished runs invisible to the QA scope; partial
@@ -17,7 +17,6 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-import httpx
 import pytest
 import redis as redis_sync
 from app.config.settings import Settings
@@ -42,7 +41,6 @@ QDRANT_IMAGE = (
 REDIS_PORT, QDRANT_PORT = 6414, 6415
 REDIS_URL = f"redis://127.0.0.1:{REDIS_PORT}/0"
 QDRANT_URL = f"http://127.0.0.1:{QDRANT_PORT}"
-LM_URL = "http://127.0.0.1:18081"
 
 MANDATORY_PAYLOAD_FIELDS = {
     "doc_id", "doc_title", "chunk_index", "page_from", "page_to", "section", "text",
@@ -58,17 +56,7 @@ def _docker_ok() -> bool:
     ).returncode == 0
 
 
-def _lm_ok() -> bool:
-    try:
-        return httpx.get(f"{LM_URL}/v1/health", timeout=3).json().get("status") == "ok"
-    except Exception:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not (_docker_ok() and _lm_ok()),
-    reason="requires Docker and the host local-models service on :18081",
-)
+pytestmark = pytest.mark.skipif(not _docker_ok(), reason="requires Docker")
 
 
 def _run_container(name: str, image: str, port: int, internal: int) -> None:
@@ -80,7 +68,7 @@ def _run_container(name: str, image: str, port: int, internal: int) -> None:
 
 
 @pytest.fixture(scope="module")
-def services() -> Iterator[tuple[redis_sync.Redis, QdrantClient]]:
+def services(bge_models: str) -> Iterator[tuple[redis_sync.Redis, QdrantClient, str]]:
     _run_container("b1-test-redis-s4", REDIS_IMAGE, REDIS_PORT, 6379)
     _run_container("b1-test-qdrant-s4", QDRANT_IMAGE, QDRANT_PORT, 6333)
     rc = redis_sync.Redis.from_url(REDIS_URL, decode_responses=True)
@@ -97,19 +85,19 @@ def services() -> Iterator[tuple[redis_sync.Redis, QdrantClient]]:
             break
         except Exception:
             time.sleep(0.3)
-    yield rc, qc
+    yield rc, qc, bge_models
     rc.close()
     subprocess.run(["docker", "rm", "-f", "b1-test-redis-s4"], capture_output=True, check=False)
     subprocess.run(["docker", "rm", "-f", "b1-test-qdrant-s4"], capture_output=True, check=False)
 
 
-def _settings(docs_root: Path, collection: str, **overrides: Any) -> Settings:
+def _settings(docs_root: Path, collection: str, lm_url: str, **overrides: Any) -> Settings:
     return Settings(  # type: ignore[call-arg]
         _env_file=None,
         documents_dir=str(docs_root),
         redis_url=REDIS_URL,
         qdrant_url=QDRANT_URL,
-        local_models_url=LM_URL,
+        local_models_url=lm_url,
         qdrant_collection=collection,
         **overrides,
     )
@@ -139,11 +127,11 @@ PAGES_SMALL = [
 
 
 async def test_full_indexing_publishes_with_both_vectors(
-    services: tuple[redis_sync.Redis, QdrantClient], tmp_path: Path
+    services: tuple[redis_sync.Redis, QdrantClient, str], tmp_path: Path
 ) -> None:
-    rc, qc = services
+    rc, qc, lm_url = services
     lifecycle = SyncJobLifecycle(rc)
-    settings = _settings(tmp_path, "document_chunks")
+    settings = _settings(tmp_path, "document_chunks", lm_url)
     job_id, doc_id = await _seed_job(tmp_path, PAGES_SMALL)
 
     outcome = run_index(lifecycle, job_id, settings)
@@ -195,9 +183,9 @@ class _FailingRepo(QdrantIndexRepository):
 
 
 async def test_partial_batch_failure_never_publishes(
-    services: tuple[redis_sync.Redis, QdrantClient], tmp_path: Path
+    services: tuple[redis_sync.Redis, QdrantClient, str], tmp_path: Path
 ) -> None:
-    rc, qc = services
+    rc, qc, lm_url = services
     lifecycle = SyncJobLifecycle(rc)
     # ~70+ chunks so at least two upsert batches of 64 are needed
     paragraphs = " ".join(
@@ -205,7 +193,7 @@ async def test_partial_batch_failure_never_publishes(
     )
     pages = [f"{p}. Section\n{paragraphs}" for p in range(1, 13)]
     collection = "partial_fail_test"  # own collection: different chunk params
-    settings = _settings(tmp_path, collection, chunk_tokens=30,
+    settings = _settings(tmp_path, collection, lm_url, chunk_tokens=30,
                          chunk_overlap_tokens=5)
     job_id, doc_id = await _seed_job(tmp_path, pages)
 
@@ -233,11 +221,11 @@ async def test_partial_batch_failure_never_publishes(
 
 
 async def test_stale_run_never_mixes_with_accepted(
-    services: tuple[redis_sync.Redis, QdrantClient], tmp_path: Path
+    services: tuple[redis_sync.Redis, QdrantClient, str], tmp_path: Path
 ) -> None:
-    rc, qc = services
+    rc, qc, lm_url = services
     lifecycle = SyncJobLifecycle(rc)
-    settings = _settings(tmp_path, "document_chunks")
+    settings = _settings(tmp_path, "document_chunks", lm_url)
     job_id, doc_id = await _seed_job(tmp_path, PAGES_SMALL)
     assert run_index(lifecycle, job_id, settings) == "succeeded"
     record = lifecycle.get_job(job_id)
@@ -277,9 +265,9 @@ async def test_stale_run_never_mixes_with_accepted(
 
 
 async def test_schema_mismatch_refused_without_deletion(
-    services: tuple[redis_sync.Redis, QdrantClient], tmp_path: Path
+    services: tuple[redis_sync.Redis, QdrantClient, str], tmp_path: Path
 ) -> None:
-    rc, qc = services
+    rc, qc, lm_url = services
     lifecycle = SyncJobLifecycle(rc)
     collection = "mismatch_dim_test"
     qc.create_collection(
@@ -291,7 +279,7 @@ async def test_schema_mismatch_refused_without_deletion(
     qc.upsert(collection_name=collection, points=[models.PointStruct(
         id=str(uuid.uuid4()), vector={"dense": [0.1] * 8}, payload={"keep": True})],
         wait=True)
-    settings = _settings(tmp_path, collection)
+    settings = _settings(tmp_path, collection, lm_url)
     job_id, _doc_id = await _seed_job(tmp_path, PAGES_SMALL)
 
     outcome = run_index(lifecycle, job_id, settings)
@@ -302,9 +290,9 @@ async def test_schema_mismatch_refused_without_deletion(
 
 
 async def test_fingerprint_mismatch_refused(
-    services: tuple[redis_sync.Redis, QdrantClient], tmp_path: Path
+    services: tuple[redis_sync.Redis, QdrantClient, str], tmp_path: Path
 ) -> None:
-    rc, qc = services
+    rc, qc, lm_url = services
     lifecycle = SyncJobLifecycle(rc)
     collection = "mismatch_fp_test"
     qc.create_collection(
@@ -319,7 +307,7 @@ async def test_fingerprint_mismatch_refused(
         vector={"dense": [0.01] * 1024,
                 "bm25": models.SparseVector(indices=[1], values=[1.0])},
         payload={"index_fingerprint": "an-older-embedding-space"})], wait=True)
-    settings = _settings(tmp_path, collection)
+    settings = _settings(tmp_path, collection, lm_url)
     job_id, _doc_id = await _seed_job(tmp_path, PAGES_SMALL)
 
     outcome = run_index(lifecycle, job_id, settings)

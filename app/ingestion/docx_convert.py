@@ -1,7 +1,7 @@
 """DOCX -> PDF via an isolated LibreOffice process.
 
-Unique user profile per job, hard timeout, fixed fonts baked into the image
-(plan §5.1). Citation pages always refer to the resulting server-side PDF.
+Each conversion uses a temporary profile, a timeout and the image's installed
+fonts. Citation pages refer to the resulting PDF.
 """
 
 from __future__ import annotations

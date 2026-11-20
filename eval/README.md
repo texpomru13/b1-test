@@ -1,79 +1,51 @@
-# Evaluation (stage 9)
+# Оценка ответов на корпусе договоров
 
-Reproducible evaluation of the RAG service against a gold set built from
-`test_documents/`. The archived report is `eval/reports/REPORT.md`; raw measured
-artifacts of the reported runs are in `eval/reports/runs/`.
+Для проверки основных операций достаточно `sh eval/demo.sh` на запущенном сервисе. Полная проверка ниже измеряет качество поиска и ответов через публичный API. [Запуск сервиса и примеры](../README.md) · [Протокол проверки по ТЗ](../AUDIT.md)
 
-The published runs used a local LLM and a local Ollama judge (`qwen3.6:27b-q4_K_M`, thinking off, temperature 0).
+## Что измеряется
 
-## Layout
+Эталон содержит 133 вопроса к 14 текстовым договорам, из них 93 с ответом и 40 без ответа. Есть 17 дополнительных запросов к чужому документу, всего 150 обращений к API. Отдельно проверяется индексация файла на 100 страниц и ошибка `OCR_REQUIRED` для скана № 06. Документы разделены на две выборки, 35 вопросов в dev и 98 в holdout. Вопросы подготовили модели, исходные цитаты сверены с текстом автоматически. Часть контрольных примеров использовалась при разборе ошибок. [Вопросы и эталонные выдержки](gold/gold.jsonl) · [Документы корпуса](../test_documents)
 
-| Path | What |
-|---|---|
-| `gold/gold.jsonl` | Gold cases: question, category, answerable, reference answer, expected/forbidden facts, gold spans (exact quotes with recovered offsets/pages), split |
-| `gold/drafts/*.jsonl` | Per-document drafts the gold set is built from (`build_gold.py`) |
-| `gold/DRAFTING_BRIEF.md` | Rules the drafts were written under |
-| `gold/manifest.json` | Corpus manifest: SHA-256, pages, canonical text hash, chunk counts, origin |
-| `upload_corpus.py` | Uploads the corpus via the API, times background indexing (+ a 100-page fixture) |
-| `export_index.py` | Exports canonical text + published chunks from the running stack (read-only) |
-| `build_gold.py` | Validates drafts: every quote must be an exact substring of the canonical text |
-| `run_qa.py` | Asks every gold question (+ cross-document isolation probes) via the public API, `debug=true` |
-| `metrics.py` | Deterministic metrics: schema/citation validity, leakage, retrieval hit/coverage, abstention, latency |
-| `judge.py` | LLM-judged metrics: RAGAS (faithfulness, context recall/precision, factual correctness) + fact check |
-| `ablation.py` | dense / BM25 / hybrid RRF / hybrid DBSF / hybrid+rerank on the same gold spans |
-| `compare_models.py` | Encoders and rerankers on fixed chunk boundaries and frozen candidates |
-| `report.py` | Builds `work/REPORT.md` from the current artifacts |
-| `demo.sh` | API demo (upload, poll, list, exact, paraphrase, no-answer, debug, isolation) with saved outputs |
+- `run_qa.py` сохраняет HTTP-статус, время запроса и весь ответ с диагностикой. Сбои сервиса и ошибки формата учитываются при расчёте доли успешных запросов.
+- `metrics.py` проверяет структуру ответа, документ и координаты каждой цитаты, корректность отказа и наличие эталонных свидетельств на разных этапах. `found_covers_all_gold_spans` показывает, в скольких выданных ответах итоговые цитаты покрыли все эталонные выдержки.
+- `judge.py` с отдельной локальной моделью проверяет ожидаемые и запрещённые факты. Число запрещённых фактов охватывает только ошибки, перечисленные в разметке. Для оценки общей смысловой точности нужна проверка специалистом.
 
-## Gold set
+Вопрос `03-06` проверяет, вправе ли заказчик перепродавать услуги. Для обоснованного ответа нужны и сам запрет из п. 6.10, и подпункты, перечисляющие действия. [Вопросы и ответы о договорных условиях](reports/submission/governing-clauses.json)
 
-133 cases over 14 text documents (document 06 is a scan without a text layer and
-is used only as the `OCR_REQUIRED` ingestion case). Categories: exact 30,
-paraphrase 29, multi-condition 16, negation/limits 18, no-answer 40. The split is
-by document: dev = fixtures 01, 05, 13, 15 (35 cases), holdout = the other 10
-(98 cases). **Provenance** — drafted by LLM agents from the canonical text; every
-quote is machine-verified as an exact substring; absence of no-answer facts was
-checked by text search (recorded in `notes`). The set has NOT been reviewed by a
-human lawyer — treat it as a regression corpus.
+## Повторить полный прогон
 
-## Reproduce
+Команды выполняются из корня репозитория. Понадобятся Docker с Compose v2 и `uv`. Стенд получит собственные тома и порт, файлы расчёта останутся в отдельном рабочем каталоге. Пример использует локальные модели. Если указать адрес сервиса с облачной моделью, запросы будут тарифицироваться провайдером. Ограничение расходов задаётся у провайдера.
 
-```bash
-# 1. an isolated stack (own volumes; does not touch the default b1-rag project)
+```sh
 export B1_EVAL_WORK_DIR="$PWD/eval/work/verification"
-B1_PROJECT=b1-eval ./run --quality balanced
-# 2. corpus, index export, gold
-uv run python eval/upload_corpus.py
-python3 eval/export_index.py --project b1-eval
-python3 eval/build_gold.py
-# 3. retrieval ablation and the QA run
-python3 eval/ablation.py --project b1-eval --name balanced
-uv run python eval/run_qa.py --run balanced-9b
+API=http://127.0.0.1:8021
+B1_PROJECT=b1-eval-check ./run --build --provider ollama --quality balanced --strict-profile --port 8021
+
+uv run --frozen python eval/upload_corpus.py --api "$API"
+uv run --frozen python eval/export_index.py --project b1-eval-check --api "$API"
+uv run --frozen python eval/build_gold.py
+uv run --frozen python eval/run_qa.py --api "$API" --run balanced-check
 for split in all dev holdout; do
-  uv run python eval/metrics.py --run balanced-9b --split "$split"
+  uv run --frozen python eval/metrics.py --run balanced-check --split "$split"
 done
-# 4. LLM judge (separate env: cd eval && uv sync)
-uv run --frozen --project eval python eval/judge.py --run balanced-9b --split all
-# 5. model comparison (host, local-models env), then the report
-uv sync --frozen --project services/local-models
-PY=services/local-models/.venv/bin/python
-$PY eval/compare_models.py encode --device cpu --model ai-sage/Giga-Embeddings-instruct-480M-0826
-$PY eval/compare_models.py report
-python3 eval/report.py --runs balanced-9b
+uv run --frozen python eval/report.py --runs balanced-check
 ```
 
-`eval/work/` holds intermediate artifacts (canonical texts, raw responses) and is
-not committed. Use a separate work directory and a new run name for each configuration.
-The uploaded fixture IDs in corpus.json determine exactly which documents are exported.
-Building gold writes the verified coordinates to `$B1_EVAL_WORK_DIR/gold.jsonl`.
-The evaluation uses that file when present, with the committed gold set as a fallback.
-If upload polling is interrupted, repeat the same command to resume saved jobs.
-HTTP, transport and schema errors count as unsuccessful requests in deterministic metrics.
-Judge fact and RAGAS scores cover valid HTTP 200 answers. The judge summary reports
-coverage and failed responses. A limited judge run writes a separate summary.
-Use a new run name to change the judge or the service configuration.
-The current report is written to the work directory, or the path passed to `report.py --output`.
+Загрузка использует сохранённые идентификаторы и возобновляет опрос задач после перерыва. Для другого профиля создайте новый каталог и выберите другое имя прогона. `build_gold.py` сверяет цитаты с экспортированным текстом и записывает актуальные координаты в `$B1_EVAL_WORK_DIR/gold.jsonl`. При отсутствии этого файла скрипты используют эталон из репозитория. Сырые ответы и метрики находятся в `runs/balanced-check/` внутри рабочего каталога, сводка — в `REPORT.md`.
 
-The HTTP evaluation uses the provider configured on the running service.
-The example selects the local profile. The demo requires curl and jq and exits with
-an error if an expected result or the status of an indexing job is wrong.
+### Дополнительные измерения
+
+Для оценки полноты ответов нужен запущенный на хосте Ollama с отдельной моделью-судьёй. В тестовом стенде используется `qwen3.6:27b-q4_K_M`. Команда ниже считает ожидаемые и запрещённые факты. Без `--skip-ragas` рассчитываются также метрики RAGAS.
+
+```sh
+uv run --frozen --project eval python eval/judge.py --run balanced-check --skip-ragas
+uv run --frozen python eval/report.py --runs balanced-check
+```
+
+Пока стенд работает, `uv run --frozen python eval/ablation.py --project b1-eval-check --name balanced` сравнивает dense, BM25, RRF, DBSF и RRF с реранкером на тех же фрагментах.
+
+После проверки остановите только этот стенд.
+
+```sh
+B1_PROJECT=b1-eval-check ./run stop
+```

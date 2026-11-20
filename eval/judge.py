@@ -26,6 +26,7 @@ os.environ["RAGAS_DO_NOT_TRACK"] = "true"
 os.environ.pop("OPENAI_API_KEY", None)
 
 import argparse
+import hashlib
 import json
 import re
 import statistics
@@ -173,15 +174,21 @@ def main() -> None:
 
     # ---- explicit fact check -------------------------------------------------
     facts_path = run_dir / "judge_facts.jsonl"
-    done = {k for k, r in latest_rows(facts_path).items() if "error" not in r}
+    saved_facts = latest_rows(facts_path)
     t0 = time.monotonic()
     with facts_path.open("a", encoding="utf-8") as fh:
         for rec in recs:
-            if rec["req_id"] in done:
-                continue
             case, body = gold[rec["case_id"]], rec["body"]
+            # A changed rubric or answer needs a new verdict even for the same request ID.
+            judge_input = [FACT_PROMPT, case["question"], case["expected_facts"],
+                           case["forbidden_facts"], body["found"], body["answer"]]
+            encoded = json.dumps(judge_input, ensure_ascii=False).encode()
+            input_hash = hashlib.sha256(encoded).hexdigest()
+            saved = saved_facts.get(rec["req_id"], {})
+            if saved.get("input_sha256") == input_hash and "error" not in saved:
+                continue
             row = {"req_id": rec["req_id"], "case_id": case["case_id"],
-                   "found": body.get("found")}
+                   "found": body["found"], "input_sha256": input_hash}
             if body.get("found"):
                 row.update(judge_facts(chat_json, case, MARKER.sub("", body["answer"])))
             else:
@@ -285,6 +292,7 @@ def main() -> None:
     found_facts = [f for f in facts if f.get("found") and "error" not in f]
     summary = {
         "judge": args.judge, "split": args.split,
+        "gold_sha256": hashlib.sha256(gold_path().read_bytes()).hexdigest(),
         "coverage": {"attempted_answerable": len(positives), "valid_answerable": len(recs),
                      "failed_responses": len(positives) - len(recs), "judged": len(valid_facts)},
 

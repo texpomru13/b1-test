@@ -1,11 +1,7 @@
-"""Outbox dispatcher: moves durable intents to Celery and runs the orphan janitor.
+"""Send durable upload intents from Redis to Celery.
 
-Crash contract (ADR 003 / plan §8.2): an intent is moved pending -> dispatching,
-the Celery task is sent, the job is marked dispatched, then the intent is removed.
-A crash between send and mark leaves the intent in `dispatching`; on restart it is
-recovered back to `pending` and re-sent. Duplicate delivery is allowed — the
-consumer deduplicates by job status, so no second logical job ever appears.
-"""
+An intent remains in Redis until the broker accepts the task and dispatch is
+recorded. Recovery may send it again. The worker deduplicates by job and lease."""
 
 from __future__ import annotations
 

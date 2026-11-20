@@ -1,6 +1,5 @@
 {
-  "note": "Release image manifest (DEPLOYMENT_SPEC §3/§8, RUNTIME_IMAGES_REVIEW §5). Application images are built FROM SOURCE by ./run / docker compose (--build); no registry publication has been performed and none is implied. Digests resolved and platform-verified on 2026-11-11 (stage 0 S10).",
-  "source_commit": "workspace (no git commits yet; see docs/implementation-log.md)",
+  "note": "Third-party image references for the Compose services and builds. Application images are built from the current checkout. Listed digests and platforms were checked on 2026-11-11.",
   "third_party": [
     {
       "role": "broker/lifecycle",
@@ -31,7 +30,7 @@
       "image": "ghcr.io/astral-sh/uv:0.13.7",
       "digest": null,
       "platforms": ["linux/amd64", "linux/arm64"],
-      "note": "immutable version tag; digest pinning TODO when a registry build pipeline appears"
+      "note": "Both Dockerfiles select this build tool by version tag."
     }
   ],
   "built_from_source": [

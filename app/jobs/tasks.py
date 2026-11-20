@@ -1,15 +1,8 @@
-"""Celery tasks.
+"""Celery entry point for document indexing.
 
-Stage 4: `index_document` = real parse (stage 3) + real indexing: dense vectors
-via the local-models service, BM25 sparse vectors, batch upserts into the single
-Qdrant collection, count verification, run_complete head marker and lease-gated
-CAS publication (ADR 003). A new ingestion_run_id is created per attempt.
-
-Ownership (ADR 003 §5): the worker takes the job lease BEFORE the job becomes
-`running` and a heartbeat keeps it alive for the whole execution, parsing
-included. `running` therefore always means "a live worker holds the lease" —
-the reconciler relies on exactly that to tell a crashed worker from a busy one.
-A worker that lost its lease steps aside and never touches the job state.
+The worker takes the Redis lease, parses the document, writes a new run to
+Qdrant and publishes its ID after verification. A heartbeat renews ownership
+during parsing and indexing. If ownership changes, the old worker steps aside.
 """
 
 from __future__ import annotations
@@ -70,7 +63,7 @@ def _fail(
     lifecycle: SyncJobLifecycle, job_id: str, *, token: str, code: str,
     message: str, retryable: bool,
 ) -> None:
-    lifecycle.transition(
+    failed = lifecycle.transition(
         job_id,
         expected=[JobStatus.RUNNING.value], new_status=JobStatus.FAILED.value, token=token,
         extra={
@@ -79,6 +72,8 @@ def _fail(
             "error_retryable": "1" if retryable else "0",
         },
     )
+    if failed.verdict == "STALE_TOKEN":
+        raise LeaseLostError(failed.verdict)
 
 
 def run_index(
@@ -196,7 +191,6 @@ def _run_owned(
         logger.warning("stale_owner_steps_aside", job_id=job_id, phase="parse")
         return "lease_lost"
 
-    # --- stage 4: real indexing under the lease, published via CAS ---
     repo = index_repo or QdrantIndexRepository(
         create_sync_qdrant_client(
             settings.qdrant_url, timeout_s=settings.qdrant_timeout_s,
@@ -277,10 +271,9 @@ def _compensate_and_fail(
     error: IndexingError,
     token: str,
 ) -> None:
-    """Saga compensation (§8.4): running -> compensating -> (failed |
-    cleanup_pending). The incomplete run is removed with a doc+run filter ONLY;
-    when Qdrant is unavailable the job becomes cleanup_pending and the
-    reconciler retries later — it is never shown as succeeded or silently ready.
+    """Remove the incomplete run for this document before marking the job failed.
+
+    If Qdrant is unavailable, leave cleanup_pending so the reconciler can retry.
     """
     error_fields = {
         "error_code": error.code,
@@ -294,6 +287,8 @@ def _compensate_and_fail(
         extra=error_fields, token=token,
     )
     if not moved.ok:
+        if moved.verdict == "STALE_TOKEN":
+            raise LeaseLostError(moved.verdict)
         return
     cleanup_ok = True
     if error.run_id:

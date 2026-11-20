@@ -1,10 +1,4 @@
-"""POST /api/v1/documents/{doc_id}/questions — independent questions, no memory.
-
-Outcome separation (§7.3/§9.3): insufficient evidence -> 200 found=false;
-model/reranker/runtime outage -> 503; deadline -> 504; invalid model output
-after the single repair -> 502 MODEL_OUTPUT_INVALID. Infra errors are NEVER
-masked as found=false.
-"""
+"""Question endpoint. Each request uses the published index of one document."""
 
 from __future__ import annotations
 
@@ -102,14 +96,13 @@ async def ask_question(
     if not job:
         raise ApiError(404, ErrorCode.NOT_FOUND, f"document '{doc_id}' is unknown")
     status = JobStatus(job["status"])
-    if status != JobStatus.SUCCEEDED or not job.get("accepted_run_id"):
-        detail = (
-            "indexing failed; the document cannot answer questions"
-            if status == JobStatus.FAILED
-            else "the document is still being indexed"
-        )
-        raise ApiError(409, ErrorCode.CONFLICT, detail,
-                       retryable=status != JobStatus.FAILED)
+    if status in {JobStatus.FAILED, JobStatus.COMPENSATING, JobStatus.CLEANUP_PENDING}:
+        raise ApiError(409, ErrorCode.CONFLICT, "indexing failed; check the indexing job")
+    if status != JobStatus.SUCCEEDED:
+        raise ApiError(409, ErrorCode.CONFLICT, "the document is still being indexed",
+                       retryable=True)
+    if not job.get("accepted_run_id"):
+        raise ApiError(409, ErrorCode.CONFLICT, "the document has no published index")
 
     semaphore: asyncio.Semaphore = request.app.state.qa_semaphore
     if semaphore.locked():

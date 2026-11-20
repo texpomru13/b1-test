@@ -1,0 +1,633 @@
+{
+  "n_answerable_refusals": 13,
+  "last_recorded_decision": {
+    "claim_number_missing_in_quotes": 3,
+    "quote_not_located": 4,
+    "verifier_rejected": 2,
+    "generator_abstained": 3,
+    "post_verifier_count_guard_inferred": 1
+  },
+  "context_covers_all_gold_in_refusals": 10,
+  "method": "Each row uses the recorded processing events of that HTTP request. A supported verifier verdict followed by an abstention is attributed to the final count check from the executed code. Model drafts are not retained. Overlap uses the 80% gold-span criterion.",
+  "cases": [
+    {
+      "case_id": "01-02",
+      "request_id": "39a693339d90445d84ccdad0b6b02ae5",
+      "question": "Какие ИНН/КПП и ОГРН указаны в реквизитах ООО «Розница К-1»?",
+      "reference_answer": "ИНН/КПП 2225074005/997350001, ОГРН 1052242262478.",
+      "candidate_gold_spans": [
+        1
+      ],
+      "context_gold_spans": [
+        1
+      ],
+      "gold_span_count": 1,
+      "final_classification": "claim_number_missing_in_quotes",
+      "llm_calls": 2,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "claim states numbers ['1'] that are absent from its evidence",
+          "event": "provenance_rejected",
+          "request_id": "39a693339d90445d84ccdad0b6b02ae5",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:33:56.465684Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "claim states numbers ['1'] that are absent from its evidence",
+          "event": "provenance_rejected",
+          "request_id": "39a693339d90445d84ccdad0b6b02ae5",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:34:05.195454Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "doc_id": "c76c316b83334fb4b337892383090372",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "39a693339d90445d84ccdad0b6b02ae5",
+          "level": "info",
+          "timestamp": "2026-11-20T14:34:05.195623Z"
+        }
+      ]
+    },
+    {
+      "case_id": "01-03",
+      "request_id": "006ec1372c75460582eb376920955bb8",
+      "question": "Сколько срока годности должно оставаться у товара на момент приемки, если общий срок годности товара составляет два года?",
+      "reference_answer": "Для товара со сроком годности 18 месяцев и более на момент приемки до окончания срока годности должно оставаться не менее одного года.",
+      "candidate_gold_spans": [
+        1
+      ],
+      "context_gold_spans": [
+        1
+      ],
+      "gold_span_count": 1,
+      "final_classification": "claim_number_missing_in_quotes",
+      "llm_calls": 2,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "claim states numbers ['24'] that are absent from its evidence",
+          "event": "provenance_rejected",
+          "request_id": "006ec1372c75460582eb376920955bb8",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:34:30.655242Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "claim states numbers ['24'] that are absent from its evidence",
+          "event": "provenance_rejected",
+          "request_id": "006ec1372c75460582eb376920955bb8",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:34:34.878076Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "doc_id": "c76c316b83334fb4b337892383090372",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "006ec1372c75460582eb376920955bb8",
+          "level": "info",
+          "timestamp": "2026-11-20T14:34:34.878244Z"
+        }
+      ]
+    },
+    {
+      "case_id": "03-05",
+      "request_id": "7fadc515be9741419a9f1be344541fb9",
+      "question": "За сколько дней Заказчик должен уведомить Исполнителя о расторжении договора и какие деньги ему вернут при досрочном расторжении?",
+      "reference_answer": "Заказчик вправе расторгнуть договор в одностороннем порядке письменным уведомлением за 30 календарных дней. При расторжении до истечения оплаченного периода возвращается стоимость неиспользованных услуг, но только за полные неиспользованные месяцы.",
+      "candidate_gold_spans": [
+        1,
+        2
+      ],
+      "context_gold_spans": [
+        1,
+        2
+      ],
+      "gold_span_count": 2,
+      "final_classification": "quote_not_located",
+      "llm_calls": 2,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "quote is not a substring of chunk 99d8d468-6403-527d-b3ee-c6bcd02e1571 (after whitespace normalization)",
+          "event": "provenance_rejected",
+          "request_id": "7fadc515be9741419a9f1be344541fb9",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:47:03.568915Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "quote is not a substring of chunk 99d8d468-6403-527d-b3ee-c6bcd02e1571 (after whitespace normalization)",
+          "event": "provenance_rejected",
+          "request_id": "7fadc515be9741419a9f1be344541fb9",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:47:14.865764Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "doc_id": "6fdc55ee04964765959a1c6d33072999",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "7fadc515be9741419a9f1be344541fb9",
+          "level": "info",
+          "timestamp": "2026-11-20T14:47:14.865897Z"
+        }
+      ]
+    },
+    {
+      "case_id": "05-03",
+      "request_id": "82609c30b355480fa3322e0f1ddc8525",
+      "question": "Как долго исполнитель хранит данные клиента после того, как оказание услуг приостановлено, и что происходит с ними затем?",
+      "reference_answer": "Исполнитель гарантирует сохранность данных в течение 14 дней с даты приостановления (если данные хранились на его оборудовании); после этого вправе удалить их без возможности восстановления в автоматическом режиме.",
+      "candidate_gold_spans": [
+        1,
+        2
+      ],
+      "context_gold_spans": [
+        1,
+        2
+      ],
+      "gold_span_count": 2,
+      "final_classification": "quote_not_located",
+      "llm_calls": 2,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "claim states numbers ['14'] that are absent from its evidence",
+          "event": "provenance_rejected",
+          "request_id": "82609c30b355480fa3322e0f1ddc8525",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:55:13.270480Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "quote is not a substring of chunk 7a51fc4b-084c-5ed0-84d9-a87dd7a513e2 (after whitespace normalization)",
+          "event": "provenance_rejected",
+          "request_id": "82609c30b355480fa3322e0f1ddc8525",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:55:21.322571Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "doc_id": "e7f69b80b03244ddabe49ae042748e6f",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "82609c30b355480fa3322e0f1ddc8525",
+          "level": "info",
+          "timestamp": "2026-11-20T14:55:21.322702Z"
+        }
+      ]
+    },
+    {
+      "case_id": "10-01",
+      "request_id": "a1252439ae0040658bec21fc8720b036",
+      "question": "Какой предел возмещения установлен для согласованных со Страховщиком расходов на защиту, перечисленных в пп. е) и ж) п. 5.1.1 Общих условий?",
+      "reference_answer": "Расходы на защиту по пп. е) и ж) возмещаются в пределах 10% от страховой суммы, а по одному страховому случаю — в пределах 10% от лимита ответственности по одному страховому случаю, если иное не установлено Договором страхования.",
+      "candidate_gold_spans": [
+        1,
+        2
+      ],
+      "context_gold_spans": [
+        1,
+        2
+      ],
+      "gold_span_count": 2,
+      "final_classification": "claim_number_missing_in_quotes",
+      "llm_calls": 2,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "claim states numbers ['1', '5.1'] that are absent from its evidence",
+          "event": "provenance_rejected",
+          "request_id": "a1252439ae0040658bec21fc8720b036",
+          "level": "warning",
+          "timestamp": "2026-11-20T15:42:35.570610Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "error": "claim states numbers ['1', '5.1'] that are absent from its evidence",
+          "event": "provenance_rejected",
+          "request_id": "a1252439ae0040658bec21fc8720b036",
+          "level": "warning",
+          "timestamp": "2026-11-20T15:42:42.187466Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api",
+          "doc_id": "7b4a4afc65de4a1daf77f9b9ad5a6516",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "a1252439ae0040658bec21fc8720b036",
+          "level": "info",
+          "timestamp": "2026-11-20T15:42:42.187896Z"
+        }
+      ]
+    },
+    {
+      "case_id": "10-04",
+      "request_id": "3efe5c5bbc644962893d41edf1b6e0b0",
+      "question": "Сколько времени есть у страхователя, чтобы известить страховщика о происшествии, похожем на страховой случай?",
+      "reference_answer": "Незамедлительно, но не позднее 3 календарных дней (за исключением выходных и праздничных), способом, позволяющим зафиксировать факт сообщения, — Страховщику и в компетентные органы.",
+      "candidate_gold_spans": [
+        1,
+        2
+      ],
+      "context_gold_spans": [
+        1,
+        2
+      ],
+      "gold_span_count": 2,
+      "final_classification": "verifier_rejected",
+      "llm_calls": 3,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api2",
+          "error": "quote is not a substring of chunk 89f33eb6-7ef9-5c5d-b980-4961ab67601e (after whitespace normalization)",
+          "event": "provenance_rejected",
+          "request_id": "3efe5c5bbc644962893d41edf1b6e0b0",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:37:16.603292Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "coverage": "full",
+          "verdicts": [
+            "supported",
+            "insufficient"
+          ],
+          "repairs": 1,
+          "event": "verifier_verdict",
+          "request_id": "3efe5c5bbc644962893d41edf1b6e0b0",
+          "level": "info",
+          "timestamp": "2026-11-20T14:37:33.480922Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "error": "claim 1: insufficient",
+          "event": "provenance_rejected",
+          "request_id": "3efe5c5bbc644962893d41edf1b6e0b0",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:37:33.480967Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "doc_id": "7b4a4afc65de4a1daf77f9b9ad5a6516",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 3,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "3efe5c5bbc644962893d41edf1b6e0b0",
+          "level": "info",
+          "timestamp": "2026-11-20T14:37:33.481028Z"
+        }
+      ]
+    },
+    {
+      "case_id": "11-06",
+      "request_id": "d406105e9ff14699b865438cc5b8efa7",
+      "question": "Может ли Обучающийся, не посещавший занятия, требовать уменьшения оплаты или ссылаться на то, что услуги ему не оказаны?",
+      "reference_answer": "Нет. Непосещение занятий не является надлежащим односторонним отказом от Договора и не может служить основанием для уменьшения оплаты; при отсутствии на занятиях или неявке на зачёты и экзамены Обучающийся не вправе ссылаться на то, что услуги не оказаны.",
+      "candidate_gold_spans": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "context_gold_spans": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "gold_span_count": 4,
+      "final_classification": "quote_not_located",
+      "llm_calls": 2,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api2",
+          "error": "quote is not a substring of chunk 00e01261-e9d4-56e0-ab21-583e5b06a14b (after whitespace normalization)",
+          "event": "provenance_rejected",
+          "request_id": "d406105e9ff14699b865438cc5b8efa7",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:45:05.325091Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "error": "quote is not a substring of chunk 00e01261-e9d4-56e0-ab21-583e5b06a14b (after whitespace normalization)",
+          "event": "provenance_rejected",
+          "request_id": "d406105e9ff14699b865438cc5b8efa7",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:45:15.777541Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "doc_id": "fddfe43bd5f7459cbf550d34967b1cb7",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "d406105e9ff14699b865438cc5b8efa7",
+          "level": "info",
+          "timestamp": "2026-11-20T14:45:15.777683Z"
+        }
+      ]
+    },
+    {
+      "case_id": "13-03",
+      "request_id": "7ed7141aab5541089b051485e8b3b30d",
+      "question": "Каким способом заказчик должен рассчитываться с исполнителем за обслуживание сигнализации?",
+      "reference_answer": "Оплата производится путем перечисления денежных средств на банковский счет Исполнителя.",
+      "candidate_gold_spans": [
+        1
+      ],
+      "context_gold_spans": [],
+      "gold_span_count": 1,
+      "final_classification": "generator_abstained",
+      "llm_calls": 1,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api2",
+          "repairs": 0,
+          "event": "draft_not_answerable",
+          "request_id": "7ed7141aab5541089b051485e8b3b30d",
+          "level": "info",
+          "timestamp": "2026-11-20T14:53:07.726122Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "doc_id": "ef22350e55f34a47aa65c916ae6d8b1e",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 1,
+          "repairs": 0,
+          "event": "question_answered",
+          "request_id": "7ed7141aab5541089b051485e8b3b30d",
+          "level": "info",
+          "timestamp": "2026-11-20T14:53:07.726263Z"
+        }
+      ]
+    },
+    {
+      "case_id": "13-05",
+      "request_id": "a51b707e7b884232940d6e5c86239a87",
+      "question": "Какими способами может быть расторгнут договор технического обслуживания пожарно-охранной сигнализации и какие условия действуют для одностороннего расторжения?",
+      "reference_answer": "По соглашению Сторон; либо по требованию одной из Сторон в случаях, предусмотренных законодательством РФ, при условии письменного уведомления контрагента заранее до даты предполагаемого расторжения (срок не заполнен). Расторжение действительно, если совершено в письменной форме и подписано уполномоченными представителями Сторон.",
+      "candidate_gold_spans": [
+        1,
+        2,
+        3
+      ],
+      "context_gold_spans": [
+        1,
+        2,
+        3
+      ],
+      "gold_span_count": 3,
+      "final_classification": "verifier_rejected",
+      "llm_calls": 4,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api2",
+          "coverage": "partial",
+          "verdicts": [
+            "supported",
+            "supported",
+            "insufficient",
+            "insufficient"
+          ],
+          "repairs": 0,
+          "event": "verifier_verdict",
+          "request_id": "a51b707e7b884232940d6e5c86239a87",
+          "level": "info",
+          "timestamp": "2026-11-20T14:54:08.331424Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "error": "claim 2: insufficient; claim 3: insufficient; покрытие вопроса неполное (partial)",
+          "event": "provenance_rejected",
+          "request_id": "a51b707e7b884232940d6e5c86239a87",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:54:08.331506Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "coverage": "partial",
+          "verdicts": [
+            "supported",
+            "supported",
+            "insufficient",
+            "insufficient"
+          ],
+          "repairs": 1,
+          "event": "verifier_verdict",
+          "request_id": "a51b707e7b884232940d6e5c86239a87",
+          "level": "info",
+          "timestamp": "2026-11-20T14:54:37.060341Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "error": "claim 2: insufficient; claim 3: insufficient; покрытие вопроса неполное (partial)",
+          "event": "provenance_rejected",
+          "request_id": "a51b707e7b884232940d6e5c86239a87",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:54:37.060440Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "doc_id": "ef22350e55f34a47aa65c916ae6d8b1e",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 4,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "a51b707e7b884232940d6e5c86239a87",
+          "level": "info",
+          "timestamp": "2026-11-20T14:54:37.060725Z"
+        }
+      ]
+    },
+    {
+      "case_id": "14-01",
+      "request_id": "f9e718d5a534404aae9ea18bc47366b7",
+      "question": "Сколько стоит Тарифный план «1 день Полная запись» Услуги Видеонаблюдение и что в него входит?",
+      "reference_answer": "79,00 руб. с НДС ежемесячно; непрерывная запись с максимальным разрешением HD с архивом 1 день и хранение 1 клипа продолжительностью до 20 минут.",
+      "candidate_gold_spans": [
+        1
+      ],
+      "context_gold_spans": [
+        1
+      ],
+      "gold_span_count": 1,
+      "final_classification": "quote_not_located",
+      "llm_calls": 2,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api2",
+          "error": "quote is not a substring of chunk 2b6f9d86-018f-50d3-b281-238aea96c739 (after whitespace normalization)",
+          "event": "provenance_rejected",
+          "request_id": "f9e718d5a534404aae9ea18bc47366b7",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:57:02.120562Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "error": "quote is not a substring of chunk 2b6f9d86-018f-50d3-b281-238aea96c739 (after whitespace normalization)",
+          "event": "provenance_rejected",
+          "request_id": "f9e718d5a534404aae9ea18bc47366b7",
+          "level": "warning",
+          "timestamp": "2026-11-20T14:57:24.897580Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "doc_id": "325135f391cc4fc79c30185abc7e8207",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "f9e718d5a534404aae9ea18bc47366b7",
+          "level": "info",
+          "timestamp": "2026-11-20T14:57:24.897786Z"
+        }
+      ]
+    },
+    {
+      "case_id": "14-02",
+      "request_id": "5d1e3376d4374da9ad9f12351f0bd1cb",
+      "question": "Сколько стоит Мультикамерная подписка «Профи» и сколько камер и какое качество видео она поддерживает?",
+      "reference_answer": "Подписка «Профи» на 30 дней стоит 3650,00 руб. с НДС, включает до 10 камер с качеством видео до FullHD, архив 30 дней и хранение 15 клипов до 30 минут на каждую камеру.",
+      "candidate_gold_spans": [
+        1,
+        2
+      ],
+      "context_gold_spans": [
+        1,
+        2
+      ],
+      "gold_span_count": 2,
+      "final_classification": "generator_abstained",
+      "llm_calls": 1,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api2",
+          "repairs": 0,
+          "event": "draft_not_answerable",
+          "request_id": "5d1e3376d4374da9ad9f12351f0bd1cb",
+          "level": "info",
+          "timestamp": "2026-11-20T14:57:58.210965Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "doc_id": "325135f391cc4fc79c30185abc7e8207",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 1,
+          "repairs": 0,
+          "event": "question_answered",
+          "request_id": "5d1e3376d4374da9ad9f12351f0bd1cb",
+          "level": "info",
+          "timestamp": "2026-11-20T14:57:58.211098Z"
+        }
+      ]
+    },
+    {
+      "case_id": "14-04",
+      "request_id": "bddd2cc7fe7e47e69995f8f328234d8a",
+      "question": "Как долго Ростелеком отвечает за недостатки видеокамеры, купленной по акции «Тест-драйв», и с какого момента считается этот срок?",
+      "reference_answer": "Гарантийный срок составляет 24 месяца и начинает действовать с момента приобретения Оборудования Пользователем.",
+      "candidate_gold_spans": [
+        1,
+        2
+      ],
+      "context_gold_spans": [],
+      "gold_span_count": 2,
+      "final_classification": "generator_abstained",
+      "llm_calls": 1,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api2",
+          "repairs": 0,
+          "event": "draft_not_answerable",
+          "request_id": "bddd2cc7fe7e47e69995f8f328234d8a",
+          "level": "info",
+          "timestamp": "2026-11-20T14:59:44.682411Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "doc_id": "325135f391cc4fc79c30185abc7e8207",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 1,
+          "repairs": 0,
+          "event": "question_answered",
+          "request_id": "bddd2cc7fe7e47e69995f8f328234d8a",
+          "level": "info",
+          "timestamp": "2026-11-20T14:59:44.682547Z"
+        }
+      ]
+    },
+    {
+      "case_id": "14-08",
+      "request_id": "85ecad0bbb844d0c8db7d59113c3627d",
+      "question": "Сколько видеокамер может получить один участник акции «Тест-драйв» и есть ли из этого исключения?",
+      "reference_answer": "Не более 3 единиц Оборудования; исключение — при акцепте через заявку при личной явке представителя службы продаж: тогда доступно не более 1 единицы.",
+      "candidate_gold_spans": [
+        1,
+        2,
+        3
+      ],
+      "context_gold_spans": [],
+      "gold_span_count": 3,
+      "final_classification": "post_verifier_count_guard_inferred",
+      "llm_calls": 2,
+      "events": [
+        {
+          "replica": "b1-review2-frozen-api2",
+          "coverage": "full",
+          "verdicts": [
+            "supported",
+            "supported",
+            "supported"
+          ],
+          "repairs": 0,
+          "event": "verifier_verdict",
+          "request_id": "85ecad0bbb844d0c8db7d59113c3627d",
+          "level": "info",
+          "timestamp": "2026-11-20T15:02:51.105793Z"
+        },
+        {
+          "replica": "b1-review2-frozen-api2",
+          "doc_id": "325135f391cc4fc79c30185abc7e8207",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 0,
+          "event": "question_answered",
+          "request_id": "85ecad0bbb844d0c8db7d59113c3627d",
+          "level": "info",
+          "timestamp": "2026-11-20T15:02:51.106192Z"
+        }
+      ]
+    }
+  ]
+}

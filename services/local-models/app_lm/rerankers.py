@@ -1,18 +1,8 @@
-"""Reranker adapters for the local-models service.
+"""Rerank document fragments with the configured local model.
 
-Two adapters (stage-0 S7 evidence):
-- QwenYesNoReranker — the OFFICIAL Qwen3-Reranker recipe: chat template with a
-  fixed instruction, last-position logits of the "yes"/"no" tokens, log-softmax
-  over the pair -> P(yes). Implemented via transformers AutoModelForCausalLM, so
-  it works under the pinned transformers 4.57.6 regardless of the
-  sentence-transformers version. S7 proved this is bit-identical to the ST 6.x
-  CrossEncoder path (sigmoid(raw) == P(yes), abs diff 0.0 at 6 d.p.).
-- CrossEncoderReranker — classic sequence-classification cross-encoders
-  (BAAI/bge-reranker-v2-m3) via sentence-transformers CrossEncoder.
-
-Scores are raw model outputs; scales are NOT comparable across models and a 0.5
-threshold is meaningless without calibration (ADR 002).
-"""
+Qwen scores the next-token probabilities for “yes” and “no”. BGE uses the raw
+scores of a sentence-transformers CrossEncoder. Scores order the candidates
+within a query and depend on the model."""
 
 from __future__ import annotations
 

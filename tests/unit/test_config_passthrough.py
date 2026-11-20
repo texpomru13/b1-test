@@ -20,7 +20,7 @@ LAUNCHER_LEVEL = {
 }
 # Not operator knobs of the containerized service.
 NOT_FORWARDED = {
-    "ALLOW_PAID_EVAL", "EVAL_MAX_COST_USD",  # evaluation harness (host runs)
+    "ALLOW_PAID_EVAL", "EVAL_MAX_COST_USD",  # legacy host settings
     "ALLOW_CLOUD_FALLBACK",                  # must stay false (validated guard)
     "EMBEDDING_INSTRUCTION_VERSION", "LEXICAL_NORMALIZER_VERSION",  # index identity
 }

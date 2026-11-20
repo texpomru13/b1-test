@@ -13,6 +13,7 @@ command -v jq >/dev/null || { echo "eval/demo.sh requires jq" >&2; exit 1; }
 get() { curl --fail --silent --show-error --max-time 30 "$1"; }
 upload() {
     filename=${1##*/}
+    printf 'Загружаем %s и ждём индексации…\n' "$filename"
     curl --fail --silent --show-error --max-time 60 "$API/api/v1/documents" \
         -F "file=@$1;type=application/pdf" --form-string "title=${filename%.*}" > "$OUT/$2.json"
     jq -er '.doc_id and .job_id and (.status == "accepted")' "$OUT/$2.json" >/dev/null
@@ -32,6 +33,7 @@ poll() {
     return 1
 }
 ask() {
+    printf '\n%s\n' "$3"
     jq -n --arg q "$3" --argjson debug "${5:-false}" '{question:$q, debug:$debug}' |
         curl --fail --silent --show-error --max-time "${B1_QA_TEST_TIMEOUT:-960}" \
             "$API/api/v1/documents/$1/questions" -H 'Content-Type: application/json' \
@@ -45,13 +47,14 @@ ask() {
         echo "Unexpected response in $2" >&2
         return 1
     fi
+    jq -r '.answer, (.citations[] | "  [\(.id)] стр. \(.page), раздел \(.section // "не определён")")' "$OUT/$2.json"
 }
-get "$API/health/ready" > "$OUT/00_meta.json"
-ready=$(cat "$OUT/00_meta.json")
-jq -n --arg ts "$TS" --arg api "$API" --arg sha "$(git -C "$ROOT" rev-parse HEAD)" \
-    --argjson ready "$ready" '{timestamp_utc:$ts,api:$api,git_head:$sha,ready:$ready}' > "$OUT/00_meta.json"
+ready=$(get "$API/health/ready")
+jq -n --arg ts "$TS" --arg api "$API" \
+    --argjson ready "$ready" '{timestamp_utc:$ts,api:$api,ready:$ready}' > "$OUT/00_meta.json"
 upload "$DOC_A" 01_upload_a
 A=$(jq -er '.doc_id' "$OUT/01_upload_a.json")
+printf 'DOC_ID=%s\n' "$A"
 JOB=$(jq -er '.job_id' "$OUT/01_upload_a.json")
 get "$API/api/v1/jobs/$JOB" > "$OUT/02_poll_a_first.json"
 poll "$JOB" 03_poll_a_final
@@ -61,8 +64,12 @@ poll "$(jq -er '.job_id' "$OUT/04_upload_b.json")" 05_poll_b_final
 get "$API/api/v1/documents?limit=100" > "$OUT/06_list.json"
 EXACT='Какой размер постоянной части арендной платы установлен п. 3.1.1 договора аренды нежилого помещения и включает ли он НДС?'
 ask "$A" 07_exact "$EXACT" true
-jq -e '(.answer | test("158[[:space:] ]?400")) and (.answer | contains("НДС"))' "$OUT/07_exact.json" >/dev/null
+jq -e '(.answer | test("158[[:space:] ]?400")) and (.answer | contains("НДС"))
+    and any(.citations[]; .page == 5 and (.text | test("158[[:space:] ]?400")))
+    and any(.citations[]; .page == 5 and (.text | contains("НДС")))' "$OUT/07_exact.json" >/dev/null
 ask "$A" 08_paraphrase 'На какой срок здание передаётся в аренду и с какого момента этот срок отсчитывается?' true
+jq -e '(.answer | test("(^|[^0-9])11([^0-9]|$)|одиннадцат"; "i")) and
+    (.answer | test("месяц"; "i")) and (.answer | test("передач|передаточ"; "i"))' "$OUT/08_paraphrase.json" >/dev/null
 ask "$A" 09_no_answer 'Какой обеспечительный (гарантийный) платёж вносит арендатор по договору аренды нежилого помещения?' false
 ask "$A" 10_debug 'Какая неустойка предусмотрена п. 5.1 договора аренды при просрочке уплаты арендных платежей?' true true
 jq -e '.diagnostics | .dense_returned > 0 and .sparse_returned > 0 and

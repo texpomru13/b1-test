@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import uuid
+from pathlib import Path
 
 import httpx
 import pytest
@@ -41,14 +42,13 @@ CONTRACT = [
 ]
 
 
-@pytest.fixture(scope="module")
-def doc_id() -> str:
+def _upload_docx(filename: str, content: bytes) -> str:
     import time
 
     uploaded = httpx.post(
         f"{BASE_URL}/api/v1/documents",
         files={"file": (
-            "contract.docx", make_minimal_docx(CONTRACT),
+            filename, content,
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         )},
         data={"title": "QA договор"},
@@ -65,6 +65,11 @@ def doc_id() -> str:
             return str(body["doc_id"])
         time.sleep(2)
     pytest.fail("indexing did not finish in time")
+
+
+@pytest.fixture(scope="module")
+def doc_id() -> str:
+    return _upload_docx("contract.docx", make_minimal_docx(CONTRACT))
 
 
 def _ask(doc_id: str, question: str, *, debug: bool = False) -> httpx.Response:
@@ -123,3 +128,24 @@ def test_memory_fields_rejected(doc_id: str) -> None:
     )
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_resale_prohibition_cites_governing_clause_and_both_items() -> None:
+    source = Path(__file__).resolve().parents[2] / "test_documents" / "03_VDS_Хостинг_Hoster.docx"
+    doc = _upload_docx(source.name, source.read_bytes())
+    question = ("Вправе ли Заказчик перепродавать услуги Исполнителя, "
+                "в том числе услугу поддержки VDS через API?")
+    result = _ask(doc, question, debug=True)
+    assert result.status_code == 200, result.text
+    body = result.json()
+    assert body["found"], body
+    answer = body["answer"].lower()
+    assert any(term in answer for term in ("не имеет права", "запрещ", "не вправе", "не может"))
+    assert "api" in answer and "перепрод" in answer
+    quotes = " ".join(" ".join(c["text"].split()) for c in body["citations"]).lower()
+    for evidence in ("заказчик не имеет права", "перепродажу услуг исполнителя",
+                     "посредством api"):
+        assert evidence in quotes
+    assert {c["page"] for c in body["citations"]} >= {5, 6}
+    diag = body["diagnostics"]
+    assert set(diag["cited_chunk_ids"]) <= set(diag["context_chunk_ids"])

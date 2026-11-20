@@ -7,13 +7,11 @@ verified on real embeddings, real BM25 and a real mandatory reranker.
 
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 import time
 import uuid
 from collections.abc import Iterator
-from pathlib import Path
 from typing import Any
 
 import httpx
@@ -39,18 +37,7 @@ QDRANT_IMAGE = (
 )
 QDRANT_PORT = 6416
 QDRANT_URL = f"http://127.0.0.1:{QDRANT_PORT}"
-LM_QWEN_PORT, LM_BGE_PORT = 18082, 18083
 COLLECTION = "retrieval_stage5"
-
-LM_DIR = Path(__file__).resolve().parents[2] / "services" / "local-models"
-
-ENV_COMMON = {
-    "LM_MODEL_ID": "ai-sage/Giga-Embeddings-instruct-480M-0826",
-    "LM_REVISION": "1763d603adac8057bd6482a708001b0ed2e0a903",
-    "HF_HUB_OFFLINE": "1",
-    "TRANSFORMERS_OFFLINE": "1",
-}
-
 
 def _docker_ok() -> bool:
     return shutil.which("docker") is not None and subprocess.run(
@@ -58,48 +45,11 @@ def _docker_ok() -> bool:
     ).returncode == 0
 
 
-def _cached(repo: str) -> bool:
-    return (Path.home() / ".cache/huggingface/hub" / repo).exists()
-
-
-pytestmark = pytest.mark.skipif(
-    not (
-        _docker_ok()
-        and (LM_DIR / ".venv").exists()
-        and _cached("models--Qwen--Qwen3-Reranker-0.6B")
-        and _cached("models--BAAI--bge-reranker-v2-m3")
-    ),
-    reason="requires Docker, the local-models venv and cached reranker models",
-)
-
-
-def _start_lm(port: int, extra_env: dict[str, str]) -> subprocess.Popen[bytes]:
-    env = {**os.environ, **ENV_COMMON, **extra_env}
-    return subprocess.Popen(
-        [str(LM_DIR / ".venv/bin/uvicorn"), "app_lm.server:app",
-         "--host", "127.0.0.1", "--port", str(port)],
-        cwd=LM_DIR, env=env,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-    )
-
-
-def _wait_lm(port: int, timeout_s: float = 300.0) -> None:
-    deadline = time.time() + timeout_s
-    while time.time() < deadline:
-        try:
-            body = httpx.get(f"http://127.0.0.1:{port}/v1/health", timeout=3).json()
-            if body["status"] == "ok":
-                return
-            if body["status"] == "error":
-                pytest.fail(f"local-models on :{port} errored: {body}")
-        except httpx.HTTPError:
-            pass
-        time.sleep(2)
-    pytest.fail(f"local-models on :{port} did not become ready")
+pytestmark = pytest.mark.skipif(not _docker_ok(), reason="requires Docker")
 
 
 @pytest.fixture(scope="module")
-def stack() -> Iterator[dict[str, Any]]:
+def stack(qwen_models: str) -> Iterator[dict[str, Any]]:
     subprocess.run(["docker", "rm", "-f", "b1-test-qdrant-s5"], capture_output=True,
                    check=False)
     subprocess.run(
@@ -107,19 +57,7 @@ def stack() -> Iterator[dict[str, Any]]:
          "-p", f"{QDRANT_PORT}:6333", QDRANT_IMAGE],
         check=True, capture_output=True,
     )
-    qwen = _start_lm(LM_QWEN_PORT, {
-        "LM_RERANKER_MODEL": "Qwen/Qwen3-Reranker-0.6B",
-        "LM_RERANKER_REVISION": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
-        "LM_RERANKER_ADAPTER": "qwen_yes_no",
-    })
-    bge = _start_lm(LM_BGE_PORT, {
-        "LM_RERANKER_MODEL": "BAAI/bge-reranker-v2-m3",
-        "LM_RERANKER_REVISION": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
-        "LM_RERANKER_ADAPTER": "cross_encoder",
-    })
     try:
-        _wait_lm(LM_QWEN_PORT)
-        _wait_lm(LM_BGE_PORT)
         sync_qc = create_sync_qdrant_client(QDRANT_URL)
         for _ in range(60):
             try:
@@ -127,12 +65,8 @@ def stack() -> Iterator[dict[str, Any]]:
                 break
             except Exception:
                 time.sleep(0.3)
-        yield {"sync_qc": sync_qc}
+        yield {"sync_qc": sync_qc, "models_url": qwen_models}
     finally:
-        qwen.terminate()
-        bge.terminate()
-        qwen.wait(timeout=20)
-        bge.wait(timeout=20)
         subprocess.run(["docker", "rm", "-f", "b1-test-qdrant-s5"],
                        capture_output=True, check=False)
 
@@ -196,14 +130,14 @@ async def _index_contract(
         length_fn=ApproxTokenLength(),
     )
     assert len(chunks) >= 3
-    lm = LocalModelsClient(f"http://127.0.0.1:{LM_QWEN_PORT}", timeout_s=120)
+    lm = LocalModelsClient(stack["models_url"], timeout_s=120)
     from app.inference.contract import EmbedRequest, InputType
 
     embedded = await lm.embed(
         EmbedRequest(texts=[c.text for c in chunks], input_type=InputType.DOCUMENT)
     )
     fingerprint = fingerprint_for_embedding(
-        embedded, _settings(), length_fn_id=ApproxTokenLength.id,
+        embedded, _settings(stack["models_url"]), length_fn_id=ApproxTokenLength.id,
         chunk_tokens=120, overlap_tokens=20,
     )
     dense = embedded.vectors
@@ -230,6 +164,7 @@ async def _index_contract(
     repo.mark_run_complete_on_head(doc_id, run_id)
     gold = next(c for c in chunks if "0,1%" in c.text or "0,5%" in c.text)
     return {
+        "models_url": stack["models_url"],
         "scope": RetrievalScope(doc_id, run_id, fingerprint),
         "chunks": chunks,
         "point_ids": {point_id(doc_id, run_id, c.index) for c in chunks},
@@ -238,11 +173,11 @@ async def _index_contract(
     }
 
 
-def _settings() -> Settings:
+def _settings(models_url: str) -> Settings:
     return Settings(  # type: ignore[call-arg]
         _env_file=None, qdrant_url=QDRANT_URL, qdrant_collection=COLLECTION,
         chunk_tokens=120, chunk_overlap_tokens=20,
-        local_models_url=f"http://127.0.0.1:{LM_QWEN_PORT}",
+        local_models_url=models_url,
     )
 
 
@@ -262,11 +197,12 @@ def corpus(stack: dict[str, Any]) -> dict[str, Any]:
 
 async def _search(corpus_entry: dict[str, Any], question: str, *, debug: bool = False):
     qdrant = CountingQdrant(QDRANT_URL)
-    lm = LocalModelsClient(f"http://127.0.0.1:{LM_QWEN_PORT}", timeout_s=300)
+    lm = LocalModelsClient(corpus_entry["models_url"], timeout_s=300)
     bm25 = Bm25Adapter(language="russian", avg_len=256.0)
     try:
         result = await hybrid_search(
-            question=question, scope=corpus_entry["scope"], settings=_settings(),
+            question=question, scope=corpus_entry["scope"],
+            settings=_settings(corpus_entry["models_url"]),
             qdrant=qdrant, local_models=lm, bm25=bm25,
             length_fn=ApproxTokenLength(), debug=debug,
         )
@@ -319,9 +255,9 @@ async def test_debug_counts_real_on_real_qdrant(corpus: dict[str, Any]) -> None:
     assert set(diag.context_chunk_ids).issubset(entry["point_ids"])
 
 
-def test_bge_cross_encoder_adapter_orders_pairs(stack: dict[str, Any]) -> None:
+def test_bge_cross_encoder_adapter_orders_pairs(bge_models: str) -> None:
     response = httpx.post(
-        f"http://127.0.0.1:{LM_BGE_PORT}/v1/rerank",
+        f"{bge_models}/v1/rerank",
         json={"query": "Какая неустойка за просрочку поставки?",
               "documents": [
                   {"id": "rel", "text": "Неустойка составляет 0,1% за каждый день просрочки."},

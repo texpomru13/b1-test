@@ -1,4 +1,4 @@
-"""Typed parsing errors mapped to job error codes (plan §8.4 / §9.3)."""
+"""Document processing errors exposed through the job status endpoint."""
 
 from __future__ import annotations
 

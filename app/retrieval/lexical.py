@@ -1,11 +1,10 @@
 """Symmetric lexical preprocessing for BM25 (LEXICAL_NORMALIZER_VERSION=1).
 
-Ported from the stage-0 S3 prototype (roundtrip-verified against the real
-fastembed pipeline). Applied IDENTICALLY to documents and queries, for the BM25
-input only — citation text and canonical offsets are never altered.
+Documents and queries use these rules when building BM25 vectors. Citations
+use the original canonical text and its offsets.
 
 Rules v1:
-- ё -> е on the whole BM25 input (fastembed does not normalize it; S3 evidence).
+- ё -> е on the whole BM25 input.
 - Canonical synthetic tokens appended for exact legal designations that the
   default tokenizer/stemmer would otherwise destroy:
     clause numbers  4.2.1      -> sec4x2x1
