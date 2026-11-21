@@ -1,0 +1,181 @@
+{
+ "outcomes": {
+  "gold": {
+   "found": 38,
+   "not_found": 22
+  },
+  "isolation": {
+   "not_found": 6
+  }
+ },
+ "by_category": {
+  "comparison": {
+   "num": 5,
+   "den": 5,
+   "value": 1.0
+  },
+  "condition": {
+   "num": 10,
+   "den": 11,
+   "value": 0.9091
+  },
+  "exact": {
+   "num": 4,
+   "den": 4,
+   "value": 1.0
+  },
+  "exception": {
+   "num": 1,
+   "den": 1,
+   "value": 1.0
+  },
+  "multi": {
+   "num": 6,
+   "den": 6,
+   "value": 1.0
+  },
+  "multi_clause": {
+   "num": 2,
+   "den": 2,
+   "value": 1.0
+  },
+  "negation": {
+   "num": 2,
+   "den": 2,
+   "value": 1.0
+  },
+  "no_answer": {
+   "num": 20,
+   "den": 20,
+   "value": 1.0
+  },
+  "paraphrase": {
+   "num": 7,
+   "den": 7,
+   "value": 1.0
+  },
+  "table": {
+   "num": 1,
+   "den": 2,
+   "value": 0.5
+  }
+ },
+ "run": "final",
+ "split": "all",
+ "gold_sha256": "4cf0c2612785f909859f34495bcf6f049ce4e0eae5336ca6bd36cb02bca168e7",
+ "n_requests": 66,
+ "n_gold": 60,
+ "n_gold_planned": 60,
+ "missing_gold": [],
+ "n_answerable": 40,
+ "n_no_answer": 20,
+ "n_isolation": 6,
+ "structured_validity_200": {
+  "num": 66,
+  "den": 66,
+  "value": 1.0
+ },
+ "citation_span_validity": {
+  "num": 73,
+  "den": 73,
+  "value": 1.0
+ },
+ "cross_doc_leakage_citations": {
+  "num": 0,
+  "den": 73,
+  "value": 0.0
+ },
+ "isolation_correct_not_found": {
+  "num": 6,
+  "den": 6,
+  "value": 1.0
+ },
+ "isolation_found_true": [],
+ "positive_hit_at_candidates": {
+  "num": 40,
+  "den": 40,
+  "value": 1.0
+ },
+ "all_spans_in_candidates": {
+  "num": 40,
+  "den": 40,
+  "value": 1.0
+ },
+ "context_evidence_coverage_all": {
+  "num": 36,
+  "den": 40,
+  "value": 0.9
+ },
+ "context_evidence_coverage_any": {
+  "num": 40,
+  "den": 40,
+  "value": 1.0
+ },
+ "mean_span_recall_context": 0.9542,
+ "ndcg@10_rerank": 0.953,
+ "span_recall@1_rerank": 0.8521,
+ "span_recall@3_rerank": 0.9417,
+ "span_recall@5_rerank": 0.9417,
+ "span_recall@8_rerank": 0.9542,
+ "span_recall@20_rerank": 0.9917,
+ "span_recall@60_rerank": 1.0,
+ "answerable_found": {
+  "num": 38,
+  "den": 40,
+  "value": 0.95
+ },
+ "answerable_not_found": {
+  "num": 2,
+  "den": 40,
+  "value": 0.05
+ },
+ "answerable_errors": {
+  "num": 0,
+  "den": 40,
+  "value": 0.0
+ },
+ "found_cites_gold_span": {
+  "num": 38,
+  "den": 38,
+  "value": 1.0
+ },
+ "found_covers_all_gold_spans": {
+  "num": 28,
+  "den": 38,
+  "value": 0.7368
+ },
+ "correct_abstention_negatives": {
+  "num": 20,
+  "den": 20,
+  "value": 1.0
+ },
+ "negatives_errors": {
+  "num": 0,
+  "den": 20,
+  "value": 0.0
+ },
+ "latency_ms_200": {
+  "n": 66,
+  "p50": 17167,
+  "p95": 29702,
+  "max": 60989
+ },
+ "stage_ms_p50": {
+  "context": 1,
+  "encode": 189,
+  "fusion": 3,
+  "rerank": 9274
+ },
+ "stage_ms_p95": {
+  "context": 2,
+  "encode": 314,
+  "fusion": 4,
+  "rerank": 16077
+ },
+ "provenance": {
+  "result_type": "replay",
+  "responses_sha256": "8feec4363ec65cf96860e241f71195ad1aef02ee619e50ec070580eadee0dcb7",
+  "gold_sha256": "4cf0c2612785f909859f34495bcf6f049ce4e0eae5336ca6bd36cb02bca168e7",
+  "live_manifest_sha256": "d76e3d599eb1ca383e58187cee24da455d72705b62e9e92bd5159d965d9e2443"
+ }
+}

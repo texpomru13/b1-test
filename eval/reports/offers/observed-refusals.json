@@ -1,0 +1,71 @@
+{
+  "responses_sha256": "8feec4363ec65cf96860e241f71195ad1aef02ee619e50ec070580eadee0dcb7",
+  "cases": [
+    {
+      "case_id": "external-roerich-02",
+      "request_id": "b78abc779559458297d22127e36e580e",
+      "all_gold_spans_in_candidates": true,
+      "all_gold_spans_in_context": false,
+      "events": [
+        {
+          "error": "Значение или его роль не подтверждены: 1500 (рубль). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах до",
+          "event": "provenance_rejected",
+          "request_id": "b78abc779559458297d22127e36e580e",
+          "level": "warning",
+          "timestamp": "2026-11-21T09:00:18.254853Z"
+        },
+        {
+          "error": "Значение или его роль не подтверждены: 1500 (рубль). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах до",
+          "event": "provenance_rejected",
+          "request_id": "b78abc779559458297d22127e36e580e",
+          "level": "warning",
+          "timestamp": "2026-11-21T09:00:21.532069Z"
+        },
+        {
+          "doc_id": "8dc4496b755a4038914e7206beb8826c",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "b78abc779559458297d22127e36e580e",
+          "level": "info",
+          "timestamp": "2026-11-21T09:00:21.532181Z"
+        }
+      ]
+    },
+    {
+      "case_id": "external-troika-01",
+      "request_id": "9ba2cecd1b5b4d2bab7cfc79747cfbd1",
+      "all_gold_spans_in_candidates": true,
+      "all_gold_spans_in_context": true,
+      "events": [
+        {
+          "error": "У величины разные условия. Раздели утверждения и доказательства.",
+          "event": "provenance_rejected",
+          "request_id": "9ba2cecd1b5b4d2bab7cfc79747cfbd1",
+          "level": "warning",
+          "timestamp": "2026-11-21T09:02:45.219962Z"
+        },
+        {
+          "error": "У величины разные условия. Раздели утверждения и доказательства.",
+          "event": "provenance_rejected",
+          "request_id": "9ba2cecd1b5b4d2bab7cfc79747cfbd1",
+          "level": "warning",
+          "timestamp": "2026-11-21T09:02:51.158366Z"
+        },
+        {
+          "doc_id": "b69178f7221a426abeb03d3a419a7901",
+          "found": false,
+          "outcome": "not_found",
+          "llm_calls": 2,
+          "repairs": 1,
+          "event": "question_answered",
+          "request_id": "9ba2cecd1b5b4d2bab7cfc79747cfbd1",
+          "level": "info",
+          "timestamp": "2026-11-21T09:02:51.158653Z"
+        }
+      ]
+    }
+  ]
+}

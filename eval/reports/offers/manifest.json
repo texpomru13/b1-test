@@ -1,0 +1,158 @@
+{
+  "run": "final",
+  "api": "http://127.0.0.1:65146",
+  "started_at": "2026-11-21T08:50:55.575560+00:00",
+  "initial_split": "all",
+  "doc_ids": {
+    "alferov": "8ba29cea9bee45bebcde580bd189ce4a",
+    "hotel": "08a9007e5d5c45e4b3738b90c844e802",
+    "moreon": "53d30b7041e847d4a7c0f0a2cbdeac00",
+    "roerich": "8dc4496b755a4038914e7206beb8826c",
+    "troika": "b69178f7221a426abeb03d3a419a7901",
+    "warehouse": "90a9402778634a1a922e53d238822931"
+  },
+  "ready": {
+    "status": "ready",
+    "components": {
+      "redis": "ok",
+      "qdrant": "ok",
+      "local_models": "ok",
+      "llm": "ok"
+    },
+    "model_ready": true
+  },
+  "inputs": {
+    "api_source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3",
+    "documents": {
+      "alferov": {
+        "doc_id": "8ba29cea9bee45bebcde580bd189ce4a",
+        "source_sha256": "c10627a9d9321b0954d7484d8f1c50e42c78e8c8f2e185cd43c78cc96a6ddc8a",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "2932c22a73ee41078075ee0d93e28d82",
+        "export_sha256": "0e152afb224669371084426d6c503bc2bb7c735da70eb685bad6ded014db353d"
+      },
+      "hotel": {
+        "doc_id": "08a9007e5d5c45e4b3738b90c844e802",
+        "source_sha256": "43b8a844f1297d1b9ee715aa3a43c12aba8f61bef418244114bfdfcfb1abca6b",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "7a7f1dd463544a02ba0cd109439e9ad9",
+        "export_sha256": "ee4fd7d1ecbb2b173537457e414abd035d61d45dc290748736b7b7f2370bfd4b"
+      },
+      "moreon": {
+        "doc_id": "53d30b7041e847d4a7c0f0a2cbdeac00",
+        "source_sha256": "6fd8482df98ae40dffc01fa28d96f8f51d0096bda35314fcae74ac89c1868af0",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "8a6a6430a266489c973b4fc0adf671c7",
+        "export_sha256": "a429d14e4da63fae35a33f91499edb4747589b50ed31b613d09bcc719741cbe6"
+      },
+      "roerich": {
+        "doc_id": "8dc4496b755a4038914e7206beb8826c",
+        "source_sha256": "5e290578bde29487487388d755b615cb8a763a972f2652845db7e57921285232",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "f35b6e2a86044989a3eee92b60091aad",
+        "export_sha256": "056c90cd891395539277a816d5201c816427c5e2abdcf277f6eb02a912d4125f"
+      },
+      "troika": {
+        "doc_id": "b69178f7221a426abeb03d3a419a7901",
+        "source_sha256": "0cd57e7d05bc0dfe7518a51a8c0e5792ba888b77c24b44ea713d33067e964966",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "8bd32141e03146f680066823968be9a6",
+        "export_sha256": "68daa309f273bf589a821607a7042fe53249dcf4991c9165f417dcc821153779"
+      },
+      "warehouse": {
+        "doc_id": "90a9402778634a1a922e53d238822931",
+        "source_sha256": "81cb9bde82e69dab29642b8d5c10fc6ea9de3c402fde4f06defef4abd41bff53",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "5053dfea61cb4d6b975d938078881175",
+        "export_sha256": "77f1e5b3a64e06e261eb739cb8c8ffb84cbcf152f272b43420d1b29a449fcb79"
+      }
+    },
+    "gold_sha256": "4cf0c2612785f909859f34495bcf6f049ce4e0eae5336ca6bd36cb02bca168e7",
+    "runtime": {
+      "project": "b1-delivery1121",
+      "images": {
+        "api": {
+          "image_id": "sha256:51ae01264b8f4ac647dfec923277bc1c27c172b41cb0e96a8836fac42c2d95c5",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
+        },
+        "worker": {
+          "image_id": "sha256:c886c2d5fcf328d3ff464ef03d7ba8a18461bb0358e05ca4203fcb6d6b76cde9",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
+        },
+        "dispatcher": {
+          "image_id": "sha256:f4e558b371d4f5add5196ead06cc91e6da73f1185a8303764e9c68664fe40b5c",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
+        },
+        "local-models": {
+          "image_id": "sha256:390baeaa0b3908ad8898ddbbbfe687d529d2a37cf39ac03ee4c1092b59a6042c",
+          "source_sha256": "fbae39d0ede9b0bab60c6111ed800c37f3fd0070d30cb3fa41be467424833f3e"
+        },
+        "redis": {
+          "image_id": "sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53"
+        },
+        "qdrant": {
+          "image_id": "sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2"
+        }
+      },
+      "settings": {
+        "llm_provider": "ollama",
+        "llm_model": "qwen3.5:9b-q4_K_M",
+        "llm_read_timeout_s": 300,
+        "qa_deadline_s": 900,
+        "local_context_tokens": 16384,
+        "llm_max_output_tokens": 2048,
+        "llm_reasoning_budget_tokens": 4096,
+        "llm_thinking": "off",
+        "llm_temperature": 0.0,
+        "embedding_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+        "embedding_instruction_version": "1",
+        "dense_top_k": 60,
+        "sparse_top_k": 60,
+        "fusion_method": "rrf",
+        "rerank_input_k": 60,
+        "context_top_k": 8,
+        "bm25_language": "russian",
+        "bm25_avg_len": 256,
+        "chunk_tokens": 450,
+        "chunk_overlap_tokens": 64,
+        "context_budget_tokens": 6000,
+        "qdrant_collection": "document_chunks",
+        "max_concurrent_qa": 1,
+        "max_repair_attempts": 1,
+        "max_llm_calls_per_question": 4,
+        "llm_max_attempts": 2
+      },
+      "local_models": {
+        "loaded_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+        "revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+        "reranker_model": "BAAI/bge-reranker-v2-m3",
+        "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+        "reranker_adapter": "cross_encoder",
+        "device": "cpu",
+        "LM_BATCH_SIZE": "4",
+        "LM_RERANKER_BATCH": "2"
+      },
+      "llm_digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+      "ocr": {
+        "engine": "tesseract 5.5.0",
+        "packages": [
+          "poppler-utils\t25.03.0-5+deb13u4",
+          "tesseract-ocr-eng\t1:4.1.0-2",
+          "tesseract-ocr-rus\t1:4.1.0-2"
+        ]
+      }
+    }
+  },
+  "git_commit": "59bf55e6172d9a737194bb462b5eb455732b0c99",
+  "git_dirty": false,
+  "hardware": {
+    "platform": "macOS-26.7.3-arm64-arm-64bit",
+    "arch": "arm64",
+    "cpu": "Apple M4 Max",
+    "memory_bytes": 137438953472
+  },
+  "result_type": "live",
+  "finished_at": "2026-11-21T09:11:28.684563+00:00",
+  "response_count": 66,
+  "responses_sha256": "8feec4363ec65cf96860e241f71195ad1aef02ee619e50ec070580eadee0dcb7"
+}

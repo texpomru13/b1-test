@@ -1,0 +1,1001 @@
+{
+  "reviewer": "OpenAI Codex, дополнительная сверка текста ассистентом, участвовавшим в подготовке набора",
+  "reviewer_type": "model",
+  "method": "Сверены формулировки всех 38 выданных ответов и заранее заданные факты и условия. У числового факта должны быть верными и число, и его единица. Факт из цитаты, отсутствующий в тексте ответа, не засчитывается. Два отказа на положительных вопросах получили нулевое покрытие автоматически. Живые запросы не повторялись.",
+  "rows": [
+    {
+      "req_id": "external-alferov-01",
+      "input_sha256": "4d55acfea2fe75057b6304e603440f4dd87db5983ca5a97e2f25c18ad7a9c704",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Договор от имени Университета Алфёрова подписывает проректор по образовательной деятельности Мишин Максим Валерьевич. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Проректор Мишин Максим Валерьевич действует на основании доверенности №1 от 12.01.2026 г. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-alferov-02",
+      "input_sha256": "9c247d2d69dec73faba37f37df3c335bda3aada70ba0528f7127589cbd504655",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Заказчик обязан уплатить 100% установленной стоимости обучения за семестр. [1][2][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Средства перечисляются на банковский счет Исполнителя, указанный в разделе 8 настоящего Договора. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-alferov-03",
+      "input_sha256": "5db067175cdf674f2456d546fcf176ee8cd1c7d08352256c00707736e5d16a8e",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Оплата образовательных услуг из средств материнского (семейного) капитала за первый семестр производится не позднее чем в течение трёх месяцев, исчисляемых с даты заключения Договора. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Оплата образовательных услуг из средств материнского (семейного) капитала за каждый последующий расчетный период (семестр) производится до начала соответствующего расчетного периода (семестра). [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-alferov-04",
+      "input_sha256": "af36f4977da49791c43df998c4759dba0936649e76bba069ed11b0545348c365",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "При отчислении Обучающегося по основаниям, предусмотренным разделом 4 договора, расчёт задолженности за обучение ограничен суммой фактически понесенных Исполнителем расходов, рассчитанной в соответствии с локальными нормативными актами Исполнителя. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "При расчёте задолженности дата отчисления (перевода) Обучающегося в расчет не принимается. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-alferov-05",
+      "input_sha256": "2724373d191aacca6a173f356b39285ead081a2d420533c3a843acfe28c32d33",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "4.5. Заказчик и Обучающийся вправе в любое время отказаться от исполнения настоящего договора, при условии оплаты Исполнителю фактически понесенных им расходов. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-alferov-06",
+      "input_sha256": "49a69ecc3a429e077d13ef9011d5710fae8c0cf6a9f39599b601ab74b3b9a2f8",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Стороны направляют скан-копии документов по адресам электронной почты, указанным в разделе «Банковские реквизиты, адреса и подписи Сторон». [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "В случае заключения договора путем направления электронного документа, подписанного способами, указанными в подпунктах «а», «б», «г» настоящего пункта (включая обмен скан-копиями), Стороны договора обязуются в разумный срок подписать оригиналы договора собственноручными подписями. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-alferov-07",
+      "input_sha256": "979c505756d3aa47c27a28e4614003c4bf8932b5a61c38d3ce141e780a89555f",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Договор считается прекращенным или расторгнутым с даты, указанной в приказе об отчислении или переводе Обучающегося. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-alferov-08",
+      "input_sha256": "eba781a1d24b0cf5ddac0726f451ab1c8e1443103a2118034037672ee5c6349a",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-alferov-09",
+      "input_sha256": "dcbbb03fb77b84daa2eb662591719ef5e149d00df3cd9c2d6e202cd971fce744",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-alferov-10",
+      "input_sha256": "b2f2454ca507e3f347b5c85d72452ab714dbc10f1ba3f2c10ddebebf179a45e9",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-hotel-01",
+      "input_sha256": "13a44d9cfee9f0814ac04ff72ded79966099382b767802e07566e59450d6d511",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Клиент направляет заявку на бронирование по электронной почте на адрес reservation@sbcc.ru. [1][2][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-hotel-02",
+      "input_sha256": "73bc1baf2ea8d80953538a1d1723f92976c64630e34983fe0ce468c8b2b33e09",
+      "required_covered": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Заявка на бронирование должна содержать следующую информацию: Ф.И.О. Клиента; даты и время заезда и выезда Клиента; тип бронируемого номера. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "В случае непредставления Клиентом информации и/или предоставления неполной информации, указанной в п.2.2. настоящей Оферты, Исполнитель оставляет за собой право отказать Клиенту в Подтверждении бронирования. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-hotel-03",
+      "input_sha256": "22343122d71c7de5e0d19a84ae9dd3b6128409dc9c9d0dcdf8aa5e1686e157dc",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "В стоимость гостиничных услуг входит пользование сейфом для хранения ценных вещей в номере. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "В стоимость гостиничных услуг входит питание на шведской линии ресторана согласно выбранному тарифу (если в стоимость тарифа включены завтраки, обеды или ужины). [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-hotel-04",
+      "input_sha256": "31bbded878abfca9bf2aec2d92d199476e00f57afa5f814406a01f9c99703e14",
+      "required_covered": [
+        false,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Уведомление об отмене должно быть направлено способом, обеспечивающим получение Исполнителем такого уведомления, но не позднее, чем за 24 (двадцать четыре) часа до официально установленного Исполнителем часа заезда (14 часов 00 минут по местному времени) Клиента в Отель. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Официально установленный Исполнителем час заезда составляет 14 часов 00 минут по местному времени. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ],
+      "coverage_note": "Форма уведомления задана словом «письменное» в пункте 3.2 на странице 3. В ответе есть срок и способ доставки, но форма не названа."
+    },
+    {
+      "req_id": "external-hotel-05",
+      "input_sha256": "e47ae646226cbcf91796495076f16a656e3eb652ef671fe66ca022c15bcc39a2",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Исполнитель сохраняет каждый забронированный номер для заезда Клиента до 12 часов 00 минут по местному времени в день, следующий за днем запланированного прибытия Клиента (опоздание). [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "В случае опоздания Клиента Клиент оплачивает полную стоимость суточного проживания за каждый забронированный номер. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-hotel-06",
+      "input_sha256": "5480639158319e5b39692872e315216812ff9215114c42683fb916b636a44de8",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Клиент оплачивает сто процентов (100%) от стоимости суточного проживания за каждый забронированный номер, если выезжает после 18 часов 00 минут по местному времени в день отъезда. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Данная услуга предоставляется при условии наличия номеров. [1][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-hotel-07",
+      "input_sha256": "fa5a8972fd576fc6a9350da1977a6774dddb70c1c66909dbab3b754814c532da",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Исполнитель остаётся ответственным перед Клиентом за качество услуг, оказанных третьими лицами, даже если услуги оказаны с привлечением третьих лиц. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-hotel-08",
+      "input_sha256": "f79ba36f2c982e0ae4ea4f646797512b086cdcf5941c782c069d8336466682fd",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-hotel-09",
+      "input_sha256": "327ec5e2c8edf5b3496cfa026c636694bc4475021553bd57e23714d1d6534c46",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-hotel-10",
+      "input_sha256": "8af7cfc6e69e0b1ab633ec9d50ba01eb345c521f03972443eef66b66cfcd2207",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-moreon-01",
+      "input_sha256": "820e91e412cfd82723862dfc528e13db4c8087ea0935ab9dbb5a62fd8cd1cfcb",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Стоимость семейного абонемента для 1 взрослого и 2 детей составляет 15500 руб. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Дети в семейном абонементе должны быть до 150 см и в возрасте до 14 лет. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-moreon-02",
+      "input_sha256": "f5fc6ae0167157576f4f328cb947212fcdf5b3d67a49349af2697f5cbc3a3150",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Срок действия абонемента составляет 30 дней, отсчет которых начинается с момента активации абонемента. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Активация абонемента происходит в момент первого посещения ТЕРМ и/или Аквапарка, но не позднее 5 календарных дней после оплаты. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Если после оплаты никто не пришёл, активация карты происходит автоматически на пятый календарный день после оплаты. [3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-moreon-03",
+      "input_sha256": "5a4be11adafdf5ee4e1315cc397570cc2881c2a15bb040833ea7437d04fa9cf7",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Список владельцев абонемента после активации фиксируется и не может быть изменен или дополнен. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-moreon-04",
+      "input_sha256": "42710a84f5b2e557e28cf8389b9947ee73cad3d187717526ec2de778bb8f825c",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Владелец абонемента имеет право посещать ТЕРМ и Аквапарк каждый день, включая выходные дни. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-moreon-05",
+      "input_sha256": "1b6f5ad63dfea17c04919cd9d90e2c627cc5784df23984723e6d449fac9225e9",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Тариф «Банные дни» рассчитан на 1 взрослого. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Стоимость тарифа «Банные дни» составляет 12000 руб. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-moreon-06",
+      "input_sha256": "25ee0bcee184da8f451514207469649be1bfc81ea702a68da409e9882e6ab2ba",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Для вычета стоимости оказанных услуг при расторжении договора по инициативе Заказчика берется стоимость посещения одного буднего дня тарифного плана для количества и категории лиц, указанных в абонементе, на дату приобретения абонемента. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "При расчете суммы возврата в случае одностороннего отказа Заказчика от Договора, если стоимость посещения Заказчиком превысит стоимость договора, Исполнитель не вправе требовать с Заказчика уплаты денежных средств в части, превышающей стоимость абонемента. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-moreon-07",
+      "input_sha256": "7d77c91ebda87dfa1626eaaf62e1cf15427c3ffcdf150c572a44be183746f19b",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "На приобретение абонемента не распространяются скидки и акции, действующие в МК «МОРЕОН». [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-moreon-08",
+      "input_sha256": "9a0dae058ed88b7b7aa6ffc00fa5e1010c5333bb025c3e1771cf0d57ddf6716b",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-moreon-09",
+      "input_sha256": "00d854ee84150ced8b6774a9f8fdaffcce65fd20650868ef84983b4cd284ec98",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-moreon-10",
+      "input_sha256": "75e3ddcca5b0b1dcadd2b7dd0d66a74d16c5ddcb53d89ea8a3132c9d2d6fe782",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-roerich-01",
+      "input_sha256": "6432c0f9a73b408283b1bc9095d98969f13e6224c5ed0a2ca7fc817a53a9e2a5",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": [
+        {
+          "text": "Стоимость семейного билета (2 взрослых + 2 школьника) в основном здании составляет 700. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Стоимость семейного билета (2 взрослых + 2 школьника) в отделе истории школы К. Мая составляет 450. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ],
+      "coverage_note": "Числа 700 и 450 и оба здания указаны верно. Столбец таблиц на страницах 1–2 задаёт единицу «руб.». В тексте ответа обе величины оставлены без единицы. При строгом учёте числовых фактов с единицами оба факта неполны."
+    },
+    {
+      "req_id": "external-roerich-02",
+      "input_sha256": "3bdeb417f2bc1376718ec6feb42bf26fd73002c617a39c3075caa9e836e8fdd2",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "external-roerich-03",
+      "input_sha256": "32823c7e1d925d3a3a13b24ac809c2f1d00fee6a09f26d2076df3424d3a90055",
+      "required_covered": [
+        false,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Бесплатная обзорная экскурсия начинается в 19.00. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Входной билет приобретается отдельно по прейскуранту. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ],
+      "coverage_note": "В ответе есть 19:00. Расписание на странице 2 дополнительно задаёт день недели — каждую среду. Это часть первого обязательного факта."
+    },
+    {
+      "req_id": "external-roerich-04",
+      "input_sha256": "55d3e60e5a6819b0139eaf559609cd8bfda6d97ee5e16725977b7b7cd277a3db",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Аудиогид выдается кассиром в кассе после оплаты билета. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Аудиогид выдается в комплекте с наушниками. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "До выдачи аудиогид необходимо внести залог в размере 500 руб. наличными денежными средствами. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Аудиогид выдается включённым на кнопке «Правила пользования аудиогидом». [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-roerich-05",
+      "input_sha256": "33c497233725a8c451a1757da6c40d9ea48c65b849eeb32ec327f7076b98bfda",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "2. Возврат аудиогида:\n2.3. При наличии повреждений, полученных в процессе эксплуатации аудиогида, посетитель обязан оплатить стоимость поврежденного аудиогида в размере 500 руб. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Оплата за поврежденный аудиогид производится за счет залоговой суммы посетителя. [1][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-roerich-06",
+      "input_sha256": "c959ffb881d30918e4c05101c05d724106eb1de7c73d51c14ed4ce055290b970",
+      "required_covered": [
+        false,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Присоединение посетителя к уже оплаченной экскурсии в основном здании предлагается при условии, что экскурсия началась не раньше 20 минут. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Услуга присоединения к экскурсии перестаёт предлагаться, если экскурсия началась более чем 20 минут назад. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ],
+      "coverage_note": "Лимит в 20 минут сообщён. Цена 150 рублей за человека из строки 32 на странице 2 в ответе отсутствует."
+    },
+    {
+      "req_id": "external-roerich-07",
+      "input_sha256": "d8a56f3acbb4d4b58fc67f67d4d2af0657cbf153064c9df1215c9c0fb2634852",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-roerich-08",
+      "input_sha256": "57b54438b7f3d61ee3c80cbc631f44b5e03d443c91ed7359ffe29fc63e4dbf04",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-roerich-09",
+      "input_sha256": "daac3583be03b6d253dded382c68f88edaac25613819c0172e22298e3b01b53d",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-roerich-10",
+      "input_sha256": "5c2df7bcb78b6d7c10931a188780874de0a0e7add93366e2b3590697355a506f",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-troika-01",
+      "input_sha256": "b913d842cdcdb0da7cf508b7d8307c3e87e6a921e53eedc612f457f917a0cb86",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "external-troika-02",
+      "input_sha256": "6f0655ee6fd8c8142ff10b72bfc289c545c5bf30ab935e577bba3752be1d4a28",
+      "required_covered": [
+        false,
+        true
+      ],
+      "claims": [
+        {
+          "text": "При получении обычной Транспортной карты «Тройка» физическому лицу необходимо внести залоговую стоимость пластикового носителя и одновременно пополнить карту минимум одним Проездным билетом. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "При приобретении Транспортной карты «Тройка» в сувенирных магазинах Эмитента внесение залоговой стоимости носителя карты и пополнение ее Проездным билетом не требуются. [3][4]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ],
+      "coverage_note": "Названы залог и минимальное количество билетов. В пункте 4.1.2 на странице 12 уточнено право на одну поездку. Эту часть обязательного факта ответ опускает."
+    },
+    {
+      "req_id": "external-troika-03",
+      "input_sha256": "0784fb359d514cb89bdaedd17facf90a35d18f22ec4ef64985ea94a5373d31ac",
+      "required_covered": [
+        true,
+        false
+      ],
+      "claims": [
+        {
+          "text": "Срок действия проездного билета может быть временно приостановлен по инициативе пассажира на 14 календарных дней с последующей возможностью продления срока действия приостановленного проездного билета на 14 календарных дней. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Право временной приостановки срока действия Проездного билета без лимита поездок на 365 дней предоставляется пассажиру при соблюдении следующих условий. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "До окончания срока действия Проездного билета осталось не менее 30 календарных дней. [2][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "По Проездному билету до оформления Заявки на временную приостановку срока действия Проездного билета было совершено не менее одного прохода через устройство контроля и погашения проездных билетов на любом виде транспорта общего пользования. [2][4]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Проездной билет без лимита поездок на 365 дней записан на Карту, в отношении которой осуществлена процедура персонализации в соответствии с настоящей Публичной офертой. [2][5]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Право временной приостановки срока действия Проездного билета без лимита поездок на 365 дней не предоставляется пассажиру в следующих случаях:. [6]",
+          "verdict": "irrelevant",
+          "critical": false,
+          "reason": "Вводная фраза «в следующих случаях» оканчивается двоеточием и точкой. Ни одного случая после неё ответ не называет. Вопрос о длительности и числе приостановок этот фрагмент не раскрывает."
+        },
+        {
+          "text": "Срок действия Проездных билетов без лимита поездок на 365 дней, записанных на персонализированные Карты «Тройка», может быть временно приостановлен согласно инструкции, размещенной в ЛКП Мобильного приложения. [7]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ],
+      "coverage_note": "Срок в 14 календарных дней сообщён. Ответ не говорит, что временная приостановка допускается один раз за весь период действия билета (пункт 11.3 на странице 30)."
+    },
+    {
+      "req_id": "external-troika-04",
+      "input_sha256": "321d131da75ae7db3c2f089ef465884d75d1e770ed0b4a94bc0e2848591b4c49",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Текущий статус Заявки доступен Пассажиру в ЛКП Мобильного приложения в карточке носителя по конкретному Проездному билету, а также в разделе «История операций» ЛКП. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-troika-05",
+      "input_sha256": "0723cff396d9ae7fddf11d4b21554151d2d1a9fedc98e3858c109aaa52f033ee",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Пассажир может самостоятельно отменить заявку до начала периода временной приостановки срока действия Проездного билета, указанного в Заявке. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Пассажир может отменить заявку, совершив проход через устройство контроля и погашения проездных билетов на любом виде транспорта общего пользования (при этом заявка отменится автоматически) во время периода неиспользования, указанного в п. 11.5 настоящей Оферты. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-troika-06",
+      "input_sha256": "036fe8a3024e5951ef5da25bcda130dd080740123b51dcbdc4f8393485f87b7c",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "При переносе Проездного билета без лимита поездок на 365 дней, записанного на Персонализированную Транспортную карту «Тройка», и в отношении которого есть подтвержденная Заявка, Заявка также переносится на новый носитель. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-troika-07",
+      "input_sha256": "b97f6cfe230184a482ec0d307643c7ea872f63e701a698db10768a1955a59603",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Прекращение действия Договора не прекращает обязательства Эмитента и Пассажира (Плательщика), возникших до даты прекращения действия Договора. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-troika-08",
+      "input_sha256": "6edf8dc5f1d2b4559c9c67d39a0a85dbb5cd309b52cae089f078032746df8591",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-troika-09",
+      "input_sha256": "b701921d989cfa1e3877689f6354ca00cd01c1f0ea71f25a85688c6d5a970c93",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-troika-10",
+      "input_sha256": "da8e27f44747a15b5ec9001e73be9a4309113d897502143e2666d88328e74707",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-warehouse-01",
+      "input_sha256": "9ec08d60a4656e426b514fb08aa0b884889f8982796ce612522e55792c4ff687",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Гостевой визит в «ГлавСклад» предоставляется на безвозмездной основе (бесплатно). [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Длительность гостевого визита составляет 30 минут. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "В рамках гостевого визита Клиент не имеет права размещать свои Вещи в Ячейке. [3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-warehouse-02",
+      "input_sha256": "42b3355a5a2cd8655992b3bcd4738764bb0cb56762670c1c0c017bb1201f585f",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Срок аренды начинает течь с момента оплаты аренды и одобрения Заявки Арендодателем. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-warehouse-03",
+      "input_sha256": "7f767723749b7b1435e39729296b6eccf37b3a9977756838ca0152a73466462f",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Клиент вправе установить на арендованную Ячейку свой замок либо приобрести замок в вендинговом аппарате, размещённом на территории Комплекса. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-warehouse-04",
+      "input_sha256": "46613d0ecd491695dc1fd5247c506816e19ef4b0d7cff9ba7f2bceaa30e3abdb",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Клиент не вправе сдавать Ячейку в субаренду третьим лицам за плату. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Клиент не вправе предоставлять Ячейку в безвозмездное пользование третьим лицам. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-warehouse-05",
+      "input_sha256": "c84f075157ae485339f6816441167b8999bf37e5b1c5752ddaa85a463b83f01d",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Арендодатель проверяет состояние Ячейки и отсутствие в ней Вещей Клиента. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Проверка проводится в течение трех дней после последнего дня аренды. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-warehouse-06",
+      "input_sha256": "851cafbedadd34b21c3d2e555c687c6a8d533d138469b5573a6e3730b14b8c15",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Возврат денежных средств осуществляется на банковский счет Клиента, указанный в заявлении о возврате денежных средств, в течение 30 (тридцати) рабочих дней со дня получения заявления с приложенными к нему документами, если оно было удовлетворено в пользу Клиента. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "external-warehouse-07",
+      "input_sha256": "25baac0c701b963dbb1ddc41c15cbd7f08ea22e7a81d6daf5a8986b14c887153",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-warehouse-08",
+      "input_sha256": "88a3d1d203f781fe2358925d6b6b85469a06bd41db31f33ba727e81d18f3eb61",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-warehouse-09",
+      "input_sha256": "1c4cbcd85b8c2da25f57b2883ad4ef7e98cbfeed9e2aec3904c140609ca0a1fb",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "external-warehouse-10",
+      "input_sha256": "fe5deee4e0f0992bec9771a29585c1612ceb237384253b9c56d3c057524bb0a0",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-external-alferov-01->hotel",
+      "input_sha256": "68a6d41c99e6486864edb2ab55a02c3bac796e8ab0ec6f0c0c0518ee6e54d1e9",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-external-hotel-01->moreon",
+      "input_sha256": "a8b3358db958d22271db4b82cc7cee261822e210c56155f9c78ad2603b42a5e1",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-external-moreon-01->roerich",
+      "input_sha256": "b66fba54eb5c76f1ad813b2f46353bd06ddc864d7d6cbe28123da3fcb3674650",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-external-roerich-01->troika",
+      "input_sha256": "eef648c4cd2d3026713be504ea402c8b6f1c6a806cf092c3df70ee27a952ca85",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-external-troika-01->warehouse",
+      "input_sha256": "afe9545222ac2c606e94dc05ef9a544e6c863f9a798723bb43209da95e3a4fb7",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-external-warehouse-01->alferov",
+      "input_sha256": "67acab9615089e2782beb9bdd38ce9eef5476a3655f58441d3559dda16322053",
+      "required_covered": [],
+      "claims": []
+    }
+  ]
+}

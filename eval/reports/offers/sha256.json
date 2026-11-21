@@ -1,0 +1,25 @@
+{
+  "files": {
+    "cases-all.jsonl": "6b3c8a99f52877b46d73ae1233e66c66eb546a5313cb1ab4852346a1ca53e561",
+    "claim-review.json": "31bc1abaec76468104c0fa5f67237fa3b2c168a0465f9211f7097c667dbe2719",
+    "crosscheck-claims.json": "d3329f68e72816f515ba85162dd984b559825c1b391202914a2573ab02d91f32",
+    "crosscheck.json": "a4126131730b3f1c9a3525fd0f9834448bf153ee7e1b824f8ef69311eef0f803",
+    "inputs.tar.gz": "f3ed37a0e3c8631453bb8497ca7f23912405ce4d05daa241fde2b58fab2029ee",
+    "manifest.json": "d76e3d599eb1ca383e58187cee24da455d72705b62e9e92bd5159d965d9e2443",
+    "metrics-all.json": "babf58181bd975158cbcc1d4fa44ba4a65ec1b967eb57990b81cfb2e0f860d17",
+    "observed-refusals.json": "02c3e315afd9cb6b155ed387a695ce91e016f565ae765dff93c5e385fcaec790",
+    "qualification.json": "8f5ea4a0ea54327aad8f0d56ef3f34145acf0865166af7e6ac15eeebfe91e1a8",
+    "responses.jsonl": "8feec4363ec65cf96860e241f71195ad1aef02ee619e50ec070580eadee0dcb7",
+    "warmup.json": "f32fc4540087102ae7c3189d45c8c0bbe1fe949ff744219d95b31d263664ef45"
+  },
+  "archive_members": {
+    "corpus.json": "fc43bfe2fe41a39e94895d837a19f2ace9c7190e086a502a1e9cfe8255b9d8e0",
+    "gold.jsonl": "4cf0c2612785f909859f34495bcf6f049ce4e0eae5336ca6bd36cb02bca168e7",
+    "index/alferov.json": "0e152afb224669371084426d6c503bc2bb7c735da70eb685bad6ded014db353d",
+    "index/hotel.json": "ee4fd7d1ecbb2b173537457e414abd035d61d45dc290748736b7b7f2370bfd4b",
+    "index/moreon.json": "a429d14e4da63fae35a33f91499edb4747589b50ed31b613d09bcc719741cbe6",
+    "index/roerich.json": "056c90cd891395539277a816d5201c816427c5e2abdcf277f6eb02a912d4125f",
+    "index/troika.json": "68daa309f273bf589a821607a7042fe53249dcf4991c9165f417dcc821153779",
+    "index/warehouse.json": "77f1e5b3a64e06e261eb739cb8c8ffb84cbcf152f272b43420d1b29a449fcb79"
+  }
+}
