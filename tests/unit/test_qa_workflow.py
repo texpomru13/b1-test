@@ -302,3 +302,12 @@ async def test_invalid_draft_can_be_repaired_with_a_verified_source_selection() 
     assert result.outcome == OUTCOME_ANSWERED and result.llm_calls == 3
     assert "регистратор" in assemble_answer(result).answer
     assert "открыт" in assemble_answer(result).answer
+
+
+async def test_recognized_missing_evidence_is_a_refusal_after_the_repair_budget() -> None:
+    partial = {"answerable": True, "claims": [{"text": "Имеется журнал.",
+               "evidence": ["source-1.1"]}], "missing_information": ["кто вправе читать"]}
+    deps = make_deps(ScriptedAdapter([partial]))
+    deps.settings.max_repair_attempts = 0
+    state = await run_qa(deps, question="Кому доступен журнал?", scope=SCOPE, debug=False)
+    assert state.outcome == OUTCOME_NOT_FOUND and state.draft is None

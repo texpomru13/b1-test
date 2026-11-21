@@ -18,6 +18,7 @@ from app.qa.evidence import issue_evidence
 from app.qa.extractive import (
     EXTRACT_VERIFIER,
     SELECTION_SYSTEM,
+    bind_local_clauses,
     from_selection,
     reading_passages,
     retry_numeric_reference,
@@ -47,7 +48,9 @@ from app.qa.schemas import (
     Coverage,
     DraftAnswer,
     Verification,
+    is_incomplete_draft,
 )
+from app.qa.source_details import complete_source_details
 from app.reliability.breaker import CircuitOpenError, get_breaker
 from app.reliability.deadline import Deadline
 from app.reliability.policy import backoff_delay
@@ -211,6 +214,7 @@ async def run_qa(
                     max_tokens=output_budget + settings.llm_max_output_tokens,
                 )
                 draft = DraftAnswer.model_validate(raw)
+            draft = complete_source_details(question, draft, spans)
             if not draft.answerable:
                 logger.info("draft_not_answerable", repairs=attempt)
                 result.refusal_stage = stage
@@ -222,6 +226,7 @@ async def run_qa(
                         continue
                 return result
             stage = "evidence"
+            bind_local_clauses(question, draft.claims, spans)
             located = validate_claims(draft.claims, sources, question=question, spans=spans,
                                       render_conditional_rules=True)
             preserve_qualifications(draft.claims, located)
@@ -265,7 +270,8 @@ async def run_qa(
             result.refusal_stage = None
             return result
         except (ModelOutputInvalid, ValidationError) as exc:
-            result.outcome = OUTCOME_INVALID_OUTPUT
+            result.outcome = (OUTCOME_NOT_FOUND if is_incomplete_draft(exc)
+                              else OUTCOME_INVALID_OUTPUT)
             fields = ([{"path": list(issue["loc"]), "type": issue["type"]}
                        for issue in exc.errors(include_input=False, include_context=False)[:8]]
                       if isinstance(exc, ValidationError) else [])
