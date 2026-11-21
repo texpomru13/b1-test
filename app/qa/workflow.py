@@ -13,8 +13,17 @@ from app.inference.client import LocalModelsClient
 from app.ingestion.chunker import LengthFn
 from app.observability.logging import get_logger
 from app.providers.factory import ChatAdapter, ModelOutputInvalid, ProviderUnavailable
-from app.qa.completeness import add_defined_day, preserve_qualifications, words
+from app.qa.completeness import add_defined_day, preserve_qualifications
 from app.qa.evidence import issue_evidence
+from app.qa.extractive import (
+    EXTRACT_VERIFIER,
+    SELECTION_SYSTEM,
+    from_selection,
+    reading_passages,
+    retry_numeric_reference,
+    selection_prompt,
+    selection_schema,
+)
 from app.qa.grounding import (
     LocatedQuote,
     ProvenanceError,
@@ -144,25 +153,6 @@ def _verdict_feedback(draft: DraftAnswer, verification: Verification) -> str:
     return "; ".join(issues)
 
 
-def _reading_hints(question: str, spans: dict[str, LocatedQuote]) -> str:
-    """Point a reluctant reader back to a small set of relevant, answer-bearing passages."""
-    terms = words(question)
-    matches = []
-    for key, span in spans.items():
-        overlap = len(terms & words(span.quote_raw))
-        if overlap >= 2 and len(span.quote_raw) >= 35:
-            matches.append((key, overlap))
-    if not matches:
-        return ""
-    ranked = sorted(matches, key=lambda item: -item[1])
-    ids = list(dict.fromkeys([matches[0][0], *(key for key, _ in ranked[:3])]))
-    return ("\n\nПовторно прочти " + ", ".join(ids) +
-            ". Проверь прямую формулировку, условие, реквизиты и продолжение перечня. "
-            "Из запрета или ограничения может следовать прямой отрицательный ответ. "
-            "Если эти фрагменты относятся к иному предмету или сведений по-прежнему "
-            "недостаточно, сохрани отказ.")
-
-
 def _coverage_sources(spans: dict[str, LocatedQuote], located: dict[int, list[LocatedQuote]],
                       budget: int, length_fn: LengthFn) -> str:
     used = {(q.char_start, q.char_end) for group in located.values() for q in group}
@@ -199,26 +189,36 @@ async def run_qa(
     spans = issue_evidence(sources)
     prompt = generation_user_prompt(question, render_sources(sources, spans))
     feedback = ""
+    choices: dict[str, LocatedQuote] = {}
     for attempt in range(1 + settings.max_repair_attempts):
         if result.llm_calls >= settings.max_llm_calls_per_question:
             break
         result.repair_count = attempt
         stage = "generation"
         try:
-            raw = await _call_json(
-                deps, result, deadline, system=GENERATION_SYSTEM_V1, user=prompt + feedback,
-                schema=DRAFT_JSON_SCHEMA,
-                max_tokens=settings.llm_reasoning_budget_tokens + settings.llm_max_output_tokens,
-            )
-            draft = DraftAnswer.model_validate(raw)
+            output_budget = settings.llm_reasoning_budget_tokens
+            if choices:
+                raw = await _call_json(
+                    deps, result, deadline, system=SELECTION_SYSTEM,
+                    user=selection_prompt(question, choices), schema=selection_schema(question),
+                    max_tokens=output_budget + 384,
+                )
+                draft = from_selection(raw, choices, question)
+            else:
+                raw = await _call_json(
+                    deps, result, deadline, system=GENERATION_SYSTEM_V1, user=prompt + feedback,
+                    schema=DRAFT_JSON_SCHEMA,
+                    max_tokens=output_budget + settings.llm_max_output_tokens,
+                )
+                draft = DraftAnswer.model_validate(raw)
             if not draft.answerable:
                 logger.info("draft_not_answerable", repairs=attempt)
                 result.refusal_stage = stage
                 result.outcome = OUTCOME_NOT_FOUND
                 if (attempt == 0 and settings.max_repair_attempts
                         and settings.max_llm_calls_per_question - result.llm_calls >= 2):
-                    feedback = _reading_hints(question, spans)
-                    if feedback:
+                    choices = reading_passages(question, spans)
+                    if choices:
                         continue
                 return result
             stage = "evidence"
@@ -246,9 +246,11 @@ async def run_qa(
             claims_block = "\n\n".join(blocks)
             budget = effective_context_budget(settings, deps.length_fn(question))
             remaining = min(1600, budget - deps.length_fn(claims_block))
-            supplement = _coverage_sources(spans, located, remaining, deps.length_fn)
+            supplement = "" if choices else _coverage_sources(spans, located, remaining,
+                                                               deps.length_fn)
+            verifier = EXTRACT_VERIFIER if choices else VERIFIER_SYSTEM_V1
             raw = await _call_json(
-                deps, result, deadline, system=VERIFIER_SYSTEM_V1,
+                deps, result, deadline, system=verifier,
                 user=verifier_user_prompt(question, claims_block, supplement),
                 schema=VERIFY_JSON_SCHEMA, max_tokens=settings.llm_reasoning_budget_tokens + 512,
             )
@@ -272,6 +274,8 @@ async def run_qa(
             logger.warning("provenance_rejected", error=str(exc)[:200])
             result.refusal_stage = stage
             reason = str(exc)[:500]
+            if attempt == 0 and stage == "evidence" and retry_numeric_reference(question, reason):
+                choices = reading_passages(question, spans)
         feedback = (
             f"\n\nПРЕДЫДУЩАЯ ПОПЫТКА ОТКЛОНЕНА СЕРВЕРОМ: {reason}\n"
             "Исправь указанный факт или выбери ID подтверждающих фрагментов. "

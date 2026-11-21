@@ -118,7 +118,9 @@ def preserve_qualifications(claims: list[Claim], located: dict[int, list[Located
         named = [label for label in labels if scope_key(label) in scope_key(claim.text)
                  and scope_key(label) not in scope_key(wording)]
         if len(named) <= 1:
-            claim.text = f"«{named[0]}». {wording}" if named else wording
+            response = f"«{named[0]}». {wording}" if named else wording
+            direct = re.match(r"^(Да|Нет)[.,]\s", claim.text, re.I)
+            claim.text = f"{direct[1]}. {response}" if direct else response
 
 
 def add_defined_day(claim: Claim, quotes: list[LocatedQuote],

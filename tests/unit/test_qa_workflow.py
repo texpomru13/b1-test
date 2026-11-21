@@ -264,3 +264,25 @@ async def test_duplicate_or_foreign_verdicts_do_not_validate_a_claim() -> None:
     deps.settings.max_repair_attempts = 0
     result = await run_qa(deps, question="q", scope=SCOPE, debug=False)
     assert result.outcome == OUTCOME_INVALID_OUTPUT
+
+
+async def test_second_read_verifies_extracted_rule_for_a_negative_answer() -> None:
+    refusal = {"answerable": False, "claims": [], "missing_information": ["запись"]}
+    adapter = ScriptedAdapter([refusal, {"passages": ["source-1.1"], "polarity": "no"}, VERDICT_OK])
+    rule = "Получить именной пропуск посетитель может только при предварительной записи."
+    result = await run_qa(make_deps(adapter, [rule]), scope=SCOPE, debug=False,
+                          question="Можно ли получить именной пропуск без записи?")
+    assert result.llm_calls == 3 and result.outcome == OUTCOME_ANSWERED
+    answer = assemble_answer(result)
+    assert answer.answer.startswith("Нет.") and "только при" in answer.answer
+    assert answer.citations[0].text == rule
+
+
+async def test_second_read_fails_closed_for_an_uncorroborated_answer() -> None:
+    refusal = {"answerable": False, "claims": [], "missing_information": ["основание"]}
+    adapter = ScriptedAdapter([refusal, {"passages": ["source-1.1"], "polarity": "yes"},
+                               VERDICT_BAD])
+    rule = "Временный пропуск посетителя действует только в здании архива."
+    result = await run_qa(make_deps(adapter, [rule]), scope=SCOPE, debug=False,
+                          question="Можно ли по временному пропуску посетителя войти в ангар?")
+    assert result.outcome == OUTCOME_NOT_FOUND and result.draft is None

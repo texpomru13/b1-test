@@ -3,9 +3,9 @@
 from types import SimpleNamespace
 
 from app.qa.completeness import add_defined_day, preserve_qualifications
+from app.qa.extractive import from_selection, reading_passages
 from app.qa.grounding import quote_at_offsets
 from app.qa.schemas import Claim
-from app.qa.workflow import _reading_hints
 from app.retrieval.day_definition import prioritize_day_definition
 from app.retrieval.search import ContextChunk
 
@@ -61,5 +61,17 @@ def test_rank_formal_definition_alongside_direct_deadline_without_picking_other_
 def test_second_read_is_anchored_to_evidence_or_skipped() -> None:
     c = chunk("Сотрудник представляет заявление о возмещении расходов в бумажной форме.")
     s = {"source-1.1": quote_at_offsets(c, 0, len(c.text))}
-    assert "source-1.1" in _reading_hints("Как сотрудник представляет заявление?", s)
-    assert not _reading_hints("Какова температура плавления?", s)
+    assert "source-1.1" in reading_passages("Как сотрудник представляет заявление?", s)
+    assert not reading_passages("Какова температура плавления?", s)
+
+
+def test_extractive_repair_answers_yes_no_only_for_a_closed_question() -> None:
+    c = chunk("Ключ выдаётся только держателю действующего пропуска.")
+    choices = {"source-1.1": quote_at_offsets(c, 0, len(c.text))}
+    raw = {"passages": ["source-1.1"], "polarity": "no"}
+    closed = from_selection(raw, choices, "Можно ли получить ключ без пропуска?")
+    assert closed.claims[0].text == "Нет. " + c.text
+    assert closed.claims[0].evidence == ["source-1.1"]
+    assert from_selection(raw, choices, "Кому выдают ключ?").claims[0].text == c.text
+    empty = from_selection({"passages": [], "polarity": "no"}, choices, "Можно ли взять ключ?")
+    assert not empty.answerable and not empty.claims
