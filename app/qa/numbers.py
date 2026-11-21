@@ -124,6 +124,12 @@ def _ruble_price_column(lines: list[str], end: int) -> bool:
                 and _WRAPPED_RUBLES.match(lines[end]))
 
 
+def ruble_heading(text: str) -> bool:
+    """Whether the rightmost price column explicitly uses rubles."""
+    lines = text.splitlines()
+    return bool(lines and _ruble_price_column(lines, len(lines) - 1))
+
+
 def numeric_evidence_texts(quotes: list[LocatedQuote]) -> list[str]:
     """Recover a terminal currency cell using its verified, separately cited header."""
     texts = [q.quote_raw for q in quotes]
