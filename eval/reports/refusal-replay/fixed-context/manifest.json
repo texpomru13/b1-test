@@ -1,0 +1,61 @@
+{
+  "experiment": "live_generation_and_verification_with_fixed_retrieval_context",
+  "source_commit": "d45b40b7c8e59518871e1ab341ea5d99f1f7ea2b",
+  "api_source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64",
+  "started_utc": "2026-11-21T08:02:04Z",
+  "finished_utc": "2026-11-21T08:08:05Z",
+  "driver": "eval/replay_refusals.py",
+  "driver_sha256": "fca59eac65db7f608ba8e61b3ac0236357ddcd4cb1e30e5d5f0c1831bdadc124",
+  "contexts": "../contexts.jsonl",
+  "contexts_sha256": "190072c24f1a617f1c6cc11676f43586f8d3062cef78e5dd85ff9820ba3f4134",
+  "provider": "Ollama",
+  "endpoint": "http://127.0.0.1:11593",
+  "model": {
+    "name": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90"
+  },
+  "settings": {
+    "llm_temperature": 0,
+    "llm_thinking": "off",
+    "local_context_tokens": 16384,
+    "llm_reasoning_budget_tokens": 0,
+    "max_llm_calls_per_question": 4,
+    "max_repair_attempts": 1,
+    "llm_max_output_tokens": 2048,
+    "llm_read_timeout_s": 180
+  },
+  "document_api_requests": 0,
+  "total_cases": 13,
+  "llm_calls": 27,
+  "outcomes": {
+    "answered": 5,
+    "not_found": 8
+  },
+  "source_checks": "Quotes exactly match their archived retrieval chunk and canonical document slice; physical pages, sections and citation markers checked.",
+  "citations_verified_by_case": {
+    "01-02": 1,
+    "01-03": 0,
+    "03-05": 3,
+    "05-03": 3,
+    "10-01": 0,
+    "10-04": 0,
+    "11-06": 2,
+    "13-03": 0,
+    "13-05": 3,
+    "14-01": 0,
+    "14-02": 0,
+    "14-04": 0,
+    "14-08": 0
+  },
+  "semantic_review": "agent",
+  "responses_sha256": "d739905b3134777238889898914f041949a32768966834627ae958433dae31da",
+  "stage_events_sha256": "c9bfddcf105125124d407bc8a72147bc06abc9250090a528a91f75cd169cb645",
+  "semantic_verdicts": {
+    "complete": 4,
+    "refusal": 8,
+    "imprecise": 1
+  },
+  "review_sha256": "2829fa6880467b1552fd9b84c9a9272400d358942faaf2c66557eb8282b66285",
+  "event_timezone": "Asia/Yekaterinburg, UTC+05:00",
+  "exact_citations": 12
+}
