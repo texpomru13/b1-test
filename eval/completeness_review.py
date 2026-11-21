@@ -57,7 +57,7 @@ def packet(series: str, work: Path, run: str) -> tuple[dict, list[dict], list[st
         or manifest["responses_sha256"] != sha(saved / "responses.jsonl")
         or manifest["inputs"]["gold_sha256"] != sha(work / "gold.jsonl")
         or manifest["inputs"]["gold_sha256"] != previous["inputs"]["gold_sha256"]
-        or set(manifest["inputs"]["documents"]) != set(previous["inputs"]["documents"])
+        or manifest["inputs"]["documents"] != previous["inputs"]["documents"]
     ):
         raise ValueError(f"{series}: series, responses or rubric do not match the frozen plan")
     indices = {}
@@ -73,7 +73,6 @@ def packet(series: str, work: Path, run: str) -> tuple[dict, list[dict], list[st
             or docs[fid]["doc_id"] != index["doc_id"]
             or index["accepted_run_id"] != item["accepted_run_id"]
             or index["index_fingerprint"] != item["index_fingerprint"]
-            or item["source_sha256"] != previous["inputs"]["documents"][fid]["source_sha256"]
             or sha(source) != item["source_sha256"]
         ):
             raise ValueError(f"{series}/{fid}: source, document or accepted index changed")
