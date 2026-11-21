@@ -29,7 +29,7 @@
     "warehouse": "81cb9bde82e69dab29642b8d5c10fc6ea9de3c402fde4f06defef4abd41bff53"
   },
   "questions": {
-    "eval/gold/gold.jsonl": "649ccd4cea61cbc79f773ad03102cd0ec5761e38628a880442de4578c8f3affa",
+    "eval/gold/gold.jsonl": "b48606c3824cd0db9d7810b81fb14a00aca39630c58be8230a42fc68d418c377",
     "eval/gold/scan-06.jsonl": "5ace43f45982478d1675cf3030ff2737860d1b21f26b54dd58a902ce5c150349",
     "eval/packs/contracts-six/gold.jsonl": "c07beb2ce8071e695cd1851a16bb891907c52432d1dc305eb9b554b0d2aac104",
     "eval/packs/published-six/gold.jsonl": "2de34068b885807093d40cbe9a87c38f5f75f523ab439f5009faa87b23d0b0e9",
