@@ -25,7 +25,7 @@ export B1_HOST_OLLAMA_PORT="$host_port" HF_HOME="$out/hf"
 mkdir "$out/ollama" "$HF_HOME"
 git clone -q --local "$repo" "$out/checkout"
 cd "$out/checkout"
-git checkout -q --detach f89180849615c5a74543b37eb460180380c2e6a4
+git checkout -q --detach 59bf55e6172d9a737194bb462b5eb455732b0c99
 test -z "$(git status --porcelain)"
 test -z "$(docker volume ls -q --filter label=com.docker.compose.project="$B1_PROJECT")"
 test -z "$(docker ps -aq --filter label=com.docker.compose.project="$B1_PROJECT")"
