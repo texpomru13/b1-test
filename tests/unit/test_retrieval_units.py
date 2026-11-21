@@ -300,3 +300,31 @@ async def test_reranker_cannot_silently_drop_candidates() -> None:
             qdrant=FakeQdrant([_point("1", 0, "text")]), local_models=PartialReranker({}),
             bm25=FakeBm25(), length_fn=char_len,
         )
+
+
+@pytest.mark.parametrize(("k", "foreign", "expected"), [
+    (2, False, ["heading", "leaf"]), (1, False, ["heading"]), (2, True, ["heading"]),
+])
+async def test_structural_bridge_is_scoped_and_keeps_atomic_context_budget(k, foreign, expected):
+    heading = _point("heading", 0, "Статья 17\nОснования")
+    leaf = _point("leaf", 2, "2. Запрос подается письменно.")
+    bridge = _point("bridge", 1, "1. Поступление запроса регистрируется.")
+    bridge.payload.update(doc_id="foreign" if foreign else SCOPE.doc_id,
+                          ingestion_run_id=SCOPE.accepted_run_id,
+                          index_fingerprint=SCOPE.index_fingerprint)
+
+    class StructureStore(FakeQdrant):
+        async def scroll(self, **kwargs):
+            assert kwargs["limit"] == 1
+            assert kwargs["scroll_filter"].must[0] == scope_filter(SCOPE)
+            return [bridge], None
+
+    store = StructureStore([leaf, heading])
+    result = await hybrid_search(
+        question="Какие основания установлены статьёй 17?", scope=SCOPE,
+        settings=make_settings(context_top_k=k), qdrant=store,  # type: ignore[arg-type]
+        local_models=FakeLM({"leaf": 1.0, "heading": .1}),  # type: ignore[arg-type]
+        bm25=FakeBm25(), length_fn=char_len,  # type: ignore[arg-type]
+    )
+    assert result.allowed_chunk_ids == expected
+    assert result.diagnostics.reranked_count == result.diagnostics.fused_returned == 2

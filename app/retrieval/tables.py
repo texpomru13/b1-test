@@ -73,3 +73,20 @@ def attach_price_headings(units: dict[str, list[ContextChunk]]) -> None:
         if len(unit) == 1:
             units[key] = [heading, replace(row, list_heading_id=heading.chunk_id,
                                            table_heading_span=bounds)]
+
+
+def price_table_gaps(question: str, units: dict[str, list[ContextChunk]]) -> set[int]:
+    """Read only gaps between a printed price header and a fused numbered row."""
+    if not re.search(r"\b(?:стоимост|стоит|стоят|цен[ауые]|рубл|оплат|плат[ау])", question, re.I):
+        return set()
+    positions = {u[-1].chunk_index for u in units.values()}
+    headers = sorted(u[-1].chunk_index for u in units.values() if price_heading(u[-1].text))
+    gaps: set[int] = set()
+    for unit in units.values():
+        chunk = unit[-1]
+        if not _row_range(chunk.text):
+            continue
+        left = max((h for h in headers if 0 < chunk.chunk_index - h <= 48), default=None)
+        if left is not None:
+            gaps.update(set(range(left + 1, chunk.chunk_index)) - positions)
+    return gaps

@@ -23,9 +23,10 @@ from app.inference.contract import (
 from app.ingestion.chunker import LengthFn
 from app.ingestion.scopes import requested_scope_keys, scope_key
 from app.reliability.policy import retry_async
+from app.retrieval.articles import article_gaps, article_units
 from app.retrieval.bm25 import Bm25Adapter
 from app.retrieval.day_definition import prioritize_day_definition
-from app.retrieval.tables import attach_price_headings
+from app.retrieval.tables import attach_price_headings, price_table_gaps
 from app.storage.qdrant_repo import DENSE_NAME, SPARSE_NAME, FingerprintMismatchError
 from qdrant_client import AsyncQdrantClient, models
 
@@ -86,6 +87,7 @@ class ContextChunk:
     scope_id: str | None = None
     scope_label: str | None = None
     table_heading_span: tuple[int, int] | None = None
+    scope_heading_span: tuple[int, int] | None = None
 
 
 def _context_unit(chunk_id: str, payload: dict[str, Any]) -> list[ContextChunk]:
@@ -238,7 +240,13 @@ async def hybrid_search(
     # 3) mandatory rerank (fail closed)
     timer = time.monotonic()
     units = {str(p.id): _context_unit(str(p.id), p.payload or {}) for p in candidates}
-    attach_price_headings(units)
+    structural = dict(units)
+    gaps = article_gaps(question, units) | price_table_gaps(question, units)
+    if gaps:
+        await _bridge_source_gaps(structural, gaps, flt, qdrant, settings, scope, diag)
+    eligible = article_units(question, structural)
+    attach_price_headings(structural)
+    units = {key: structural[key] for key in units}
     documents = [
         RerankDocument(id=key, text="\n".join(_scoped_text(part) for part in unit))
         for key, unit in units.items()
@@ -278,6 +286,8 @@ async def hybrid_search(
         if len(context) >= settings.context_top_k:
             break
         key = str(point.id)
+        if eligible is not None and key not in eligible:
+            continue
         unit = units[key]
         label = unit[-1].scope_label
         if requested and label and scope_key(label) not in requested:
@@ -305,6 +315,32 @@ async def hybrid_search(
         allowed_chunk_ids=diag.context_chunk_ids,
         diagnostics=diag,
     )
+
+
+async def _bridge_source_gaps(
+    structural: dict[str, list[ContextChunk]], gaps: set[int], flt: models.Filter,
+    qdrant: AsyncQdrantClient, settings: Settings, scope: RetrievalScope, diag: Diagnostics,
+) -> None:
+    # One bounded metadata read. The bridge rows establish continuity; they are not
+    # added to the fused/reranked candidates. Missing rows cannot confer a heading.
+    positions = sorted(gaps)[:48]
+    scoped = models.Filter(must=[flt, models.FieldCondition(
+        key="chunk_index", match=models.MatchAny(any=positions),
+    )])
+    try:
+        points, _ = await qdrant.scroll(collection_name=settings.qdrant_collection,
+                                        scroll_filter=scoped, limit=len(positions),
+                                        with_payload=True, with_vectors=False)
+    except Exception as exc:
+        diag.diagnostic_warnings.append(f"structure lookup failed: {type(exc).__name__}")
+        return
+    for p in points:
+        data = p.payload or {}
+        if (data.get("doc_id") == scope.doc_id
+                and data.get("ingestion_run_id") == scope.accepted_run_id
+                and data.get("index_fingerprint") == scope.index_fingerprint
+                and data.get("chunk_index") in gaps):
+            structural[str(p.id)] = _context_unit(str(p.id), data)
 
 
 async def _replay_branch_counts(
