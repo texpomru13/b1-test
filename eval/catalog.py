@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import unicodedata
 from collections import Counter
 from pathlib import Path
 
@@ -33,13 +34,14 @@ TITLES = {
 
 def documents() -> dict[str, Path]:
     files = [p for p in DOCUMENTS.iterdir() if p.is_file() and p.suffix in {".pdf", ".docx"}]
-    result = {p.stem.partition("_")[0]: p for p in files}
+    result = {p.stem.partition("_")[0]: p.with_name(unicodedata.normalize("NFC", p.name))
+              for p in files}
     if len(result) != len(files):
         raise ValueError("duplicate numeric document identifier")
     for key in PACK_NAMES:
         for fid, ref in json.loads((PACKS / key / "documents.json").read_text()).items():
             path = (ROOT / ref).resolve()
-            if fid in result and result[fid].resolve() != path:
+            if fid in result and not result[fid].samefile(path):
                 raise ValueError(f"fixture identifier belongs to two files: {fid}")
             result[fid] = path
     if len(set(result.values())) != len(result):

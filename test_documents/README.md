@@ -20,16 +20,16 @@
 | [Найробский договор об охране олимпийского символа](<published-six/nairobi.pdf>) | PDF | [10](../eval/gold/questions.md#doc-nairobi) |
 | [Ниццкое соглашение](<published-six/nice.pdf>) | PDF | [10](../eval/gold/questions.md#doc-nice) |
 | [Образовательные услуги СПбГИКиТ](<11_Образовательные_услуги_СПбГИКиТ.pdf>) | PDF | [20](../eval/gold/questions.md#doc-11) |
-| [Обслуживание пожарной сигнализации](<13_Обслуживание_пожарной_сигнализации.docx>) | DOCX | [9](../eval/gold/questions.md#doc-13) |
+| [Обслуживание пожарной сигнализации](<13_Обслуживание_пожарной_сигнализации.docx>) | DOCX | [9](../eval/gold/questions.md#doc-13) |
 | [Оферта гостиницы в Сочи](<external-six/hotel.pdf>) | PDF | [10](../eval/gold/questions.md#doc-hotel) |
 | [Оферта транспортной карты «Тройка»](<external-six/troika.pdf>) | PDF | [10](../eval/gold/questions.md#doc-troika) |
 | [Поставка Мария-Ра](<01_Поставка_Мария-Ра.docx>) | DOCX | [9](../eval/gold/questions.md#doc-01) |
 | [Страхование ответственности Ингосстрах](<10_Страхование_ответственности_Ингосстрах.pdf>) | PDF | [10](../eval/gold/questions.md#doc-10) |
-| [Строительный подряд Метафракс](<07_Строительный_подряд_Метафракс.pdf>) | PDF | [21](../eval/gold/questions.md#doc-07) |
+| [Строительный подряд Метафракс](<07_Строительный_подряд_Метафракс.pdf>) | PDF | [21](../eval/gold/questions.md#doc-07) |
 | [Тарифы музея семьи Рерихов](<external-six/roerich.pdf>) | PDF | [10](../eval/gold/questions.md#doc-roerich) |
 | [Транспортная экспедиция Logexim](<02_Транспортная_экспедиция_Logexim.pdf>) | PDF | [20](../eval/gold/questions.md#doc-02) |
-| [Туристский продукт Ласпи](<09_Туристский_продукт_Ласпи.pdf>) | PDF | [9](../eval/gold/questions.md#doc-09) |
-| [Умный дом Ростелеком](<14_Умный_дом_Ростелеком.pdf>) | PDF | [21](../eval/gold/questions.md#doc-14) |
+| [Туристский продукт Ласпи](<09_Туристский_продукт_Ласпи.pdf>) | PDF | [9](../eval/gold/questions.md#doc-09) |
+| [Умный дом Ростелеком](<14_Умный_дом_Ростелеком.pdf>) | PDF | [21](../eval/gold/questions.md#doc-14) |
 | [Хостинг Оптибит](<05_Хостинг_Оптибит.pdf>) | PDF | [19](../eval/gold/questions.md#doc-05) |
 
 Подробные листы сверки с дословными выдержками охватывают [договоры организаций](../eval/packs/contracts-six/source-review.md), [официальные публикации](../eval/packs/published-six/source-review.md) и [публичные оферты и тарифы](../eval/packs/external-six/source-review.md).
