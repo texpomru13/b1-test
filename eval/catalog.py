@@ -141,7 +141,10 @@ def render(docs: dict[str, Path], rows: list[dict]) -> None:
                  "[публичные оферты и тарифы](../eval/packs/external-six/source-review.md).", "",
                  "Для контролируемых тестов правил и таблиц предусмотрены "
                  "[синтетические PDF](synthetic-six) и "
-                 "[60 вопросов к ним](../eval/qualification/source-review.md).", ""]
+                 "[60 вопросов к ним](../eval/qualification/source-review.md).", "",
+                 "Независимая выборка содержит [10 новых PDF](independent-ten) "
+                 "и [80 вопросов](../eval/packs/independent-ten/source-review.md). "
+                 "Она оценивается своим прогоном.", ""]
     (DOCUMENTS / "README.md").write_text("\n".join(overview))
     (GOLD / "questions.md").write_text("\n".join(sheet))
 

@@ -2,16 +2,16 @@
   "version": 1,
   "files": {
     "gold.jsonl": "3f13784e7dd2b951359239f17ae1c795f4585a3961ab1efa4e4ac5ebf1b71020",
-    "fixtures/climate-paris.pdf": "210d16cc0b57af1bba547fe815fb80cc62e3952973359ba9f775b8917aac81ce",
-    "fixtures/corruption-un.pdf": "98754127d9f589d58e77c9e783acaef177ae7ca57b8c132b92277edb64083076",
-    "fixtures/environment-cbd.pdf": "a6438505f6772144e9d5dae095a8fa8fbd61f42bb649ad1d9c825da8eef3a4d8",
-    "fixtures/global-agenda.pdf": "a9fdb06d1ec08835d2382918d70f0c6d886d145e5550d7617ec39b243363582a",
-    "fixtures/marks-singapore.pdf": "f412c14e4f721134dff6e086a9c0f17c703d4a545897a47aa34f69a1d31c4330",
-    "fixtures/marks-tlt.pdf": "c8a49866d456fc2684bae10cff81b29e088d1bab18bd1182648c5d76fa47d8b8",
-    "fixtures/rights-disability.pdf": "411def23cacde97de02dc864d3de0edf9972eb12f86de03493eea10da3ba5f19",
-    "fixtures/trade-cisg.pdf": "619ebf3fd7e246890807e5d792cd38ec1e260bc6a41cf334488da4a458a75476",
-    "fixtures/trade-electronic.pdf": "db7855d3bca0d3214753dca0c932e913ff29ec970da41422a591dd5404112eee",
-    "fixtures/trade-mediation.pdf": "1a152034635bf146c2fc50e85851065db6ec2d6f500bd6086d2deb7cf5d8d402",
-    "documents.json": "6299836277fa9f53602dfce705c788214991e0c7c2d12badd50ea290e1b65ebd"
+    "../../../test_documents/independent-ten/climate-paris.pdf": "210d16cc0b57af1bba547fe815fb80cc62e3952973359ba9f775b8917aac81ce",
+    "../../../test_documents/independent-ten/corruption-un.pdf": "98754127d9f589d58e77c9e783acaef177ae7ca57b8c132b92277edb64083076",
+    "../../../test_documents/independent-ten/environment-cbd.pdf": "a6438505f6772144e9d5dae095a8fa8fbd61f42bb649ad1d9c825da8eef3a4d8",
+    "../../../test_documents/independent-ten/global-agenda.pdf": "a9fdb06d1ec08835d2382918d70f0c6d886d145e5550d7617ec39b243363582a",
+    "../../../test_documents/independent-ten/marks-singapore.pdf": "f412c14e4f721134dff6e086a9c0f17c703d4a545897a47aa34f69a1d31c4330",
+    "../../../test_documents/independent-ten/marks-tlt.pdf": "c8a49866d456fc2684bae10cff81b29e088d1bab18bd1182648c5d76fa47d8b8",
+    "../../../test_documents/independent-ten/rights-disability.pdf": "411def23cacde97de02dc864d3de0edf9972eb12f86de03493eea10da3ba5f19",
+    "../../../test_documents/independent-ten/trade-cisg.pdf": "619ebf3fd7e246890807e5d792cd38ec1e260bc6a41cf334488da4a458a75476",
+    "../../../test_documents/independent-ten/trade-electronic.pdf": "db7855d3bca0d3214753dca0c932e913ff29ec970da41422a591dd5404112eee",
+    "../../../test_documents/independent-ten/trade-mediation.pdf": "1a152034635bf146c2fc50e85851065db6ec2d6f500bd6086d2deb7cf5d8d402",
+    "documents.json": "68e728c563069895512317b4ce331d66439742372781ffe773b962db563b153f"
   }
 }

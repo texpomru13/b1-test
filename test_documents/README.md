@@ -35,3 +35,5 @@
 Подробные листы сверки с дословными выдержками охватывают [договоры организаций](../eval/packs/contracts-six/source-review.md), [официальные публикации](../eval/packs/published-six/source-review.md) и [публичные оферты и тарифы](../eval/packs/external-six/source-review.md).
 
 Для контролируемых тестов правил и таблиц предусмотрены [синтетические PDF](synthetic-six) и [60 вопросов к ним](../eval/qualification/source-review.md).
+
+Независимая выборка содержит [10 новых PDF](independent-ten) и [80 вопросов](../eval/packs/independent-ten/source-review.md). Она оценивается своим прогоном.
