@@ -15,7 +15,7 @@
 
 Среди восьми ложных отказов в семи весь эталонный материал попал в переданный контекст. Три раза генератор объявил сведения недостаточными, четыре раза проверка источников отклонила утверждения и один раз их отклонил верификатор. Например, для двух строк ставок по вкладам сервер потребовал разделить числовые значения с разными условиями. Для вопроса о реестре космических объектов одна из нужных выдержек также осталась вне контекста. [События исходных запросов](observed-refusals.json)
 
-При 32 ответах из 40 доля полностью корректных ответов ограничена сверху 80%. Для заданного порога в 85% требуются как минимум 34. Оценка полноты и смысловой точности каждого выданного ответа собрана в [разборе утверждений](REVIEW.md).
+При 32 ответах из 40 доля полностью корректных ответов ограничена сверху 80%. Для заданного порога в 85% требуются как минимум 34.
 
 В [манифесте](manifest.json) записаны контрольные суммы кода приложения, образов, PDF, индексных экспортов, вопросов и ответов. Договор аренды из демонстрации использован один раз для прогрева после перезапуска. Этот запрос исключён из всех долей и перцентилей. [Запись прогрева](warmup.json)
 
@@ -28,7 +28,6 @@
 - [Вопросы, обязательные факты и доказательства](../../packs/published-six/gold.jsonl) и [происхождение PDF](../../packs/published-six/sources.md)
 - [Исходные HTTP-ответы с вопросами, ссылками, временем и диагностикой](responses.jsonl) и [проверки по каждому запросу](cases-all.jsonl)
 - [Технические метрики](metrics-all.json) и [события проверки для ложных отказов](observed-refusals.json)
-- [Разметка утверждений](claim-review.json), [итог по заданным порогам](qualification.json) и [разбор примеров](REVIEW.md)
 - [Снимок опубликованных шести индексов, маппинга документов и эталона](inputs.tar.gz) и [SHA-256 файлов](sha256.json)
 
 ## Пересчёт
@@ -42,11 +41,10 @@ export B1_EVAL_PACK=published-six
 export B1_EVAL_WORK_DIR=$(mktemp -d)
 tar -xzf "$report/inputs.tar.gz" -C "$B1_EVAL_WORK_DIR"
 mkdir -p "$B1_EVAL_WORK_DIR/runs/final"
-cp "$report/manifest.json" "$report/responses.jsonl" "$report/claim-review.json" "$B1_EVAL_WORK_DIR/runs/final/"
+cp "$report/manifest.json" "$report/responses.jsonl" "$B1_EVAL_WORK_DIR/runs/final/"
 uv run --frozen python eval/qualification_data.py --check-index
 uv run --frozen python eval/metrics.py --run final
 uv run --frozen python "$report/check_evidence.py" "$B1_EVAL_WORK_DIR"
-uv run --frozen python eval/qualification_review.py score --run final
 ```
 
 Для отдельной ручной оценки скопируйте в отдельную рабочую папку снимок индексов, манифест и ответы. Создайте пустой бланк через `qualification_review.py prepare --run final`. Эталон и исходные PDF можно независимо проверить по [листу сверки](../../packs/published-six/source-review.md).
