@@ -20,6 +20,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
+from catalog import prepare_gold
 from paths import ROOT, WORK
 from pypdf import PdfReader, PdfWriter
 from qualification_data import install_gold, source_files
@@ -59,7 +60,10 @@ def main() -> None:
     parser.add_argument("--api", default="http://127.0.0.1:8000")
     parser.add_argument("--timeout-s", type=int, default=3600)
     parser.add_argument("--only", nargs="*", help="fixture ids to (re)upload")
-    parser.add_argument("--qualification", action="store_true",
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--catalog", action="store_true",
+                       help="use all real documents and questions")
+    group.add_argument("--qualification", action="store_true",
                         help="use the locked independent corpus in a separate B1_EVAL_WORK_DIR")
     args = parser.parse_args()
     if args.qualification:
@@ -71,7 +75,9 @@ def main() -> None:
     if corpus.get("api") != args.api:
         corpus = {"api": args.api, "docs": {}}
 
-    if args.qualification:
+    if args.catalog:
+        fixtures = prepare_gold()
+    elif args.qualification:
         fixtures = source_files()
     else:
         files = sorted(p for p in DOCS.iterdir() if p.suffix in CONTENT_TYPES)

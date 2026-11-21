@@ -80,3 +80,21 @@ def test_frozen_real_packs_are_distinct_and_plan_every_probe(harness):
             if request["kind"] == "isolation":
                 gold = next(c for c in cases if c["case_id"] == request["case_id"])
                 assert request["target_fixture"] != gold["doc_fixture_id"]
+
+
+def test_combined_catalog_includes_every_contract_and_scan_once(harness, tmp_path, monkeypatch):
+    import json
+
+    import catalog
+
+    monkeypatch.setattr(catalog, "WORK", tmp_path)
+    docs = catalog.prepare_gold()
+    assert {f"{i:02}" for i in range(1, 16)} <= docs.keys()
+    assert len(docs) == len({p.resolve() for p in docs.values()}) == 27
+    assert all(p.is_relative_to(catalog.DOCUMENTS) for p in docs.values())
+    assert sum(p.suffix == ".docx" for p in docs.values()) == 4
+    rows = [json.loads(line) for line in (tmp_path / "gold.jsonl").read_text().splitlines()]
+    assert len(rows) == 323
+    assert sum(r["answerable"] for r in rows) == 220
+    assert sum(r["doc_fixture_id"] == "06" for r in rows) == 10
+    assert sum(r["doc_fixture_id"] == "04" for r in rows) == 19
