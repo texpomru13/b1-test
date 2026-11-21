@@ -132,3 +132,15 @@ def test_maturity_keeps_both_return_procedure_and_the_actual_trigger():
     )
     assert "пунктом 7" in result.claims[0].text
     assert "в течение 3 лет" in result.claims[1].text
+
+
+def test_price_lookup_cannot_replace_an_unmatched_product_name_or_pack_size():
+    head = chunk(0, "Отдел обучения\nНаименование Ед. изм. Цена, руб.")
+    row = chunk(1, "1 Детский клуб абонемент для школьников на 5 посещений шт. 960")
+    sources = context([head, row])
+    for question in (
+        "Сколько стоит абонемент детского клуба на 9 посещений для школьников?",
+        "Сколько стоит абонемент детского клуба «Специальный курс» для школьников?",
+    ):
+        answer, refs = run(sources, question)
+        assert not answer.answerable and not refs

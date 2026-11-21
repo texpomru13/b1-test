@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 _PRICE_ASK = re.compile(r"\b(?:стоит|стоят|стоимост\w*|цен[ауые])\b", re.I)
 _COMPARE = re.compile(r"\b(?:сравн\w*|разниц\w*|отлич\w*|соответственно|дешевле|дороже)\b", re.I)
 _ROW = re.compile(r"^\s*\d{1,4}[.)]?\s+(.+?)\s+(\d+(?:[ \xa0\u202f]\d{3})*(?:[.,]\d+)?)\s*$")
+_QUANTITY = re.compile(r"(?<!\w)(\d+(?:[.,]\d+)?)[ \t]+([А-ЯЁа-яёA-Za-z]+)")
 _MARK = re.compile(r"(?<!\*)\*{1,3}(?!\*)")
 _NOTE = re.compile(r"(?m)^[ \t]*(\*{1,3})[ \t]+([^\n]+(?:\n[ \t]*[а-яё][^\n]*)*)")
 _ASK_COUNT = re.compile(r"\b(?:сколько\s+раз|как\s+часто|кратност\w*)\b", re.I)
@@ -44,6 +45,8 @@ def matched_tariff(question: str, chunks: list[ContextChunk]) -> TariffRow | Non
     if not _PRICE_ASK.search(question) or _COMPARE.search(question):
         return None
     query = _terms(question)
+    quoted = re.findall(r'«([^»]+)»|"([^"]+)"', question)
+    quantities = {(n, frozenset(_terms(u))) for n, u in _QUANTITY.findall(question)}
     by_id = {c.chunk_id: c for c in chunks}
     headings = sorted(c.chunk_index for c in chunks if price_heading(c.text))
     ranked = []
@@ -79,6 +82,15 @@ def matched_tariff(question: str, chunks: list[ContextChunk]) -> TariffRow | Non
                     if m[1] in markers:
                         notes.append((c, m[2].strip()))
         note = notes[0] if len(notes) == 1 else None
+        description = " ".join([*title, label, note[1] if note else ""])
+        # An approximate product name cannot overrule a concrete size/quantity
+        # or quoted product named in the question, even when no better row exists.
+        if any(not _terms(left or right) <= _terms(description) for left, right in quoted):
+            continue
+        if quantities and not quantities <= {
+            (n, frozenset(_terms(u))) for n, u in _QUANTITY.findall(description)
+        }:
+            continue
         note_score = len(query & _terms(note[1])) if note else 0
         if overlap < 3 and note_score < 3:
             continue
