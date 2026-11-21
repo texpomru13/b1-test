@@ -13,6 +13,7 @@ from app.inference.client import LocalModelsClient
 from app.ingestion.chunker import LengthFn
 from app.observability.logging import get_logger
 from app.providers.factory import ChatAdapter, ModelOutputInvalid, ProviderUnavailable
+from app.qa.completeness import add_defined_day, preserve_qualifications, words
 from app.qa.evidence import issue_evidence
 from app.qa.grounding import (
     LocatedQuote,
@@ -29,6 +30,7 @@ from app.qa.prompts import (
     render_sources,
     verifier_user_prompt,
 )
+from app.qa.relevance import refine_answer_scope
 from app.qa.schemas import (
     DRAFT_JSON_SCHEMA,
     VERIFY_JSON_SCHEMA,
@@ -41,7 +43,12 @@ from app.reliability.breaker import CircuitOpenError, get_breaker
 from app.reliability.deadline import Deadline
 from app.reliability.policy import backoff_delay
 from app.retrieval.bm25 import Bm25Adapter
-from app.retrieval.search import RetrievalResult, RetrievalScope, hybrid_search
+from app.retrieval.search import (
+    RetrievalResult,
+    RetrievalScope,
+    effective_context_budget,
+    hybrid_search,
+)
 
 logger = get_logger("qa.workflow")
 OUTCOME_ANSWERED = "answered"
@@ -133,8 +140,44 @@ def _verdict_feedback(draft: DraftAnswer, verification: Verification) -> str:
         for v in verification.verdicts if v.verdict != ClaimVerdict.SUPPORTED
     ]
     if verification.coverage != Coverage.FULL:
-        issues.append("покрытие вопроса неполное (partial)")
+        issues.append("покрытие вопроса неполное: " + ", ".join(verification.coverage_gaps)[:460])
     return "; ".join(issues)
+
+
+def _reading_hints(question: str, spans: dict[str, LocatedQuote]) -> str:
+    """Point a reluctant reader back to a small set of relevant, answer-bearing passages."""
+    terms = words(question)
+    matches = []
+    for key, span in spans.items():
+        overlap = len(terms & words(span.quote_raw))
+        if overlap >= 2 and len(span.quote_raw) >= 35:
+            matches.append((key, overlap))
+    if not matches:
+        return ""
+    ranked = sorted(matches, key=lambda item: -item[1])
+    ids = list(dict.fromkeys([matches[0][0], *(key for key, _ in ranked[:3])]))
+    return ("\n\nПовторно прочти " + ", ".join(ids) +
+            ". Проверь прямую формулировку, условие, реквизиты и продолжение перечня. "
+            "Из запрета или ограничения может следовать прямой отрицательный ответ. "
+            "Если эти фрагменты относятся к иному предмету или сведений по-прежнему "
+            "недостаточно, сохрани отказ.")
+
+
+def _coverage_sources(spans: dict[str, LocatedQuote], located: dict[int, list[LocatedQuote]],
+                      budget: int, length_fn: LengthFn) -> str:
+    used = {(q.char_start, q.char_end) for group in located.values() for q in group}
+    lines = []
+    for key, span in spans.items():
+        ref = (span.char_start, span.char_end)
+        if ref in used:
+            continue
+        line = f"[{key}] {span.quote_raw}"
+        size = length_fn(line)
+        if size <= budget:
+            lines.append(line)
+            budget -= size
+            used.add(ref)
+    return "\n".join(lines)
 
 
 async def run_qa(
@@ -172,11 +215,20 @@ async def run_qa(
                 logger.info("draft_not_answerable", repairs=attempt)
                 result.refusal_stage = stage
                 result.outcome = OUTCOME_NOT_FOUND
+                if (attempt == 0 and settings.max_repair_attempts
+                        and settings.max_llm_calls_per_question - result.llm_calls >= 2):
+                    feedback = _reading_hints(question, spans)
+                    if feedback:
+                        continue
                 return result
             stage = "evidence"
             located = validate_claims(draft.claims, sources, question=question, spans=spans,
                                       render_conditional_rules=True)
+            preserve_qualifications(draft.claims, located)
+            for i, claim in enumerate(draft.claims):
+                add_defined_day(claim, located[i], sources.values())
             qualify_numeric_claims(draft.claims, located)
+            located = refine_answer_scope(question, draft.claims, located, sources)
             located = remove_repeated_claims(draft.claims, located)
             check_requested_value(question, draft.claims)
             if result.llm_calls >= settings.max_llm_calls_per_question:
@@ -191,9 +243,13 @@ async def run_qa(
                     for q in located[index]
                 )
                 blocks.append(f"CLAIM {index}: {claim.text}\n{quotes}")
+            claims_block = "\n\n".join(blocks)
+            budget = effective_context_budget(settings, deps.length_fn(question))
+            remaining = min(1600, budget - deps.length_fn(claims_block))
+            supplement = _coverage_sources(spans, located, remaining, deps.length_fn)
             raw = await _call_json(
                 deps, result, deadline, system=VERIFIER_SYSTEM_V1,
-                user=verifier_user_prompt(question, "\n\n".join(blocks)),
+                user=verifier_user_prompt(question, claims_block, supplement),
                 schema=VERIFY_JSON_SCHEMA, max_tokens=settings.llm_reasoning_budget_tokens + 512,
             )
             verification = Verification.model_validate(raw)

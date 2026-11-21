@@ -21,8 +21,14 @@ from dataclasses import dataclass
 
 from app.ingestion.rules import COMMITMENT, conditional_rules
 from app.ingestion.scopes import requested_scope_keys, scope_key
+from app.qa.completeness import add_defined_day
 from app.qa.counts import unsupported_object_count
-from app.qa.numbers import qualify_numeric_text, unsupported_numbers
+from app.qa.numbers import (
+    clause_reference_heading,
+    numeric_evidence_texts,
+    qualify_numeric_text,
+    unsupported_numbers,
+)
 from app.qa.roles import reversed_list_actor
 from app.qa.schemas import Claim
 from app.qa.template_fields import clarify_unfilled_duration
@@ -285,12 +291,21 @@ def validate_claims(
                 parent = chunks.get(ancestor.list_heading_id)
                 if parent is None:
                     raise ProvenanceError("в контексте отсутствует вводная фраза перечня")
-                quotes.append(locate_quote(parent, parent.text))
+                if ancestor.table_heading_span:
+                    left, right = ancestor.table_heading_span
+                    quotes.append(quote_at_offsets(parent, left-parent.char_start,
+                                                   right-parent.char_start))
+                else:
+                    quotes.append(locate_quote(parent, parent.text))
                 ancestor = parent
             if not chunk.list_heading_id:
                 lead = local_list_lead(chunk.text, quote.char_start - chunk.char_start)
                 if lead:
                     quotes.append(locate_quote(chunk, lead))
+            lead_span = clause_reference_heading(claim.text, chunk.text,
+                                                 quote.char_start - chunk.char_start)
+            if lead_span:
+                quotes.append(quote_at_offsets(chunk, *lead_span))
             quotes.append(quote)
         # A model can also explicitly cite the heading, or cite several of its
         # children. Use the authoritative span just once per claim.
@@ -324,6 +339,8 @@ def validate_claims(
             claim.text = rendered
             _check_scoped_claim(claim, quotes, requested, labels)
             _check_rule_meaning(question, claim, quotes)
+        if render_conditional_rules and spans is not None:
+            add_defined_day(claim, quotes, chunks.values())
         evidence_texts = [q.quote_raw for q in quotes]
         names = tuple(q.chunk.scope_label for q in quotes if q.chunk.scope_label)
         claim.text = clarify_unfilled_duration(claim.text, evidence_texts)
@@ -333,7 +350,7 @@ def validate_claims(
                 f"Адресат действия назван исполнителем. Вводная фраза перечня: "
                 f"«{governing_lead}». Исправь роли или убери лишнее утверждение."
             )
-        check_claim_consistency(claim, evidence_texts, question, names)
+        check_claim_consistency(claim, numeric_evidence_texts(quotes), question, names)
         if unsupported_object_count(question, claim.text, evidence_texts):
             raise ProvenanceError("цитаты указывают другую величину вместо количества объектов")
         located[index] = quotes
@@ -361,6 +378,6 @@ def remove_repeated_claims(
 def qualify_numeric_claims(claims: list[Claim], located: dict[int, list[LocatedQuote]]) -> None:
     for index, claim in enumerate(claims):
         try:
-            claim.text = qualify_numeric_text(claim.text, [q.quote_raw for q in located[index]])
+            claim.text = qualify_numeric_text(claim.text, numeric_evidence_texts(located[index]))
         except ValueError as exc:
             raise ProvenanceError(str(exc)) from exc

@@ -96,6 +96,7 @@ class Verification(BaseModel):
     model_config = ConfigDict(extra="forbid")
     verdicts: list[VerdictEntry]
     coverage: Coverage
+    coverage_gaps: list[str] = Field(default_factory=list)
 
 
 VERIFY_JSON_SCHEMA: dict = {
@@ -103,7 +104,7 @@ VERIFY_JSON_SCHEMA: dict = {
     "schema": {
         "type": "object",
         "additionalProperties": False,
-        "required": ["verdicts", "coverage"],
+        "required": ["verdicts", "coverage", "coverage_gaps"],
         "properties": {
             "verdicts": {
                 "type": "array",
@@ -122,6 +123,7 @@ VERIFY_JSON_SCHEMA: dict = {
                 },
             },
             "coverage": {"type": "string", "enum": ["full", "partial"]},
+            "coverage_gaps": {"type": "array", "items": {"type": "string"}},
         },
     },
 }
