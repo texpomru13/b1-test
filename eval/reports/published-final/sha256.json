@@ -1,0 +1,22 @@
+{
+  "files": {
+    "cases-all.jsonl": "6b5a683941b61a007090a09ceb61aefd38cda309f6aa9be4a0cb2a2762501151",
+    "check_evidence.py": "f94c5680b6baad7d980a3647c0c5238652762b2e7e87c01f090d372bd4d9e647",
+    "inputs.tar.gz": "a6c9a2a5a5952cb05fd861564411267949bc25f27bcd47269c2365952ed5e3e6",
+    "manifest.json": "aab5b62ee3364501ae9c836178c9d0238320119fc33ceecd794b4041d5a6f5a3",
+    "metrics-all.json": "cd9f65062f5f59efbc807e90d58ce5de2105d4137618fcf1fa01398668dfb00b",
+    "observed-refusals.json": "88432864da5310d74a3f9982189a342ded28987608caff52d353664783621f2d",
+    "responses.jsonl": "f77d2055fc8982c34a21201f6d2d6524569bc9a1893533017c659d29ea466d6f",
+    "warmup.json": "eac4c0a99dbbbe409ddbaa15d1c3aa7300478e079c9844d82f8b472b20d72603"
+  },
+  "archive_members": {
+    "corpus.json": "bc8dcf2945bb479b3632d8835ca910ec2e46cbf3ef80f74f6d783320cd8d1d39",
+    "gold.jsonl": "2de34068b885807093d40cbe9a87c38f5f75f523ab439f5009faa87b23d0b0e9",
+    "index/bulletin.json": "fc8ac6b3bc84c35d3aa9c716dc99b4774dbe52954c98818ad6388b4e99c24c18",
+    "index/echr.json": "0e00f05c18bb0030362843e0fa31b9489704fcfa1c8b355a5514441d4818edd9",
+    "index/marrakesh.json": "336634b9a76eb5ba05f199ada63d7fca67c42f302710e01322569102323caee2",
+    "index/nairobi.json": "69d03884423746709bde89f60121ce4f8a6feba1c47235f6159838b65b4bdad8",
+    "index/nice.json": "c1c3659e86bcd24df9b7620cf8184e94636440ffbce4ed8b03478d0d2740040e",
+    "index/space.json": "a77c855927e54d407d22bf44a9166daad0bf57ded115631db3bea72fe71fe4a5"
+  }
+}
