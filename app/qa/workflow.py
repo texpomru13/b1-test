@@ -13,6 +13,7 @@ from app.inference.client import LocalModelsClient
 from app.ingestion.chunker import LengthFn
 from app.observability.logging import get_logger
 from app.providers.factory import ChatAdapter, ModelOutputInvalid, ProviderUnavailable
+from app.qa.evidence import issue_evidence
 from app.qa.grounding import (
     LocatedQuote,
     ProvenanceError,
@@ -66,6 +67,7 @@ class QaResult:
     llm_calls: int = 0
     usage_in: int = 0
     usage_out: int = 0
+    refusal_stage: str | None = None
 
 
 async def _call_json(
@@ -123,7 +125,11 @@ def _verdict_feedback(draft: DraftAnswer, verification: Verification) -> str:
     verdicts = {v.claim_index: v.verdict for v in verification.verdicts}
     if set(verdicts) != expected or len(verification.verdicts) != len(expected):
         raise ModelOutputInvalid("verifier must return one verdict per claim")
-    issues = [f"claim {i}: {v}" for i, v in verdicts.items() if v != ClaimVerdict.SUPPORTED]
+    issues = [
+        f"claim {v.claim_index} «{draft.claims[v.claim_index].text[:180]}»: "
+        f"{v.verdict} {v.reason[:120]}".strip()
+        for v in verification.verdicts if v.verdict != ClaimVerdict.SUPPORTED
+    ]
     if verification.coverage != Coverage.FULL:
         issues.append("покрытие вопроса неполное (partial)")
     return "; ".join(issues)
@@ -142,14 +148,17 @@ async def run_qa(
         )
     result = QaResult(retrieval)
     if not retrieval.context:
+        result.refusal_stage = "no_context"
         return result
     sources = {f"source-{i}": c for i, c in enumerate(retrieval.context, 1)}
-    prompt = generation_user_prompt(question, render_sources(sources))
+    spans = issue_evidence(sources)
+    prompt = generation_user_prompt(question, render_sources(sources, spans))
     feedback = ""
     for attempt in range(1 + settings.max_repair_attempts):
         if result.llm_calls >= settings.max_llm_calls_per_question:
             break
         result.repair_count = attempt
+        stage = "generation"
         try:
             raw = await _call_json(
                 deps, result, deadline, system=GENERATION_SYSTEM_V1, user=prompt + feedback,
@@ -159,16 +168,23 @@ async def run_qa(
             draft = DraftAnswer.model_validate(raw)
             if not draft.answerable:
                 logger.info("draft_not_answerable", repairs=attempt)
+                result.refusal_stage = stage
                 result.outcome = OUTCOME_NOT_FOUND
                 return result
-            located = validate_claims(draft.claims, sources, question=question)
+            stage = "evidence"
+            located = validate_claims(draft.claims, sources, question=question, spans=spans)
             check_requested_value(question, draft.claims)
             if result.llm_calls >= settings.max_llm_calls_per_question:
+                result.refusal_stage = "verification_budget"
                 result.outcome = OUTCOME_NOT_FOUND
                 return result
+            stage = "verification"
             blocks = []
             for index, claim in enumerate(draft.claims):
-                quotes = "\n".join(f'  ЦИТАТА: "{q.quote_raw}"' for q in located[index])
+                quotes = "\n".join(
+                    f'  ЦИТАТА ({q.chunk.scope_label or "раздел не указан"}): "{q.quote_raw}"'
+                    for q in located[index]
+                )
                 blocks.append(f"CLAIM {index}: {claim.text}\n{quotes}")
             raw = await _call_json(
                 deps, result, deadline, system=VERIFIER_SYSTEM_V1,
@@ -183,18 +199,21 @@ async def run_qa(
                 raise ProvenanceError(issues)
             result.draft, result.located = draft, located
             result.outcome = OUTCOME_ANSWERED
+            result.refusal_stage = None
             return result
         except (ModelOutputInvalid, ValidationError) as exc:
             result.outcome = OUTCOME_INVALID_OUTPUT
             logger.warning("draft_invalid", kind=type(exc).__name__)
+            result.refusal_stage = stage
             reason = "Выдай валидный JSON по схеме со всеми обязательными полями."
         except ProvenanceError as exc:
             result.outcome = OUTCOME_NOT_FOUND
             logger.warning("provenance_rejected", error=str(exc)[:200])
-            reason = str(exc)[:300]
+            result.refusal_stage = stage
+            reason = str(exc)[:500]
         feedback = (
             f"\n\nПРЕДЫДУЩАЯ ПОПЫТКА ОТКЛОНЕНА СЕРВЕРОМ: {reason}\n"
-            "Исправь ошибку. Используй только дословные цитаты из источников; "
+            "Исправь указанный факт или выбери ID подтверждающих фрагментов. "
             "если подтверждения нет — answerable=false."
         )
     return result

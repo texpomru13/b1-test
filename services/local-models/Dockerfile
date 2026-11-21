@@ -12,6 +12,7 @@ FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb
 
 RUN groupadd -r lmuser && useradd -r -g lmuser -m lmuser
 WORKDIR /srv
+COPY pyproject.toml uv.lock ./
 COPY --from=builder --chown=lmuser:lmuser /srv/.venv /srv/.venv
 COPY --chown=lmuser:lmuser app_lm /srv/app_lm
 

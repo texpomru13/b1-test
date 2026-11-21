@@ -25,6 +25,7 @@ RUN groupadd -r appuser && useradd -r -g appuser -m appuser \
     && chown -R appuser:appuser /data/documents /home/appuser
 
 WORKDIR /app
+COPY pyproject.toml uv.lock ./
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --chown=appuser:appuser app /app/app
 

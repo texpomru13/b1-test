@@ -93,3 +93,6 @@ class DocumentDetail(BaseModel):
     updated_at: str
     page_count: int | None = None
     chunk_count: int | None = None
+    source_sha256: str | None = None
+    accepted_run_id: str | None = None
+    index_fingerprint: str | None = None

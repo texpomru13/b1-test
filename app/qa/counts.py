@@ -6,12 +6,9 @@ import re
 
 from py_rust_stemmers import SnowballStemmer
 
-from app.schemas.qa import NO_ANSWER_MESSAGE, AnswerResponse
-
 _STEMMER = SnowballStemmer("russian")
 _WORD = r"[а-яё]+"
 _ASKED_COUNT = re.compile(rf"^\s*сколько\s+({_WORD})\b", re.I)
-_CLAIMS = re.compile(r"(.*?)\s*((?:\[\d+\])+)", re.S)
 _NUMBER_WORDS = (
     "ноль нуля", "один одна одно одну одного одной", "два две двух", "три трех",
     "четыре четырех", "пять пяти", "шесть шести", "семь семи", "восемь восьми",
@@ -73,26 +70,18 @@ def _other_measure(quote: str, number: str, unit: set[str]) -> bool:
     return denominator or (competing and not other_item)
 
 
-def enforce_count_evidence(question: str, response: AnswerResponse) -> AnswerResponse:
-    """Abstain when all citations attached to a claimed item count measure something else."""
+def unsupported_object_count(question: str, claim: str, quotes: list[str]) -> bool:
+    """Is the claimed item count supported only by quotes measuring something else?"""
     asked = _ASKED_COUNT.match(question.lower().replace("ё", "е"))
-    if not response.found or asked is None:
-        return response
+    if asked is None:
+        return False
     unit = _unit_forms(asked[1])
     if not unit.isdisjoint(_NON_OBJECT):
-        return response
-    citations = {c.id: c.text for c in response.citations}
-    for claim, markers in _CLAIMS.findall(response.answer):
-        for match in _COUNT.finditer(claim.lower().replace("ё", "е")):
-            if _unit_forms(match["unit"]).isdisjoint(unit):
-                continue
-            number = _NUMBERS.get(match["value"], match["value"].replace(",", "."))
-            quotes = [citations[int(i)] for i in re.findall(r"\d+", markers)]
-            if all(_other_measure(quote, number, unit) for quote in quotes):
-                refusal = AnswerResponse(answer=NO_ANSWER_MESSAGE, found=False, citations=[])
-                if response.diagnostics is not None:
-                    refusal.diagnostics = response.diagnostics.model_copy(
-                        update={"cited_chunk_ids": []}
-                    )
-                return refusal
-    return response
+        return False
+    for match in _COUNT.finditer(claim.lower().replace("ё", "е")):
+        if _unit_forms(match["unit"]).isdisjoint(unit):
+            continue
+        number = _NUMBERS.get(match["value"], match["value"].replace(",", "."))
+        if all(_other_measure(quote, number, unit) for quote in quotes):
+            return True
+    return False

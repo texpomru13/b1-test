@@ -70,6 +70,7 @@ class QaDiagnostics(BaseModel):
     token_usage: dict[str, int]
     branch_counts_source: str | None
     diagnostic_warnings: list[str]
+    refusal_stage: str | None = None
 
 
 class AnswerResponse(BaseModel):

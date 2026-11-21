@@ -16,6 +16,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from app.ingestion.scopes import DocumentScope, common_heading, scope_heading
+
 MAX_HEADING_CHARS = 150
 MAX_LABEL_CHARS = 200
 
@@ -53,22 +55,47 @@ class SectionSpan:
     label: str
     char_start: int  # heading line start in canonical text
     char_end: int  # exclusive; end of the section (next heading or EOF)
+    scope: DocumentScope | None = None
+    clause_id: int | None = None
+    parent_clause_id: int | None = None
+    governing_clause_ids: tuple[int, ...] = ()
 
 
 def detect_sections(canonical_text: str) -> list[SectionSpan]:
-    headings: list[tuple[int, str]] = []
+    headings: list[tuple[int, str, DocumentScope | None, str]] = []
+    scope: DocumentScope | None = None
     offset = 0
-    for line in canonical_text.split("\n"):
-        if 0 < len(line) <= MAX_HEADING_CHARS:
-            label = _section_label(line)
-            if label:
-                headings.append((offset, label[:MAX_LABEL_CHARS]))
-        offset += len(line) + 1  # +1 for the split "\n"
+    for line in canonical_text.splitlines(keepends=True):
+        raw = line.removesuffix("\n")
+        named = scope_heading(canonical_text, offset, raw)
+        label = _section_label(raw) if len(raw) <= MAX_HEADING_CHARS else None
+        if named or common_heading(raw):
+            scope = named
+            label = raw.strip()
+        # Dotted subclauses can begin with a lowercase infinitive. A terminal
+        # period distinguishes the number from an amount such as "4.20 рублей".
+        clause = re.match(r"^[ \t]*(\d{1,3}(?:\.\d{1,3}){0,5})[.)]?[ \t]+", raw)
+        if not label and clause and clause[0].rstrip().endswith((".", ")")):
+            label = clause[1]
+        if label:
+            headings.append((offset, label[:MAX_LABEL_CHARS], scope, clause[1] if clause else ""))
+        offset += len(line)
 
     sections: list[SectionSpan] = []
-    for index, (start, label) in enumerate(headings):
+    # Path elements are (number, source position, introduces a list).
+    path: list[tuple[str, int, bool]] = []
+    for index, (start, label, owner, number) in enumerate(headings):
         end = headings[index + 1][0] if index + 1 < len(headings) else len(canonical_text)
-        sections.append(SectionSpan(label=label, char_start=start, char_end=end))
+        if not index or headings[index - 1][2] != owner or not number:
+            path.clear()
+        while path and not number.startswith(path[-1][0] + "."):
+            path.pop()
+        sections.append(SectionSpan(
+            label, start, end, owner, start if number else None,
+            path[-1][1] if path else None, tuple(pos for _, pos, lead in path if lead),
+        ))
+        if number:
+            path.append((number, start, canonical_text[start:end].rstrip().endswith(":")))
     return sections
 
 

@@ -17,7 +17,7 @@ from app.ingestion.docx_convert import convert_docx_to_pdf
 from app.ingestion.pdf_loader import extract_pdf
 from app.ingestion.sections import SectionSpan, detect_sections
 
-PARSER_VERSION = "parse-v1"
+PARSER_VERSION = "parse-v2-scopes"
 
 CONTENT_TYPE_PDF = "application/pdf"
 CONTENT_TYPE_DOCX = (
