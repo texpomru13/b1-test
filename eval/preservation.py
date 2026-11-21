@@ -161,8 +161,12 @@ def main() -> None:
         return
     rows, technical = packets(gold, prior, run)
     review_path = run / "preservation-review.json"
-    review = (load(review_path) if review_path.exists() else
-              {"reviewer": "", "reviewer_type": None, "rows": [blank_review(row) for row in rows]})
+    review = (load(review_path) if review_path.exists()
+              else {"reviewer": "", "reviewer_type": None, "rows": []})
+    saved = {label["req_id"]: label for label in review["rows"]}
+    if len(saved) != len(review["rows"]) or set(saved) - set(prior):
+        raise ValueError("saved preservation review contains duplicate or unknown cases")
+    review["rows"] = [saved.get(row["req_id"]) or blank_review(row) for row in rows]
     model_review(rows, review, review_path, args.ollama, args.judge)
     labels = {label["req_id"]: label for label in review["rows"]}
     details = []
