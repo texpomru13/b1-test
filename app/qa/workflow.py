@@ -19,6 +19,7 @@ from app.qa.grounding import (
     ProvenanceError,
     check_requested_value,
     qualify_numeric_claims,
+    remove_repeated_claims,
     validate_claims,
 )
 from app.qa.prompts import (
@@ -176,6 +177,7 @@ async def run_qa(
             located = validate_claims(draft.claims, sources, question=question, spans=spans,
                                       render_conditional_rules=True)
             qualify_numeric_claims(draft.claims, located)
+            located = remove_repeated_claims(draft.claims, located)
             check_requested_value(question, draft.claims)
             if result.llm_calls >= settings.max_llm_calls_per_question:
                 result.refusal_stage = "verification_budget"

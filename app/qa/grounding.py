@@ -163,6 +163,7 @@ _PERMISSION = re.compile(r"\b(?:вправе|име\w*\s+прав[оа]|разр
 _ASKS_PERMISSION = re.compile(r"\b(?:вправе ли|разреш\w* ли|запрещ\w* ли|допускается ли|"
                               r"мож(?:но|ет) ли|могут ли|име\w* ли.{0,80}\bправ[оа]\b)", re.I)
 _NUMBERED_ACTION = re.compile(r"^\s*\d+(?:\.\d+)+[.)]?\s+[а-яё]+(?:ть|ти|чь)(?:ся|сь)?\b", re.I)
+_INCLUSIVE_QUESTION = re.compile(r"\b(?:в том числе|включая|в частности)\b", re.I)
 
 
 def _check_item_permission(question: str, claim: Claim, quotes: list[LocatedQuote]) -> None:
@@ -294,16 +295,28 @@ def validate_claims(
         quotes = list({(q.chunk.chunk_id, q.char_start, q.char_end): q for q in quotes}.values())
         covered.update(_check_scoped_claim(claim, quotes, requested, labels))
         _check_item_permission(question, claim, quotes)
+        extractive = (render_conditional_rules and spans is not None
+                      and sum(len(q.quote_raw) for q in quotes) <= 1600)
+        if extractive and len(requested) < 2 and _INCLUSIVE_QUESTION.search(question):
+            # A general activity and its named special case may be separate list
+            # items. Preserve both when the model cited them under one lead.
+            parents = {q.chunk.list_heading_id for q in quotes if q.chunk.list_heading_id}
+            if len(parents) == 1:
+                heading = next(iter(parents))
+                children = {q.chunk.chunk_id for q in quotes if q.chunk.list_heading_id == heading}
+                if len(children) > 1 and {q.chunk.chunk_id for q in quotes} == children | {heading}:
+                    claim.text = "\n".join(_ws_normalize(q.quote_raw) for q in
+                                           sorted(quotes, key=lambda q: q.char_start))
         try:
             _check_rule_meaning(question, claim, quotes)
         except ConditionalWordingError:
             # Only server-issued, already selected excerpts may supply the wording.
             # Keep separate selected consequences as well as the complete proviso.
             # Re-run the same check: a clipped excerpt still cannot supply the rule.
-            if (not render_conditional_rules or spans is None
-                    or sum(len(q.quote_raw) for q in quotes) > 1600):
+            if not extractive:
                 raise
-            rendered = " ".join(_ws_normalize(q.quote_raw) for q in quotes)
+            rendered = "\n".join(_ws_normalize(q.quote_raw) for q in
+                                 sorted(quotes, key=lambda q: q.char_start))
             if len(requested) > 1 and quotes[0].chunk.scope_label:
                 rendered = f"«{quotes[0].chunk.scope_label}». {rendered}"
             claim.text = rendered
@@ -318,6 +331,23 @@ def validate_claims(
     if len(requested) > 1 and covered != requested:
         raise ProvenanceError("сравнение не охватывает все названные области")
     return located
+
+
+def remove_repeated_claims(
+    claims: list[Claim], located: dict[int, list[LocatedQuote]],
+) -> dict[int, list[LocatedQuote]]:
+    """Skip a whole statement already made with the same authoritative evidence."""
+    texts = [_ws_normalize(claim.text) for claim in claims]
+    refs = [{(q.chunk.chunk_id, q.char_start, q.char_end) for q in located[i]}
+            for i in range(len(claims))]
+    whole = [re.compile(r"(?:^|(?<=[.!?])\s+)" + re.escape(t) + r"(?=\s|$)") for t in texts]
+    kept = [
+        i for i in range(len(claims))
+        if not any(refs[i] <= refs[j] and whole[i].search(texts[j])
+                   and (len(texts[j]) > len(texts[i]) or j < i) for j in range(len(claims)))
+    ]
+    claims[:] = [claims[i] for i in kept]
+    return {index: located[i] for index, i in enumerate(kept)}
 
 def qualify_numeric_claims(claims: list[Claim], located: dict[int, list[LocatedQuote]]) -> None:
     for index, claim in enumerate(claims):

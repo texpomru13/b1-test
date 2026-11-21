@@ -13,7 +13,12 @@ from app.ingestion.scopes import requested_scope_keys
 from app.ingestion.sections import detect_sections
 from app.jobs.indexer import _chunk_payload
 from app.qa.evidence import issue_evidence
-from app.qa.grounding import ProvenanceError, validate_claims
+from app.qa.grounding import (
+    ProvenanceError,
+    quote_at_offsets,
+    remove_repeated_claims,
+    validate_claims,
+)
 from app.qa.schemas import Claim, Evidence
 from app.retrieval.search import ContextChunk, hybrid_search
 from app.storage.qdrant_repo import point_id
@@ -226,10 +231,23 @@ def test_only_complete_selected_rule_can_supply_conditional_wording():
     located = validate_claims([claim], sources, question="Можно ли получить доступ?",
                               spans=spans, render_conditional_rules=True)
     assert claim.text == text == located[0][0].quote_raw
-    from app.qa.grounding import quote_at_offsets
-
     clipped = {"x.1": quote_at_offsets(chunk, 0, text.index(","))}
     with pytest.raises(ProvenanceError, match="условиями"):
         validate_claims([Claim(text="Можно получить доступ.", evidence=["x.1"])], sources,
                         question="Можно ли получить доступ?", spans=clipped,
                         render_conditional_rules=True)
+
+
+def test_only_whole_repeated_claim_with_shared_evidence_is_removed():
+    rules = "Доступ разрешён только по заявке. Ответ направляется почтой."
+    chunk = ContextChunk("x", 0, rules, None, 1, 1, 0, len(rules), .8)
+    spans = issue_evidence({"x": chunk})
+    a, b = spans.values()
+    def statement(text, *ids):
+        return Claim(text=text, evidence=list(ids))
+    claims = [statement(a.quote_raw, "x.1"), statement(rules, "x.1", "x.2"),
+              statement("По заявке.", "x.1"), statement(b.quote_raw, "x.1")]
+    located = remove_repeated_claims(claims, {0: [a], 1: [a, b], 2: [a], 3: [b, a]})
+    # Distinct statements and their original evidence remain aligned.
+    assert [c.text for c in claims] == [rules, "По заявке."]
+    assert located == {0: [a, b], 1: [a]}
