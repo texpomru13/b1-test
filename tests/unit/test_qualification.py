@@ -98,3 +98,12 @@ def test_combined_catalog_includes_every_contract_and_scan_once(harness, tmp_pat
     assert sum(r["answerable"] for r in rows) == 220
     assert sum(r["doc_fixture_id"] == "06" for r in rows) == 10
     assert sum(r["doc_fixture_id"] == "04" for r in rows) == 19
+
+    plan = json.loads((catalog.GOLD / "acceptance-plan.json").read_text())
+    themed = plan["thematic_sets"].values()
+    ids = plan["contract_cases"] + [qid for group in themed for qid in group["questions"]]
+    by_id = {r["case_id"]: r for r in rows}
+    assert len(ids) == len(set(ids)) == plan["questions"] == 210
+    assert {by_id[qid]["doc_fixture_id"] for qid in ids} == set(docs)
+    assert sum(by_id[qid]["answerable"] for qid in ids) == plan["expected_found"]
+    assert sum(len(group["isolation"]) for group in themed) == plan["isolation_probes"] == 18
