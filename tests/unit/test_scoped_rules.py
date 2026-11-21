@@ -208,3 +208,28 @@ def test_05_03_conditional_storage_guarantee_applies_only_to_operator_hardware()
     qualified = duration + ", если эти данные хранились на оборудовании Исполнителя."
     assert validate_claims([Claim(text=qualified, evidence=[condition_id])], sources,
                            question=question, spans=spans)
+
+    short = Claim(text=duration, evidence=[condition_id])
+    located = validate_claims([short], sources, question=question, spans=spans,
+                              render_conditional_rules=True)
+    assert short.text == " ".join(located[0][0].quote_raw.split())
+    assert "если эти данные хранились на оборудовании Исполнителя" in short.text
+    assert "автоматическом" not in short.text
+
+
+def test_only_complete_selected_rule_can_supply_conditional_wording():
+    text = "Доступ запрещён, кроме ремонта по согласованию с владельцем."
+    chunk = ContextChunk("x", 0, text, None, 1, 1, 0, len(text), .8)
+    sources = {"x": chunk}
+    spans = issue_evidence(sources)
+    claim = Claim(text="Доступ разрешён после согласования.", evidence=["x.1"])
+    located = validate_claims([claim], sources, question="Можно ли получить доступ?",
+                              spans=spans, render_conditional_rules=True)
+    assert claim.text == text == located[0][0].quote_raw
+    from app.qa.grounding import quote_at_offsets
+
+    clipped = {"x.1": quote_at_offsets(chunk, 0, text.index(","))}
+    with pytest.raises(ProvenanceError, match="условиями"):
+        validate_claims([Claim(text="Можно получить доступ.", evidence=["x.1"])], sources,
+                        question="Можно ли получить доступ?", spans=clipped,
+                        render_conditional_rules=True)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 _NUMBER = r"\d+(?:[.,]\d+)?"
@@ -144,3 +145,117 @@ def unsupported_numbers(
             continue
         missing.append(f"{fact.value} ({fact.role})")
     return sorted(missing)
+
+# A quantity can be an upper/lower bound, or a price under one payment method.
+# Restore only qualifiers bound to this same value and unit in the cited passage.
+_MEASURE_NUMBER = re.compile(r"(?<![\w.,])(?:\d{1,3}(?:[ \t\xa0\u202f]+\d{3})+|\d+)(?:[.,]\d+)?")
+_LIMIT_WORD = re.compile(
+    r"\b(?:(?P<upper>максимальн\w*)|(?P<lower>минимальн\w*))\s+"
+    r"(?P<noun>продолжительност|длительност|срок|размер|сумм|стоимост|цен|количеств|ставк|"
+    r"(?:промо[ -]?)?период)\w*",
+    re.I,
+)
+_DIRECT_LIMIT = re.compile(r"\b(не более|не больше|не менее|не меньше|до)\s*$", re.I)
+_PAYMENT = {
+    "единовременн": "при единовременной оплате",
+    "рассрочк": "при оплате в рассрочку",
+}
+
+
+def _measures(text: str) -> Iterator[tuple[NumericFact, int, int]]:
+    for match in _MEASURE_NUMBER.finditer(text):
+        unit = _UNIT_PATTERN.match(text, match.end())
+        if unit and unit.lastgroup:
+            role = list(_UNITS)[int(unit.lastgroup[1:])]
+            value = _amount_value("".join(match[0].split()))
+            yield NumericFact(value, role), match.start(), unit.end()
+
+
+def _limit(prefix: str, role: str) -> str | None:
+    if direct := _DIRECT_LIMIT.search(prefix):
+        return "не менее" if direct[1].lower() in {"не менее", "не меньше"} else "не более"
+    # A named limit controls the next measurement in its clause. Do not borrow
+    # a bound across sentences, alternatives, other measured values or headings.
+    clause = re.split(r"[.;:!?]|\b(?:или|однако|тогда как)\b", prefix, flags=re.I)[-1]
+    named = list(_LIMIT_WORD.finditer(clause))
+    if len(named) == 1 and len(clause) - named[0].end() < 150:
+        noun = named[0]["noun"]
+        duration = noun in {"продолжительност", "длительност", "срок"} or noun.endswith("период")
+        if duration and role not in {
+            "минута", "час", "день", "месяц", "год",
+        }:
+            return None
+        if noun in {"сумм", "стоимост", "цен"} and role != "рубль":
+            return None
+        return "не более" if named[0].group("upper") else "не менее"
+    return None
+
+
+def _price_terms(quote: str, price: NumericFact) -> set[str | None]:
+    """Look up the rightmost price under its nearest currency-bearing table heading."""
+    lines = quote.splitlines()
+    terms: set[str | None] = set()
+    for i, line in enumerate(lines):
+        if not _PRICE_COLUMN.search(line):
+            continue
+        # Table titles may wrap to a second line. Stop at the nearest table or
+        # price title so a preceding table cannot lend its terms to the next one.
+        above = lines[max(0, i-3):i]
+        start = next((j for j in reversed(range(len(above))) if re.search(
+            r"таблиц[аы]\s*№?\s*\d|(?:стоимость|цена)\s+\w+", above[j], re.I
+        )), None)
+        header = " ".join(above[start:]).lower() if start is not None else ""
+        kinds = [k for k in _PAYMENT if k in header]
+        for item in lines[i + 1:]:
+            normalized = _AMOUNT.sub(lambda m: "".join(m[0].split()), item)
+            amount = _ROW_PRICE.search(normalized)
+            if not amount:
+                break
+            if _amount_value(amount[1]) == price.value:
+                terms.update(kinds or [None])
+    return terms
+
+
+def qualify_numeric_text(text: str, quotes: list[str]) -> str:
+    """Add a proven qualifier to a selected value before semantic verification.
+
+    Conflicting bounds or payment terms need a new draft with separate claims.
+    The verifier sees the revised wording and the very same citations.
+    """
+    evidence: dict[NumericFact, set[str | None]] = {}
+    for quote in quotes:
+        previous = 0
+        for fact, start, end in _measures(quote):
+            evidence.setdefault(fact, set()).add(_limit(quote[previous:start], fact.role))
+            previous = end
+    previous = 0
+    inserts: list[tuple[int, str]] = []
+    payments: set[str | None] = set()
+    amounts: set[NumericFact] = set()
+    for fact, start, end in _measures(text):
+        own = _limit(text[previous:start], fact.role)
+        limits = evidence.get(fact, set())
+        if any(limits):
+            if len(limits) != 1:
+                raise ValueError("У величины разные условия. Раздели утверждения и доказательства.")
+            limit = next(iter(limits))
+            if (own and own != limit) or re.search(r"\bровно\s*$", text[previous:start], re.I):
+                raise ValueError(f"Сохрани исходный предел {limit} {fact.value} ({fact.role}).")
+            if limit and not own:
+                inserts.append((start, limit + " "))
+        if fact.role == "рубль":
+            amounts.add(fact)
+            payments.update(term for q in quotes for term in _price_terms(q, fact))
+        previous = end
+    for start, words in reversed(inserts):
+        text = text[:start] + words + text[start:]
+    if any(payments):
+        stated = {term for term in _PAYMENT if term in text.lower()}
+        if len(payments) > 1 or len(amounts) > 1 or (stated and stated != payments):
+            raise ValueError("Свяжи каждую цену и форму оплаты с её строкой таблицы.")
+        if not stated:
+            if len(list(_measures(text))) != 1:
+                raise ValueError("Выдели цену и способ оплаты в отдельное утверждение.")
+            term = next(k for k in payments if k)
+            text = text.rstrip(" .") + " " + _PAYMENT[term] + "."
+    return text

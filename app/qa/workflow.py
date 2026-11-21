@@ -18,6 +18,7 @@ from app.qa.grounding import (
     LocatedQuote,
     ProvenanceError,
     check_requested_value,
+    qualify_numeric_claims,
     validate_claims,
 )
 from app.qa.prompts import (
@@ -172,7 +173,9 @@ async def run_qa(
                 result.outcome = OUTCOME_NOT_FOUND
                 return result
             stage = "evidence"
-            located = validate_claims(draft.claims, sources, question=question, spans=spans)
+            located = validate_claims(draft.claims, sources, question=question, spans=spans,
+                                      render_conditional_rules=True)
+            qualify_numeric_claims(draft.claims, located)
             check_requested_value(question, draft.claims)
             if result.llm_calls >= settings.max_llm_calls_per_question:
                 result.refusal_stage = "verification_budget"

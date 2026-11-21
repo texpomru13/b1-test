@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from app.ingestion.rules import COMMITMENT, conditional_rules
 from app.ingestion.scopes import requested_scope_keys, scope_key
 from app.qa.counts import unsupported_object_count
-from app.qa.numbers import unsupported_numbers
+from app.qa.numbers import qualify_numeric_text, unsupported_numbers
 from app.qa.schemas import Claim
 from app.retrieval.clauses import local_list_lead
 from app.retrieval.search import ContextChunk
@@ -40,6 +40,10 @@ class LocatedQuote:
 
 class ProvenanceError(Exception):
     """A fabricated/foreign chunk, unlocatable quote, or inconsistent facts."""
+
+
+class ConditionalWordingError(ProvenanceError):
+    """A selected rule could be rendered directly without losing its conditions."""
 
 
 def _ws_normalize(text: str) -> str:
@@ -209,7 +213,7 @@ def _check_rule_meaning(question: str, claim: Claim, quotes: list[LocatedQuote])
                 if tail:
                     required = tail[1]
             if _rule_text(required) not in _rule_text(text):
-                raise ProvenanceError(
+                raise ConditionalWordingError(
                     "перенеси целиком правило с условиями и исключениями в отдельный claim: "
                     + " ".join(rule.split())
                 )
@@ -240,6 +244,7 @@ def validate_claims(
     claims: list[Claim],
     context_by_id: dict[str, ContextChunk],
     *, question: str = "", spans: dict[str, LocatedQuote] | None = None,
+    render_conditional_rules: bool = False,
 ) -> dict[int, list[LocatedQuote]]:
     """Deterministic §7.2 checks for every claim; returns located quotes per claim.
 
@@ -289,7 +294,21 @@ def validate_claims(
         quotes = list({(q.chunk.chunk_id, q.char_start, q.char_end): q for q in quotes}.values())
         covered.update(_check_scoped_claim(claim, quotes, requested, labels))
         _check_item_permission(question, claim, quotes)
-        _check_rule_meaning(question, claim, quotes)
+        try:
+            _check_rule_meaning(question, claim, quotes)
+        except ConditionalWordingError:
+            # Only server-issued, already selected excerpts may supply the wording.
+            # Keep separate selected consequences as well as the complete proviso.
+            # Re-run the same check: a clipped excerpt still cannot supply the rule.
+            if (not render_conditional_rules or spans is None
+                    or sum(len(q.quote_raw) for q in quotes) > 1600):
+                raise
+            rendered = " ".join(_ws_normalize(q.quote_raw) for q in quotes)
+            if len(requested) > 1 and quotes[0].chunk.scope_label:
+                rendered = f"«{quotes[0].chunk.scope_label}». {rendered}"
+            claim.text = rendered
+            _check_scoped_claim(claim, quotes, requested, labels)
+            _check_rule_meaning(question, claim, quotes)
         evidence_texts = [q.quote_raw for q in quotes]
         names = tuple(q.chunk.scope_label for q in quotes if q.chunk.scope_label)
         check_claim_consistency(claim, evidence_texts, question, names)
@@ -299,3 +318,10 @@ def validate_claims(
     if len(requested) > 1 and covered != requested:
         raise ProvenanceError("сравнение не охватывает все названные области")
     return located
+
+def qualify_numeric_claims(claims: list[Claim], located: dict[int, list[LocatedQuote]]) -> None:
+    for index, claim in enumerate(claims):
+        try:
+            claim.text = qualify_numeric_text(claim.text, [q.quote_raw for q in located[index]])
+        except ValueError as exc:
+            raise ProvenanceError(str(exc)) from exc
