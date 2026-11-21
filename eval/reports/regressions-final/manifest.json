@@ -1,0 +1,142 @@
+{
+  "run": "build-v5",
+  "api": "http://127.0.0.1:65037",
+  "started_at": "2026-11-21T07:13:13.842939+00:00",
+  "initial_split": "all",
+  "doc_ids": {
+    "03": "e9e530af83fe41ad8e05da80f6a41c45",
+    "05": "a9bae304be7f42fcae839e3908fd2740",
+    "07": "237d2ea90b9143f599c24dd43616df67",
+    "14": "4b27b5e25f97429cbd3414bfe5ac98ab"
+  },
+  "ready": {
+    "status": "ready",
+    "components": {
+      "redis": "ok",
+      "qdrant": "ok",
+      "local_models": "ok",
+      "llm": "ok"
+    },
+    "model_ready": true
+  },
+  "inputs": {
+    "api_source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64",
+    "documents": {
+      "03": {
+        "doc_id": "e9e530af83fe41ad8e05da80f6a41c45",
+        "source_sha256": "a4913b0706c06895982b8015e8e0d400ea6b50537b96478552d4404d945ea7d1",
+        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
+        "accepted_run_id": "a0108ba852334c1186e178f6aa5126dd",
+        "export_sha256": "af25fa2ed584a698863d6875b162beac6d2d097e23ee24d068a10e072cfabc09"
+      },
+      "05": {
+        "doc_id": "a9bae304be7f42fcae839e3908fd2740",
+        "source_sha256": "c5e21742ec576e902a730080b76d3795a2eab0245de7e9ebf437e2ddf847a1a5",
+        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
+        "accepted_run_id": "a3aac2ffaa2844869726d0964e505b69",
+        "export_sha256": "92bb16e65a0dba7e6138f712daac04b652ef65fae91ddaf0b7d3e1694b197ae8"
+      },
+      "07": {
+        "doc_id": "237d2ea90b9143f599c24dd43616df67",
+        "source_sha256": "1c1b8237325f4711e8dcb0dab47977f3d267074d62e26a2c27ef4f9f1ee5856c",
+        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
+        "accepted_run_id": "e83ce4917f664f9ab6ae3feeef2be70c",
+        "export_sha256": "bcde8856e403701ddedd5fb88d5b7e645d18f64d123d7404eae0c4cf8374d9cf"
+      },
+      "14": {
+        "doc_id": "4b27b5e25f97429cbd3414bfe5ac98ab",
+        "source_sha256": "31bfe911c6585eec01c914f0c7d0abdb0214d335bbd934140428328c4e6937ca",
+        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
+        "accepted_run_id": "ca4ea123dd284d7bac122f4f62d9fdac",
+        "export_sha256": "3062eb44bbe37e0ff47ca642092d3312aa18ce491cbdaca0abfa482c90bbdd79"
+      }
+    },
+    "gold_sha256": "35af546dd20789d2d0ff94eecefbae1cd41a57e923a4b7043ae4585785247d49",
+    "runtime": {
+      "project": "b1-final1121",
+      "images": {
+        "api": {
+          "image_id": "sha256:5a564547866094bc45dfe611c01613f7d9684d4d62fe351119bbad641d4cc3de",
+          "source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64"
+        },
+        "worker": {
+          "image_id": "sha256:dbf9197b0b59aa7da41aef89de26ad121778b1f49272325f0aa123043d2f9965",
+          "source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64"
+        },
+        "dispatcher": {
+          "image_id": "sha256:cc96987b30fb80d1302a4b11e56adaf96cb9c9f11f0eb72ac22a333ea5ca6325",
+          "source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64"
+        },
+        "local-models": {
+          "image_id": "sha256:2384507591b01a2204b56d4498a0187cbb17fa898e2b38782f5e2ccd8f29eb10",
+          "source_sha256": "fbae39d0ede9b0bab60c6111ed800c37f3fd0070d30cb3fa41be467424833f3e"
+        },
+        "redis": {
+          "image_id": "sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53"
+        },
+        "qdrant": {
+          "image_id": "sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2"
+        }
+      },
+      "settings": {
+        "llm_provider": "ollama",
+        "llm_model": "qwen3.5:9b-q4_K_M",
+        "llm_read_timeout_s": 300,
+        "qa_deadline_s": 900,
+        "local_context_tokens": 16384,
+        "llm_max_output_tokens": 2048,
+        "llm_reasoning_budget_tokens": 4096,
+        "llm_thinking": "off",
+        "llm_temperature": 0.0,
+        "embedding_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+        "embedding_instruction_version": "1",
+        "dense_top_k": 60,
+        "sparse_top_k": 60,
+        "fusion_method": "rrf",
+        "rerank_input_k": 60,
+        "context_top_k": 8,
+        "bm25_language": "russian",
+        "bm25_avg_len": 256,
+        "chunk_tokens": 450,
+        "chunk_overlap_tokens": 64,
+        "context_budget_tokens": 6000,
+        "qdrant_collection": "document_chunks",
+        "max_concurrent_qa": 1,
+        "max_repair_attempts": 1,
+        "max_llm_calls_per_question": 4,
+        "llm_max_attempts": 2
+      },
+      "local_models": {
+        "loaded_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+        "revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+        "reranker_model": "BAAI/bge-reranker-v2-m3",
+        "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+        "reranker_adapter": "cross_encoder",
+        "device": "cpu",
+        "LM_BATCH_SIZE": "4",
+        "LM_RERANKER_BATCH": "2"
+      },
+      "llm_digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+      "ocr": {
+        "engine": "tesseract 5.5.0",
+        "packages": [
+          "poppler-utils\t25.03.0-5+deb13u4",
+          "tesseract-ocr-eng\t1:4.1.0-2",
+          "tesseract-ocr-rus\t1:4.1.0-2"
+        ]
+      }
+    }
+  },
+  "git_commit": "d45b40b7c8e59518871e1ab341ea5d99f1f7ea2b",
+  "git_dirty": false,
+  "hardware": {
+    "platform": "macOS-26.7.3-arm64-arm-64bit",
+    "arch": "arm64",
+    "cpu": "Apple M4 Max",
+    "memory_bytes": 137438953472
+  },
+  "result_type": "live",
+  "finished_at": "2026-11-21T07:15:16.163128+00:00",
+  "response_count": 4,
+  "responses_sha256": "dc18b492852cce5e03969d320de8fcc234a3184042b2f7a9e17391ab644f6377"
+}
