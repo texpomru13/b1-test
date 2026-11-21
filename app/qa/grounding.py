@@ -25,6 +25,7 @@ from app.qa.counts import unsupported_object_count
 from app.qa.numbers import qualify_numeric_text, unsupported_numbers
 from app.qa.roles import reversed_list_actor
 from app.qa.schemas import Claim
+from app.qa.template_fields import clarify_unfilled_duration
 from app.retrieval.clauses import local_list_lead
 from app.retrieval.search import ContextChunk
 
@@ -325,6 +326,7 @@ def validate_claims(
             _check_rule_meaning(question, claim, quotes)
         evidence_texts = [q.quote_raw for q in quotes]
         names = tuple(q.chunk.scope_label for q in quotes if q.chunk.scope_label)
+        claim.text = clarify_unfilled_duration(claim.text, evidence_texts)
         governing_lead = reversed_list_actor(claim.text, evidence_texts)
         if governing_lead:
             raise ProvenanceError(

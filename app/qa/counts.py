@@ -10,7 +10,7 @@ _STEMMER = SnowballStemmer("russian")
 _WORD = r"[а-яё]+"
 _ASKED_COUNT = re.compile(rf"^\s*сколько\s+({_WORD})\b", re.I)
 _NUMBER_WORDS = (
-    "ноль нуля", "один одна одно одну одного одной", "два две двух", "три трех",
+    "ноль нуля", "один одна одно одну одного одной одному одним", "два две двух", "три трех",
     "четыре четырех", "пять пяти", "шесть шести", "семь семи", "восемь восьми",
     "девять девяти", "десять десяти", "одиннадцать", "двенадцать", "тринадцать",
     "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать",
@@ -22,10 +22,13 @@ _COUNT = re.compile(
     rf"\b(?P<value>{_NUMBER})\b(?:\s*\([^()\n]{{1,60}}\))?\s+"
     rf"(?:(?:отдельн{_WORD}|дополнительн{_WORD})\s+)?(?P<unit>{_WORD}|[%₽€$])"
 )
-_FREQUENCY = re.compile(r"\b(?:однократно|единожды|единовременно|однажды)\b")
+
 _PER = re.compile(r"\b(?:на|за)\s+$")
 _ENTITLEMENT = re.compile(r"\b(?:право|разрешение|претендовать|рассчитывать)\s+на\s+$")
-_PER_EACH = re.compile(rf"\b(?:на|за)\s+кажд{_WORD}\s+(?:отдельн{_WORD}\s+)?({_WORD})")
+_DENOMINATOR = re.compile(r"\b(?:в\s+(?:пере)?расчете|из\s+расчета)\s+(?:на|за)\s+$")
+_ALLOCATED = re.compile(r"\b(?:предостав|получ|выда|выдан|полага|положен|переда|включа|"
+                        r"доступ|допуска|разреш|право|содерж|состо|рассчитыва|приобрета)\w*")
+_GENERIC_ITEMS = {"единиц", "штук", "экземпляр"}
 # These units of time, frequency, money and measurement cannot establish an object count.
 _MEASURES = {
     _STEMMER.stem_word(x) for x in
@@ -44,34 +47,36 @@ def _unit_forms(word: str) -> set[str]:
     return forms
 
 
-def _other_measure(quote: str, number: str, unit: set[str]) -> bool:
-    """True only for a recognizable competing measure without a supporting item count."""
-    quote = quote.lower().replace("ё", "е")
-    denominator = any(
-        not _unit_forms(m[1]).isdisjoint(unit) for m in _PER_EACH.finditer(quote)
-    )
-    competing = bool(_FREQUENCY.search(quote))
-    other_item = False
+def _supports_count(quote: str, number: str, unit: set[str]) -> bool:
+    """Require a matching numerator, allowing object synonyms in allocation clauses."""
+    quote = quote.casefold().replace("ё", "е")
     counts = list(_COUNT.finditer(quote))
+    denominator_named = any(
+        _PER.search(quote[:m.start()]) and not _ENTITLEMENT.search(quote[:m.start()])
+        and not _unit_forms(m["unit"]).isdisjoint(unit) for m in counts
+    )
     for match in counts:
         value = _NUMBERS.get(match["value"], match["value"].replace(",", "."))
+        if value != number:
+            continue
         measured = _unit_forms(match["unit"])
         prefix = quote[:match.start()]
-        per_item = _PER.search(prefix) and not _ENTITLEMENT.search(prefix)
-        if not measured.isdisjoint(_MEASURES):
-            competing = True
-        elif not measured.isdisjoint(unit) and per_item:
-            # "на одну камеру предоставляется период" gives the denominator.
-            denominator |= len(counts) > 1 or competing
-        elif value == number and not per_item:
-            if not measured.isdisjoint(unit):
-                return False
-            other_item = True  # possible synonym or legal designation
-    return denominator or (competing and not other_item)
+        if _DENOMINATOR.search(prefix) or (_PER.search(prefix) and not _ENTITLEMENT.search(prefix)):
+            continue
+        if not measured.isdisjoint(_NON_OBJECT):
+            continue
+        if not measured.isdisjoint(unit):
+            return True
+        if denominator_named:
+            continue
+        clause_start = max(prefix.rfind("."), prefix.rfind(";"), prefix.rfind("!")) + 1
+        if not measured.isdisjoint(_GENERIC_ITEMS) or _ALLOCATED.search(prefix[clause_start:]):
+            return True
+    return False
 
 
 def unsupported_object_count(question: str, claim: str, quotes: list[str]) -> bool:
-    """Is the claimed item count supported only by quotes measuring something else?"""
+    """Does an explicit count of the requested object lack a supporting quantity?"""
     asked = _ASKED_COUNT.match(question.lower().replace("ё", "е"))
     if asked is None:
         return False
@@ -82,6 +87,6 @@ def unsupported_object_count(question: str, claim: str, quotes: list[str]) -> bo
         if _unit_forms(match["unit"]).isdisjoint(unit):
             continue
         number = _NUMBERS.get(match["value"], match["value"].replace(",", "."))
-        if all(_other_measure(quote, number, unit) for quote in quotes):
+        if not any(_supports_count(quote, number, unit) for quote in quotes):
             return True
     return False

@@ -32,3 +32,15 @@ def test_supported_ambiguous_or_different_measure_is_left_to_the_verifier(
     question: str, claim: str, quotes: list[str]
 ) -> None:
     assert not unsupported_object_count(question, claim, quotes)
+
+
+def test_per_unit_and_neutral_citations_cannot_establish_the_quantity_allocated() -> None:
+    question = "Сколько жетонов может получить посетитель?"
+    claim = "Посетитель может получить только один жетон."
+    quotes = ["Зарегистрироваться можно единовременно.", "Повторная регистрация запрещена.",
+              "Оплата обслуживания производится в расчете на один жетон."]
+    assert unsupported_object_count(question, claim, quotes)
+    assert unsupported_object_count(question, claim, ["Выдача осуществляется по заявке."])
+    assert not unsupported_object_count(question, claim, [*quotes, "Положен один жетон."])
+    assert not unsupported_object_count(question, claim, [
+        *quotes, "Посетитель имеет право на один электронный пропуск."])
