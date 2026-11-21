@@ -7,6 +7,7 @@ from itertools import pairwise
 
 from app.ingestion.rules import parenthesized_items
 from app.qa.grounding import LocatedQuote, quote_at_offsets
+from app.qa.numbers import DOCUMENT_TITLE
 from app.retrieval.search import ContextChunk
 
 # A physical PDF line is often only half a sentence. Split before numbered or
@@ -34,7 +35,10 @@ def issue_evidence(sources: dict[str, ContextChunk]) -> dict[str, LocatedQuote]:
         boundaries = sorted({*boundaries, *parenthesized_items(chunk.text)})
         # Bound the label overhead for tables and very short paragraphs.
         stride = (len(boundaries) + _MAX_SPANS_PER_CHUNK - 1) // _MAX_SPANS_PER_CHUNK
-        boundaries = [*boundaries[::stride], len(chunk.text)]
+        # A compilation can contain the end of one instrument and the title
+        # of the next in a single chunk. Give the actual title its own ID.
+        titles = [pos for title in DOCUMENT_TITLE.finditer(chunk.text) for pos in title.span()]
+        boundaries = sorted({*boundaries[::stride], *titles, len(chunk.text)})
         for number, (start, end) in enumerate(pairwise(boundaries), 1):
             raw = chunk.text[start:end]
             if raw.strip():

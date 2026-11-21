@@ -5,15 +5,32 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.qa.grounding import LocatedQuote
 
 _NUMBER = r"\d+(?:[.,]\d+)?"
 _AMOUNT = re.compile(r"(?<!\d)\d{1,3}(?:[ \t\xa0\u202f]+\d{3})+(?!\d)")
 _NAMED_ENTITY = re.compile(r'«[^«»\n]*\d[^«»\n]*»|"[^"\n]*\d[^"\n]*"')
 _CLAUSE = re.compile(
-    r"(?:\b(?:п\.|пп\.|пункт\w*|подпункт\w*)\s*(?P<ref>\d+(?:\.\d+)+)"
+    r"(?:\b(?i:п\.|пп\.|пункт\w*|подпункт\w*)\s*(?P<ref>\d+(?:\.\d+)+)"
     r"|(?m:^\s*)(?P<heading>\d+(?:\.\d+)+)(?:\.(?=\s)|(?=\s+[А-ЯЁ])))"
 )
 _NEXT_CLAUSE = re.compile(r"\s*\.?\s*(?:,|и|или)\s*(\d+(?:\.\d+)+)\b")
+_DOCUMENT_ID_PATTERN = (
+    r"\b(?P<kind>протокол|договор|приказ|приложени|положени|постановлени|соглашени)"
+    r"(?:а|е|я|ю|у|ем|ом|ы|и|й|ей|ями|ям|ях|ов|ам|ами|ах)?[ \t]*(?:№|N(?:o|°)?\.?)[ \t]*"
+    r"(?P<value>\d\w*(?:[-/.]\w+)*)(?![\w/])"
+)
+_DOCUMENT_ID = re.compile(_DOCUMENT_ID_PATTERN, re.I)
+DOCUMENT_TITLE = re.compile(r"^[ \t]*" + _DOCUMENT_ID_PATTERN + r"[ \t]*$", re.M | re.I)
+_DOC_LABEL = {"протокол": "протокола", "договор": "договора", "приказ": "приказа",
+              "приложени": "приложения", "положени": "положения",
+              "постановлени": "постановления", "соглашени": "соглашения"}
+_ARTICLE = re.compile(r"\b(?:стать(?:я|е|ю|и|ёй|ей)|ст\.)\s*"
+                      r"(?P<value>\d+(?:\.\d+)*)(?!\w)", re.I)
+_SECTION_LINE = re.compile(r"^[ \t]*(\d+(?:\.\d+)*)(?:[.)][ \t]+|[ \t]+(?=[А-ЯЁ]))[^\n]+", re.M)
 _PERCENT = r"%|п\s*р\s*о\s*ц\s*е\s*н\s*т\w*"
 _UNITS = {
     "процент": _PERCENT,
@@ -36,7 +53,7 @@ _REGISTRATION = re.compile(
 )
 _NUMBER_RE = re.compile(_NUMBER)
 _PRICE_COLUMN = re.compile(
-    r"\b(?:стоимость|цена)\s*[,(:]\s*(?:руб\.?|рублей|₽)(?:\s+с\s+НДС)?\s*$", re.I
+    r"\b(?:стоимость|цена)\s*[,(:]\s*(?:руб[.\-]?|рублей|₽)\)?(?:\s+с\s+НДС)?\s*$", re.I
 )
 _ROW_PRICE = re.compile(r"\s(\d+(?:[.,]\d+)?)\s*$")
 
@@ -75,6 +92,39 @@ def _amount_value(raw: str) -> str:
     return ((whole.lstrip("0") or "0") + "." + fraction.rstrip("0")).rstrip(".")
 
 
+def clause_reference_heading(claim: str, text: str, offset: int) -> tuple[int, int] | None:
+    """Cite the actual numbered lead when the chosen span lies later in its list."""
+    refs = {m["ref"] for m in _CLAUSE.finditer(claim) if m["ref"]}
+    if not refs:
+        return None
+    current = None
+    for heading in _SECTION_LINE.finditer(text):
+        if heading.start() > offset:
+            break
+        current = heading
+    if (current and current.end() <= offset and current[1] in refs
+            and current[0].rstrip().endswith(":")):
+        return current.span()
+    return None
+
+
+def numeric_evidence_texts(quotes: list[LocatedQuote]) -> list[str]:
+    """Recover a terminal currency cell using its verified, separately cited header."""
+    texts = [q.quote_raw for q in quotes]
+    headers = {q.chunk.chunk_id: q for q in quotes if _PRICE_COLUMN.search(q.quote_raw)}
+    rows = [(q, headers[parent_id]) for q in quotes
+            if (parent_id := q.chunk.list_heading_id) is not None and parent_id in headers]
+    # If a claim selects multiple rows, the verifier needs a draft identifying
+    # each price with its own row. Never pool bare numeric cells across rows.
+    if len(rows) == 1:
+        row, header = rows[0]
+        text = row.quote_raw.strip()
+        if (header.char_end <= row.char_start and text == row.chunk.text.strip()
+                and "\n" not in text and _ROW_PRICE.search(text)):
+            texts.append(f"{header.quote_raw}\n{text}")
+    return texts
+
+
 def _facts(text: str) -> set[NumericFact]:
     # Replace classified ranges with spaces of the same length so other roles
     # cannot reuse e.g. the "1" in a company name as an item count.
@@ -88,6 +138,11 @@ def _facts(text: str) -> set[NumericFact]:
         if match[2] and match[4]:
             facts.add(NumericFact(match[4], match[2].upper()))
         masked[match.start():match.end()] = " " * len(match[0])
+    for pattern in (_DOCUMENT_ID, _ARTICLE):
+        for match in pattern.finditer("".join(masked)):
+            kind = "статья" if pattern is _ARTICLE else "номер " + _DOC_LABEL[match["kind"].lower()]
+            facts.add(NumericFact(match["value"].lower(), kind))
+            masked[match.start():match.end()] = " " * len(match[0])
     for match in _CLAUSE.finditer("".join(masked)):
         facts.add(NumericFact(match["ref"] or match["heading"], "пункт"))
         end = match.end()
@@ -155,7 +210,7 @@ _LIMIT_WORD = re.compile(
     r"(?:промо[ -]?)?период)\w*",
     re.I,
 )
-_DIRECT_LIMIT = re.compile(r"\b(не более|не больше|не менее|не меньше|до)\s*$", re.I)
+_DIRECT_LIMIT = re.compile(r"\b(не\s+более|не\s+больше|не\s+менее|не\s+меньше|до)\s*$", re.I)
 _PAYMENT = {
     "единовременн": "при единовременной оплате",
     "рассрочк": "при оплате в рассрочку",
@@ -241,7 +296,7 @@ def _check_range_rows(text: str, quotes: list[str]) -> list[tuple[int, int]]:
 
 def _limit(prefix: str, role: str) -> str | None:
     if direct := _DIRECT_LIMIT.search(prefix):
-        return "не менее" if direct[1].lower() in {"не менее", "не меньше"} else "не более"
+        return "не менее" if _key(direct[1]) in {"не менее", "не меньше"} else "не более"
     # A named limit controls the next measurement in its clause. Do not borrow
     # a bound across sentences, alternatives, other measured values or headings.
     clause = re.split(r"[.;:!?]|\b(?:или|однако|тогда как)\b", prefix, flags=re.I)[-1]
@@ -256,6 +311,19 @@ def _limit(prefix: str, role: str) -> str | None:
         if noun in {"сумм", "стоимост", "цен"} and role != "рубль":
             return None
         return "не более" if named[0].group("upper") else "не менее"
+    return None
+
+
+_TEMPORAL_ANCHOR = re.compile(
+    r"\b(?:(?P<expiry>по\s+(?:истечении|прошествии)|после\s+истечения|спустя|через)"
+    r"|(?P<window>в\s+течение|на\s+протяжении))\s*$", re.I,
+)
+
+
+def _temporal_anchor(prefix: str, role: str) -> str | None:
+    if role in {"минута", "час", "день", "месяц", "год"}:
+        if match := _TEMPORAL_ANCHOR.search(prefix):
+            return match.lastgroup
     return None
 
 
@@ -291,11 +359,14 @@ def qualify_numeric_text(text: str, quotes: list[str]) -> str:
     The verifier sees the revised wording and the very same citations.
     """
     matched_bands = _check_range_rows(text, quotes)
-    evidence: dict[NumericFact, set[str | None]] = {}
+    evidence: dict[NumericFact, set[tuple[str | None, str | None]]] = {}
     for quote in quotes:
         previous = 0
         for fact, start, end in _measures(quote):
-            evidence.setdefault(fact, set()).add(_limit(quote[previous:start], fact.role))
+            before = quote[previous:start]
+            evidence.setdefault(fact, set()).add(
+                (_temporal_anchor(before, fact.role), _limit(before, fact.role))
+            )
             previous = end
     previous = 0
     inserts: list[tuple[int, str]] = []
@@ -305,8 +376,21 @@ def qualify_numeric_text(text: str, quotes: list[str]) -> str:
         own = _limit(text[previous:start], fact.role)
         # A range endpoint was verified together with its own row value. Another
         # row may use this number as the opposite bound ("до 1"/"свыше 1").
-        limits = (set() if any(a <= start < b for a, b in matched_bands)
-                  else evidence.get(fact, set()))
+        uses = (set() if any(a <= start < b for a, b in matched_bands)
+                else evidence.get(fact, set()))
+        anchor = _temporal_anchor(text[previous:start], fact.role)
+        limits = {limit for _, limit in uses}
+        if own and (None, own) in uses and all(ref or limit == own for ref, limit in uses):
+            # An independently cited time window does not contradict the
+            # explicitly stated bound on the same numerical duration.
+            limits = {limit for ref, limit in uses if ref is None}
+        if anchor and uses and (any(limits) or all(ref is not None for ref, _ in uses)):
+            # An expiry time and a maximum duration may use the same number. A
+            # bound on possession does not by itself establish a date of transfer.
+            limits = {limit for ref, limit in uses if ref == anchor}
+            if not limits:
+                raise ValueError("Цитата не подтверждает отсчёт этого события от названного срока. "
+                                 "Передай отдельно исходный срок с его пределом и условие события.")
         if any(limits):
             if len(limits) != 1:
                 raise ValueError("У величины разные условия. Раздели утверждения и доказательства.")
