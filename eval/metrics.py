@@ -216,6 +216,23 @@ def main() -> None:
         good = sum((r["outcome"] == "found") if r["answerable"] else
                    (r["outcome"] == "not_found") for r in rs)
         agg["by_category"][cat] = ratio(good, len(rs))
+    # Metrics can also be recomputed offline long after the service stopped.
+    digest = hashlib.sha256((run_dir / "responses.jsonl").read_bytes()).hexdigest()
+    manifest = run_dir / "manifest.json"
+    provenance = {"result_type": "replay", "responses_sha256": digest,
+                  "gold_sha256": hashlib.sha256(gold_path().read_bytes()).hexdigest()}
+    if manifest.exists():
+        live = json.loads(manifest.read_bytes())
+        if (live["responses_sha256"] != digest
+                or live["inputs"]["gold_sha256"] != provenance["gold_sha256"]):
+            ap.error("saved responses or annotations differ from the live manifest")
+        for fid, item in live["inputs"]["documents"].items():
+            if hashlib.sha256((WORK / "index" / f"{fid}.json").read_bytes()).hexdigest() != (
+                item["export_sha256"]
+            ):
+                ap.error(f"index export {fid} differs from the live manifest")
+        provenance["live_manifest_sha256"] = hashlib.sha256(manifest.read_bytes()).hexdigest()
+    agg["provenance"] = provenance
     (run_dir / f"metrics-{args.split}.json").write_text(
         json.dumps(agg, ensure_ascii=False, indent=1))
     with (run_dir / f"cases-{args.split}.jsonl").open("w", encoding="utf-8") as fh:
