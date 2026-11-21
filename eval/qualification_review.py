@@ -256,6 +256,7 @@ def model_review(rows: list[dict], review: dict, path: Path, base_url: str, mode
             needed_context = len((MODEL_INSTRUCTIONS + payload).encode()) + 2400
             if needed_context > 65536:
                 raise ValueError(f"review {row['req_id']} manually: long evidence context")
+            context_tokens = 32768 if needed_context <= 32768 else 65536
             schema = review_schema(len(row["required_facts"]), len(row["claims"]))
             for attempt in range(3):
                 try:
@@ -263,7 +264,7 @@ def model_review(rows: list[dict], review: dict, path: Path, base_url: str, mode
                         "model": model, "format": schema, "think": False, "stream": False,
                         "options": {
                             "temperature": 0, "seed": 7 + attempt,
-                            "num_ctx": max(8192, needed_context), "num_predict": 1600,
+                            "num_ctx": context_tokens, "num_predict": 1600,
                         },
                         "messages": [{"role": "system", "content": MODEL_INSTRUCTIONS},
                                      {"role": "user", "content": payload}],
