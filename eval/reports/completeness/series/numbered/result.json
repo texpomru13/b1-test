@@ -1,0 +1,176 @@
+{
+  "series": "numbered",
+  "plan_sha256": "2388706bb136cf0eb3bfdbeaaf8c5493ed9bfefa9f55ceb0991b7e9d748cce2d",
+  "app_commit": "7ac18db946e50558b5470d9832f4fee19e7a26be",
+  "app_source_sha256": "1d105c1e37f4d45e5b3b0d10c56ef4ebcdf53f111d780a9b4b68d0aa20ba4e82",
+  "manifest_sha256": "25d3b8434e3c08d3691d98fcadb05d25387ad1abb2a3c8c37bdc363028dcc476",
+  "responses_sha256": "945b0f5d679f7498c56ed52de67581b0f7f5f1ee0f293e3d66e364354f8662e4",
+  "review_sha256": "198993ac635bfcd64e2fb6ca067612b1ff9b15f85850aef7e93e540ffcab73f6",
+  "reviewer": "OpenAI Codex, смысловая сверка ответов и цитируемых пунктов с документом",
+  "reviewer_type": "model",
+  "strata": {
+    "incomplete": {
+      "passed": 5,
+      "total": 6,
+      "failed_ids": [
+        "10-01"
+      ]
+    },
+    "complete_control": {
+      "passed": 3,
+      "total": 3,
+      "failed_ids": []
+    },
+    "false_positive": {
+      "passed": 0,
+      "total": 0,
+      "failed_ids": []
+    }
+  },
+  "critical_ids": [
+    "10-01"
+  ],
+  "coverage": [
+    22,
+    22
+  ],
+  "invalid_schema_ids": [],
+  "invalid_citation_ids": [],
+  "requests": [
+    {
+      "req_id": "01-01",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Пункт 7.1 на стр. 5 подтверждает размер пени, её ежедневное начисление по требованию поставщика и исключение при неисполнении обязательств поставщиком. Исключение появилось в самом ответе."
+    },
+    {
+      "req_id": "04-01",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "В ответе и строке пункта 3.1.1 на стр. 5 указаны все условия постоянной части платы: с 1 апреля 2022 года ежемесячно 158 400 рублей с НДС по действующей ставке."
+    },
+    {
+      "req_id": "09-01",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Ответ содержит оба срока из п. 2.1.3 на стр. 1. Передать документы надо не позднее чем за 24 часа до начала путешествия, если договор заключён ранее чем за 24 часа. Цитаты повторяют фрагмент страницы, но обе части правила подтверждены."
+    },
+    {
+      "req_id": "10-01",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": false,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 1,
+      "critical": true,
+      "assessment": "Вместо отказа сервис дал оба лимита 10% и оговорку об ином условии договора. В пояснении он распространил возмещение на согласованные расходы по предполагаемым страховым случаям. Подпункт ж) требует, чтобы покрытие таких расходов было прямо оговорено договором. Эта оговорка отсутствует в ответе и в обеих цитатах. Оговорка об изменении самого лимита имеет другой предмет."
+    },
+    {
+      "req_id": "11-01",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Ответ дословно передаёт п. 3.3 на стр. 2: новые сведения нужно предоставить письменно в течение пяти рабочих дней."
+    },
+    {
+      "req_id": "12-01",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "В ответе указаны вступление соглашения в силу с момента подписания и срок три года. Оба элемента содержатся в п. 6.1 на стр. 3."
+    },
+    {
+      "req_id": "15-01",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Указаны ставка 5%, п. 8 ст. 164 НК РФ и условие реализации с 12 января 2026 года включительно. Все три элемента входят в цитату п. 4.3 на стр. 2."
+    },
+    {
+      "req_id": "02-01",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Подтверждены размер сбора 0,4% от объявленной ценности и его порог строго свыше 300 000 тенге, п. 5.9 на стр. 2."
+    },
+    {
+      "req_id": "06-01",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Обе пары «оператор — ОГРН» совпали с определением в п. 1.7 на стр. 1 скана. АО «КантриКом» — 1037739567535, АО «СанСим» — 5107746075014."
+    }
+  ]
+}
