@@ -1,0 +1,522 @@
+{
+  "commit": "d45b40b7c8e59518871e1ab341ea5d99f1f7ea2b",
+  "project": "b1-release1121",
+  "host": {
+    "model": "Mac16,5",
+    "chip": "Apple M4 Max",
+    "cpu_cores": 16,
+    "gpu_cores": 40,
+    "metal": "Metal 4",
+    "ram_bytes": 137438953472,
+    "macOS": "26.7.3",
+    "macOS_build": "25G342",
+    "ollama": "ollama version is 0.40.16",
+    "ollama_model_manifest": [
+      {
+        "name": "ollama.com/library/qwen3.5/9b-q4_K_M",
+        "digest": "sha256:56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+        "blob_bytes": 6550825550
+      }
+    ]
+  },
+  "docker": {
+    "cli_engine": "28.3.2 / 28.3.2",
+    "compose": "2.39.1-desktop.1",
+    "vm": {
+      "os": "linux",
+      "arch": "aarch64",
+      "cpus": 16,
+      "memory_bytes": 67569790976
+    }
+  },
+  "cold_preflight": {
+    "clean_checkout": true,
+    "previous_project_containers": 0,
+    "previous_project_volumes": 0,
+    "dedicated_hf_home_entries": 0,
+    "ollama_tags": {
+      "models": []
+    },
+    "hf_seed_mount_basename": "empty-seed"
+  },
+  "timestamps_utc": {
+    "start": "2026-11-21T07:12:52Z",
+    "ready": "2026-11-21T07:24:32Z",
+    "warm-start": "2026-11-21T07:26:42Z",
+    "warm-ready": "2026-11-21T07:26:57Z",
+    "verified": "2026-11-21T07:26:57Z"
+  },
+  "elapsed_seconds": {
+    "first_launch_to_ready": 700.0,
+    "offline_launch_to_ready": 15.0
+  },
+  "config": {
+    "profile": "balanced",
+    "preset_status": "candidate",
+    "llm_runtime": "host-ollama",
+    "llm_provider": "ollama",
+    "llm_model": "qwen3.5:9b-q4_K_M",
+    "dmr_model": null,
+    "llm_thinking": "off",
+    "host_ollama_port": 11593,
+    "ollama_base_url": "http://host.docker.internal:11593",
+    "embedding_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+    "embedding_revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+    "embedding_dim": 1024,
+    "reranker_model": "BAAI/bge-reranker-v2-m3",
+    "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "reranker_adapter": "cross_encoder",
+    "model_residency": "resident-both",
+    "quality_degraded": false,
+    "quality_degraded_reason": null,
+    "use_ollama_container": false,
+    "compose_overrides": [
+      "compose.mac.yaml"
+    ],
+    "device": "auto",
+    "accelerator_verified": true,
+    "llm_read_timeout_s": 300,
+    "qa_deadline_s": 900
+  },
+  "cold_http": {
+    "health_build": {
+      "instance": "8c0a2624a216",
+      "source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64"
+    },
+    "health_ready": {
+      "status": "ready",
+      "components": {
+        "redis": "ok",
+        "qdrant": "ok",
+        "local_models": "ok",
+        "llm": "ok"
+      },
+      "model_ready": true
+    },
+    "checkout_source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64"
+  },
+  "storage": {
+    "ollama_store_KiB": 6397332,
+    "cache_KiB": {
+      "/models-cache": 3195532,
+      "/home/appuser/.cache": 236
+    },
+    "model_cache_details_KiB": {
+      "/models-cache/hub/models--BAAI--bge-reranker-v2-m3": 2239872,
+      "/models-cache/hub/models--ai-sage--Giga-Embeddings-instruct-480M-0826": 955388
+    },
+    "images": [
+      {
+        "service": "api",
+        "reference": "b1-release1121-api",
+        "id": "sha256:938b09739d07582a0a39c9825690c0f73a4403c6fb03fe80ad28a3b434904e21",
+        "rootfs_group": 1,
+        "docker_image_inspect_size_bytes": 329474525,
+        "docker_system_df": {
+          "VirtualSize": "1.383GB",
+          "SharedSize": "1.054GB",
+          "UniqueSize": "329.5MB"
+        }
+      },
+      {
+        "service": "worker",
+        "reference": "b1-release1121-worker",
+        "id": "sha256:8d8afee2070f34620669234f9af61554cd8ba723e203fa27a52217746b731225",
+        "rootfs_group": 1,
+        "docker_image_inspect_size_bytes": 329474528,
+        "docker_system_df": {
+          "VirtualSize": "1.383GB",
+          "SharedSize": "1.054GB",
+          "UniqueSize": "329.5MB"
+        }
+      },
+      {
+        "service": "dispatcher",
+        "reference": "b1-release1121-dispatcher",
+        "id": "sha256:e2820fac12ae9ccfffc6eafe5c6d5121a881e8ac3b3811c9fc25d0a94a16b9bb",
+        "rootfs_group": 1,
+        "docker_image_inspect_size_bytes": 329474532,
+        "docker_system_df": {
+          "VirtualSize": "1.383GB",
+          "SharedSize": "1.054GB",
+          "UniqueSize": "329.5MB"
+        }
+      },
+      {
+        "service": "local-models",
+        "reference": "b1-release1121-local-models",
+        "id": "sha256:716a17a816749b27119e2ea4ec0f793dd098467b305947d15c7da7864360d5ce",
+        "rootfs_group": 2,
+        "docker_image_inspect_size_bytes": 405339856,
+        "docker_system_df": {
+          "VirtualSize": "1.936GB",
+          "SharedSize": "1.531GB",
+          "UniqueSize": "405.3MB"
+        }
+      },
+      {
+        "service": "models-init",
+        "reference": "b1-release1121-models-init",
+        "id": "sha256:f8f31f765b1234a71ff570f2ca49216c7466607dd9fab097a11e9134a29b4cd2",
+        "rootfs_group": 2,
+        "docker_image_inspect_size_bytes": 405339855,
+        "docker_system_df": {
+          "VirtualSize": "1.936GB",
+          "SharedSize": "1.531GB",
+          "UniqueSize": "405.3MB"
+        }
+      },
+      {
+        "service": "redis",
+        "reference": "redis:8.10.3@sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53",
+        "id": "sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53",
+        "rootfs_group": 3,
+        "docker_image_inspect_size_bytes": 55413404,
+        "docker_system_df": {
+          "VirtualSize": "231.6MB",
+          "SharedSize": "109.6MB",
+          "UniqueSize": "122MB"
+        }
+      },
+      {
+        "service": "qdrant",
+        "reference": "qdrant/qdrant:v1.20.0@sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2",
+        "id": "sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2",
+        "rootfs_group": 4,
+        "docker_image_inspect_size_bytes": 71548326,
+        "docker_system_df": {
+          "VirtualSize": "288.1MB",
+          "SharedSize": "0B",
+          "UniqueSize": "288.1MB"
+        }
+      }
+    ]
+  },
+  "provisioning": {
+    "retrieval_manifest": {
+      "models": [
+        {
+          "id": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+          "revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+          "snapshot": "/models-cache/hub/models--ai-sage--Giga-Embeddings-instruct-480M-0826/snapshots/1763d603adac8057bd6482a708001b0ed2e0a903"
+        },
+        {
+          "id": "BAAI/bge-reranker-v2-m3",
+          "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+          "snapshot": "/models-cache/hub/models--BAAI--bge-reranker-v2-m3/snapshots/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e"
+        }
+      ]
+    },
+    "buildkit_cached_steps": 18,
+    "cold_ollama_pull_log": "[GIN] 2026/11/21 - 12:21:53 | 200 |    8m30s |       127.0.0.1 | POST     \"/api/pull\"",
+    "cold_models_init": [
+      "2026-11-21T07:21:56.562246177Z [models-init] downloading ai-sage/Giga-Embeddings-instruct-480M-0826@1763d603 (attempt 1)",
+      "2026-11-21T07:23:22.951538550Z [models-init] downloading BAAI/bge-reranker-v2-m3@953dc6f6 (attempt 1)",
+      "2026-11-21T07:24:25.845400176Z [models-init] manifest written: /models-cache/models.lock.json"
+    ],
+    "cold_models_init_state": {
+      "ExitCode": 0,
+      "StartedAt": "2026-11-21T07:21:56.110910885Z",
+      "FinishedAt": "2026-11-21T07:24:25.870054843Z"
+    }
+  },
+  "demo": {
+    "uploaded": [
+      {
+        "doc_id": "92e303841cb14125a8f8874f237a06ba",
+        "job_id": "b96b567af73840a5922808f3e046b85a",
+        "status": "accepted",
+        "status_url": "/api/v1/jobs/b96b567af73840a5922808f3e046b85a",
+        "document_url": "/api/v1/documents/92e303841cb14125a8f8874f237a06ba"
+      },
+      {
+        "doc_id": "40305a622c1745f9b0bcf9ce463900a1",
+        "job_id": "c60e40860f664ad5b81f47c6a8d99a03",
+        "status": "accepted",
+        "status_url": "/api/v1/jobs/c60e40860f664ad5b81f47c6a8d99a03",
+        "document_url": "/api/v1/documents/40305a622c1745f9b0bcf9ce463900a1"
+      }
+    ],
+    "index_jobs": [
+      {
+        "job_id": "b96b567af73840a5922808f3e046b85a",
+        "doc_id": "92e303841cb14125a8f8874f237a06ba",
+        "status": "succeeded",
+        "stage": "publish",
+        "attempt": 1,
+        "progress": {
+          "completed": 93,
+          "total": 93,
+          "unit": "chunks"
+        },
+        "created_at": "2026-11-21T07:24:32.581142+00:00",
+        "updated_at": "2026-11-21T07:24:50.981768+00:00",
+        "error": null
+      },
+      {
+        "job_id": "c60e40860f664ad5b81f47c6a8d99a03",
+        "doc_id": "40305a622c1745f9b0bcf9ce463900a1",
+        "status": "succeeded",
+        "stage": "publish",
+        "attempt": 1,
+        "progress": {
+          "completed": 41,
+          "total": 41,
+          "unit": "chunks"
+        },
+        "created_at": "2026-11-21T07:24:51.132218+00:00",
+        "updated_at": "2026-11-21T07:24:58.026604+00:00",
+        "error": null
+      }
+    ],
+    "documents_before_restart": {
+      "items": [
+        {
+          "doc_id": "40305a622c1745f9b0bcf9ce463900a1",
+          "title": "15_Лицензия_Litender",
+          "status": "succeeded",
+          "ready": true,
+          "job_id": "c60e40860f664ad5b81f47c6a8d99a03",
+          "created_at": "2026-11-21T07:24:51.132218+00:00"
+        },
+        {
+          "doc_id": "92e303841cb14125a8f8874f237a06ba",
+          "title": "04_Аренда_производственного_помещения",
+          "status": "succeeded",
+          "ready": true,
+          "job_id": "b96b567af73840a5922808f3e046b85a",
+          "created_at": "2026-11-21T07:24:32.581142+00:00"
+        }
+      ],
+      "next_cursor": null
+    },
+    "questions": {
+      "07_exact": {
+        "document": "A",
+        "question": "Какой размер постоянной части арендной платы установлен п. 3.1.1 договора аренды нежилого помещения и включает ли он НДС?",
+        "body": {
+          "answer": "Сумма постоянной части арендной платы составляет 158 400 рублей 00 копеек ежемесячно. [1][2] В указанную сумму включен НДС в размере ставки, соответствующей действующему законодательству РФ. [1][2]",
+          "found": true,
+          "citations": [
+            {
+              "id": 1,
+              "text": "3.1. Арендная плата за Помещение состоит из постоянной и переменной части:",
+              "page": 5,
+              "page_to": 5,
+              "section": "3.1",
+              "chunk_id": "b4e91948-190e-52d7-a384-fbf87d43b413",
+              "char_start": 16169,
+              "char_end": 16243
+            },
+            {
+              "id": 2,
+              "text": "3.1.1. Сумма постоянной части арендной платы за аренду Помещение составляет:\n- начиная с 01 апреля 2022 г. и далее ежемесячно - 158 400 (Сто пятьдесят восемь тысяч четыреста)\nрублей 00 копеек, в том числе НДС в размере ставки, соответствующей действующему\nзаконодательству РФ;",
+              "page": 5,
+              "page_to": 5,
+              "section": "3.1.1",
+              "chunk_id": "5a9c939a-5a81-5308-9abf-72541fa5d4fd",
+              "char_start": 16244,
+              "char_end": 16520
+            }
+          ]
+        }
+      },
+      "08_paraphrase": {
+        "document": "A",
+        "question": "На какой срок здание передаётся в аренду и с какого момента этот срок отсчитывается?",
+        "body": {
+          "answer": "Здание передаётся в аренду сроком на 11 (одиннадцать) месяцев. [1] Срок аренды отсчитывается с момента акта приема-передачи Помещения. [1][2]",
+          "found": true,
+          "citations": [
+            {
+              "id": 1,
+              "text": "4.1. Помещение сдается в аренду сроком на 11 (одиннадцать) месяцев с момента акта приема-\nпередачи.",
+              "page": 6,
+              "page_to": 6,
+              "section": "4.1",
+              "chunk_id": "0642ccda-86b7-54b1-9c79-f0b1e99b348f",
+              "char_start": 19043,
+              "char_end": 19142
+            },
+            {
+              "id": 2,
+              "text": "3.4. Отсчет период равного году начинается с даты приема-передачи Помещения по\nПередаточному акту.",
+              "page": 5,
+              "page_to": 5,
+              "section": "3.4",
+              "chunk_id": "701b9e86-214f-53e1-8735-7c81032aec82",
+              "char_start": 17043,
+              "char_end": 17141
+            }
+          ]
+        }
+      },
+      "09_no_answer": {
+        "document": "A",
+        "question": "Какой обеспечительный (гарантийный) платёж вносит арендатор по договору аренды нежилого помещения?",
+        "body": {
+          "answer": "В документе не найдено достаточно сведений для ответа на этот вопрос.",
+          "found": false,
+          "citations": []
+        }
+      },
+      "10_debug": {
+        "document": "A",
+        "question": "Какая неустойка предусмотрена п. 5.1 договора аренды при просрочке уплаты арендных платежей?",
+        "body": {
+          "answer": "При просрочке уплаты арендных платежей с Арендатора взыскивается неустойка из расчета 0,1 % процента от просроченной суммы платежа за каждый день просрочки. [1]",
+          "found": true,
+          "citations": [
+            {
+              "id": 1,
+              "text": "5.1. При просрочке уплаты арендных платежей, с Арендатора взыскивается неустойка из расчета\n0,1 % процента от просроченной суммы платежа за каждый день просрочки.",
+              "page": 6,
+              "page_to": 6,
+              "section": "5.1",
+              "chunk_id": "4fc09b81-a3d6-52f6-9cc1-4b73ee91ffc6",
+              "char_start": 22113,
+              "char_end": 22275
+            }
+          ]
+        },
+        "diagnostics": {
+          "dense_returned": 60,
+          "sparse_returned": 60,
+          "reranked_count": 60,
+          "context_count": 8,
+          "cited_chunk_ids": [
+            "4fc09b81-a3d6-52f6-9cc1-4b73ee91ffc6"
+          ],
+          "context_chunk_ids": [
+            "4fc09b81-a3d6-52f6-9cc1-4b73ee91ffc6",
+            "af02c5f0-e619-5067-a7f2-af2e11980566",
+            "39f9313b-4292-5409-afa1-7cd5669d80d8",
+            "5d948b64-cc66-5cfb-a92c-ebd44ac9fe52",
+            "3b5d7c31-4911-5d8c-a9ad-58ec40500550",
+            "e83c2f83-c6bd-5fbf-a40c-f6fe3fbc6059",
+            "bfbe6e89-d02a-5b5e-ae48-bcc1e961fe34",
+            "a4e9d762-66e1-5074-8218-5b8698e8c449"
+          ]
+        }
+      },
+      "11_isolation_b_asked_about_a": {
+        "document": "B",
+        "question": "Какой размер постоянной части арендной платы установлен п. 3.1.1 договора аренды нежилого помещения и включает ли он НДС?",
+        "body": {
+          "answer": "В документе не найдено достаточно сведений для ответа на этот вопрос.",
+          "found": false,
+          "citations": []
+        }
+      },
+      "12_doc_b_own_question": {
+        "document": "B",
+        "question": "По какой ставке облагается НДС передача права использования Программы согласно п. 4.3 лицензионного договора и на каком основании?",
+        "body": {
+          "answer": "Передача Права использования Программы по настоящему Договору подлежит обложению НДС по ставке 5% на основании п. 8 ст. 164 НК РФ при условии реализации с 12.01.2026 включительно. [1]",
+          "found": true,
+          "citations": [
+            {
+              "id": 1,
+              "text": "4.3. Передача Права использования Программы по настоящему Договору подлежит обложению\nНДС по ставке 5% на основании п. 8 ст. 164 НК РФ при условии реализации с 12.01.2026 включительно.",
+              "page": 2,
+              "page_to": 2,
+              "section": "4.3",
+              "chunk_id": "8f5f9ea8-08b6-50a9-97d1-aca09545215e",
+              "char_start": 4866,
+              "char_end": 5050
+            }
+          ]
+        }
+      }
+    },
+    "citation_check": {
+      "A": {
+        "file": "test_documents/04_Аренда_производственного_помещения.pdf",
+        "source_sha256": "e2bcf18e1d30d8e21674f0ad7f5d4be9de4ed9221bf614cf9488630cb93e06ea",
+        "canonical_sha256": "52b59350d68c6a0662fd13f056e022fa6a97ddf8a3db8a4f732f7fbf4a975896",
+        "exact_quote_and_page_count": 5
+      },
+      "B": {
+        "file": "test_documents/15_Лицензия_Litender.pdf",
+        "source_sha256": "911d83b47fe4be7e30c4914a328cda62914c0a75cc9295e0a058bb84995db5d7",
+        "canonical_sha256": "ea29be0c575d1ebad8321fe2c2d2ac0096d790bd72b6c79723071ef340d1c72f",
+        "exact_quote_and_page_count": 1
+      }
+    }
+  },
+  "restart": {
+    "retained_document": {
+      "doc_id": "92e303841cb14125a8f8874f237a06ba",
+      "title": "04_Аренда_производственного_помещения",
+      "original_filename": "04_Аренда_производственного_помещения.pdf",
+      "content_type": "application/pdf",
+      "size_bytes": 916384,
+      "status": "succeeded",
+      "ready": true,
+      "job_id": "b96b567af73840a5922808f3e046b85a",
+      "created_at": "2026-11-21T07:24:32.581142+00:00",
+      "updated_at": "2026-11-21T07:24:50.981768+00:00",
+      "page_count": 10,
+      "chunk_count": 93,
+      "source_sha256": "e2bcf18e1d30d8e21674f0ad7f5d4be9de4ed9221bf614cf9488630cb93e06ea",
+      "accepted_run_id": "857906304031427c9071ab1a7e8d22a1",
+      "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
+      "ocr_pages": []
+    },
+    "documents_after_restart": {
+      "items": [
+        {
+          "doc_id": "40305a622c1745f9b0bcf9ce463900a1",
+          "title": "15_Лицензия_Litender",
+          "status": "succeeded",
+          "ready": true,
+          "job_id": "c60e40860f664ad5b81f47c6a8d99a03",
+          "created_at": "2026-11-21T07:24:51.132218+00:00"
+        },
+        {
+          "doc_id": "92e303841cb14125a8f8874f237a06ba",
+          "title": "04_Аренда_производственного_помещения",
+          "status": "succeeded",
+          "ready": true,
+          "job_id": "b96b567af73840a5922808f3e046b85a",
+          "created_at": "2026-11-21T07:24:32.581142+00:00"
+        }
+      ],
+      "next_cursor": null
+    },
+    "config": {
+      "profile": "balanced",
+      "preset_status": "candidate",
+      "llm_runtime": "host-ollama",
+      "llm_provider": "ollama",
+      "llm_model": "qwen3.5:9b-q4_K_M",
+      "dmr_model": null,
+      "llm_thinking": "off",
+      "host_ollama_port": 11593,
+      "ollama_base_url": "http://host.docker.internal:11593",
+      "embedding_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+      "embedding_revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+      "embedding_dim": 1024,
+      "reranker_model": "BAAI/bge-reranker-v2-m3",
+      "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "reranker_adapter": "cross_encoder",
+      "model_residency": "resident-both",
+      "quality_degraded": false,
+      "quality_degraded_reason": null,
+      "use_ollama_container": false,
+      "compose_overrides": [
+        "compose.mac.yaml"
+      ],
+      "device": "auto",
+      "accelerator_verified": true,
+      "llm_read_timeout_s": 300,
+      "qa_deadline_s": 900
+    },
+    "docker_network_internal": false,
+    "warm_models_init": [
+      "[models-init] ai-sage/Giga-Embeddings-instruct-480M-0826@1763d603 already present",
+      "[models-init] BAAI/bge-reranker-v2-m3@953dc6f6 already present",
+      "[models-init] manifest written: /models-cache/models.lock.json"
+    ]
+  }
+}
