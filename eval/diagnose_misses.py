@@ -1,5 +1,6 @@
 """Diagnose answerable cases that ended found=false: at which QA step did the repeated request stop?
 
+    uv run python eval/diagnose_misses.py --review-submission
     uv run python eval/diagnose_misses.py --run balanced-9b-nothink [--project b1-eval]
 
 Re-asks each missed answerable case once (debug=true) and collects the API log
@@ -17,17 +18,99 @@ import collections
 import json
 import subprocess
 import time
+from pathlib import Path
 
 import httpx
-from paths import WORK
+from paths import ROOT, WORK
+
+# Per-case adjudication of the archived request. Keep the acceptance condition
+# explicit: a matching span may still fail to support the scope of a claim.
+_REVIEW = {
+    "01-02": "Указать пару ИНН/КПП и ОГРН именно покупателя. Цифра в названии организации "
+             "требует подтверждения полного названия в том же блоке реквизитов.",
+    "01-03": "Применить правило для срока от 18 месяцев. Остаток при приёмке — минимум год. "
+             "Два года заданы вопросом. Преобразование в 24 месяца относится к примеру.",
+    "03-05": "Подтвердить письменное уведомление за 30 календарных дней и возврат "
+             "только за полные неиспользованные месяцы.",
+    "05-03": "Передать срок 14 дней, условие размещения на оборудовании исполнителя "
+             "и его право удалить сведения без восстановления по истечении срока.",
+    "10-01": "Связать расходы по е) и ж) с пунктом 5.1.1, обе базы для 10% — "
+             "со своими лимитами, сохранить оговорку об ином условии договора.",
+    "10-04": "Указать обязанность сообщить незамедлительно, крайний срок три календарных "
+             "дня и исключение для выходных и праздничных дней.",
+    "11-06": "Два самостоятельных вывода требуют доказательств. Пропуск занятий "
+             "не даёт уменьшения платы и права ссылаться на неоказание услуг.",
+    "13-03": "При отсутствии пункта об оплате сохранить отказ. Для ответа требуется "
+             "подтвердить перечисление средств на банковский счёт исполнителя.",
+    "13-05": "Различить соглашение сторон и одностороннее расторжение по основаниям закона. "
+             "Указать письменное уведомление и незаполненный срок без вымышленной даты.",
+    "14-01": "Связать цену 79 руб./мес. и состав пакета с тарифом «1 день Полная запись» "
+             "в одной строке или ячейках этой строки.",
+    "14-02": "Связать цену 3650 руб. за 30 дней, до 10 камер и FullHD с одной подпиской "
+             "«Профи». Нужны подпись строки и соответствующие столбцы.",
+    "14-04": "Сохранить отказ до появления применимого гарантийного пункта. Для ответа "
+             "нужны 24 месяца и момент приобретения оборудования.",
+    "14-08": "Сохранить отказ по прежнему контексту. Для ответа нужны лимит 3 единицы "
+             "и исключение до 1 для личной явки представителя службы продаж. Однократность "
+             "тестового периода не определяет количество камер.",
+}
+
+
+def review_submission(directory: Path) -> str:
+    """Cross-check the published diagnostic events against HTTP results and annotation."""
+    def load_rows(path: Path, key: str) -> dict[str, dict]:
+        rows = [json.loads(line) for line in path.read_text().splitlines() if line]
+        result = {row[key]: row for row in rows}
+        if len(result) != len(rows):
+            raise ValueError(f"duplicate {key} in {path}")
+        return result
+
+    gold = load_rows(ROOT / "eval/gold/gold.jsonl", "case_id")
+    responses = load_rows(directory / "responses.jsonl", "req_id")
+    failed = {rid for rid, r in responses.items() if r["kind"] == "gold"
+              and gold[r["case_id"]]["answerable"] and r["http_status"] == 200
+              and r["body"]["found"] is False}
+    reports = json.loads((directory / "refusal-analysis.json").read_text())["cases"]
+    if (failed != set(_REVIEW) or failed != {r["case_id"] for r in reports}
+            or len(reports) != len(failed)):
+        raise ValueError("review must cover exactly the observed answerable refusals")
+    lines = ["# Разбор отказов исходной оценки", "",
+             "Источники — сохранённые HTTP-ответы `submission/responses.jsonl`, "
+             "события тех же запросов в `submission/refusal-analysis.json` и эталон "
+             "`eval/gold/gold.jsonl`. В таблице указана доля эталонных выдержек "
+             "с покрытием не менее 80% в финальном контексте.", "",
+             "| Вопрос | Этап остановки | Выдержек в контексте | Условие корректного ответа |",
+             "|---|---|---|---|"]
+    for row in sorted(reports, key=lambda r: r["case_id"]):
+        cid = row["case_id"]
+        r = responses[cid]
+        if (r["request_id"] != row["request_id"] or r["question"] != gold[cid]["question"]
+                or not row["events"]
+                or any(e["request_id"] != r["request_id"] for e in row["events"])
+                or row["gold_span_count"] != len(gold[cid]["gold_spans"])):
+            raise ValueError(f"{cid}: archived inputs disagree")
+        count = f'{len(row["context_gold_spans"])}/{row["gold_span_count"]}'
+        lines.append(f'| {cid} | `{row["final_classification"]}` | {count} | {_REVIEW[cid]} |')
+    lines.extend(["", "В 14-08 этап выведен по событиям после успешного вердикта модели. "
+                  "Для остальных строк в журнале есть явное решение. Черновики утверждений "
+                  "этих запросов не сохранены. Корректность нового ответа требует проверки "
+                  "на запущенной модели.", "",
+                  "Воспроизведение из корня проекта — "
+                  "`.venv/bin/python eval/diagnose_misses.py --review-submission`.", ""])
+    return "\n".join(lines)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--run", required=True)
+    mode = ap.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--run")
+    mode.add_argument("--review-submission", action="store_true")
     ap.add_argument("--project", default="b1-eval")
     ap.add_argument("--api", default="http://127.0.0.1:8000")
     args = ap.parse_args()
+    if args.review_submission:
+        print(review_submission(ROOT / "eval/reports/submission"), end="")
+        return
     run_dir = WORK / "runs" / args.run
     cases = []
     for split in ("dev", "holdout"):

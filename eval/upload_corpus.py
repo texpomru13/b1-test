@@ -22,6 +22,7 @@ from pathlib import Path
 import httpx
 from paths import ROOT, WORK
 from pypdf import PdfReader, PdfWriter
+from qualification_data import install_gold, source_files
 
 DOCS = ROOT / "test_documents"
 TERMINAL = {"succeeded", "failed", "cleanup_pending"}
@@ -58,7 +59,11 @@ def main() -> None:
     parser.add_argument("--api", default="http://127.0.0.1:8000")
     parser.add_argument("--timeout-s", type=int, default=3600)
     parser.add_argument("--only", nargs="*", help="fixture ids to (re)upload")
+    parser.add_argument("--qualification", action="store_true",
+                        help="use the locked independent corpus in a separate B1_EVAL_WORK_DIR")
     args = parser.parse_args()
+    if args.qualification:
+        install_gold()
 
     WORK.mkdir(parents=True, exist_ok=True)
     corpus_path = WORK / "corpus.json"
@@ -66,8 +71,12 @@ def main() -> None:
     if corpus.get("api") != args.api:
         corpus = {"api": args.api, "docs": {}}
 
-    files = sorted(p for p in DOCS.iterdir() if p.suffix in CONTENT_TYPES)
-    files.append(build_100_pages())
+    if args.qualification:
+        fixtures = source_files()
+    else:
+        files = sorted(p for p in DOCS.iterdir() if p.suffix in CONTENT_TYPES)
+        files.append(build_100_pages())
+        fixtures = {fixture_id(p): p for p in files}
     client = httpx.Client(base_url=args.api, timeout=120)
 
     def checkpoint() -> None:
@@ -79,8 +88,7 @@ def main() -> None:
         tmp.replace(corpus_path)
 
     pending: dict[str, dict] = {}
-    for path in files:
-        fid = fixture_id(path)
+    for fid, path in fixtures.items():
         if args.only and fid not in args.only:
             continue
         data = path.read_bytes()
@@ -103,8 +111,7 @@ def main() -> None:
                 continue
         retry_headers = {}
         if previous.get("sha256") == digest and previous.get("status") == "failed":
-            if (previous.get("error") or {}).get("code") != "OCR_REQUIRED":
-                retry_headers["Idempotency-Key"] = f"eval-retry-{previous['job_id']}"
+            retry_headers["Idempotency-Key"] = f"eval-retry-{previous['job_id']}"
         started = time.monotonic()
         resp = client.post(
             "/api/v1/documents",
@@ -164,10 +171,7 @@ def main() -> None:
     for fid, entry in corpus["docs"].items():
         if args.only and fid not in args.only:
             continue
-        if fid == "06":
-            if entry["status"] == "failed" and entry["error"]["code"] == "OCR_REQUIRED":
-                continue
-        elif entry["status"] == "succeeded" and (fid != "100_pages" or entry["page_count"] == 100):
+        if entry["status"] == "succeeded" and (fid != "100_pages" or entry["page_count"] == 100):
             continue
         raise SystemExit(f"unexpected result for {fid}: {entry['status']} {entry['error']}")
 

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "files": {
+    "gold.jsonl": "4cf0c2612785f909859f34495bcf6f049ce4e0eae5336ca6bd36cb02bca168e7",
+    "fixtures/alferov.pdf": "c10627a9d9321b0954d7484d8f1c50e42c78e8c8f2e185cd43c78cc96a6ddc8a",
+    "fixtures/troika.pdf": "0cd57e7d05bc0dfe7518a51a8c0e5792ba888b77c24b44ea713d33067e964966",
+    "fixtures/moreon.pdf": "6fd8482df98ae40dffc01fa28d96f8f51d0096bda35314fcae74ac89c1868af0",
+    "fixtures/roerich.pdf": "5e290578bde29487487388d755b615cb8a763a972f2652845db7e57921285232",
+    "fixtures/warehouse.pdf": "81cb9bde82e69dab29642b8d5c10fc6ea9de3c402fde4f06defef4abd41bff53",
+    "fixtures/hotel.pdf": "43b8a844f1297d1b9ee715aa3a43c12aba8f61bef418244114bfdfcfb1abca6b",
+    "documents.json": "ee1af1dc59c4bbd2d1a8465a9340360bcf22246c4b1e840cf20af90d939b91a9"
+  }
+}
