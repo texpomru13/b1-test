@@ -1,16 +1,17 @@
 {
-  "run": "build-v5",
-  "source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64",
-  "responses_sha256": "dc18b492852cce5e03969d320de8fcc234a3184042b2f7a9e17391ab644f6377",
+  "run": "numbered",
+  "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3",
+  "responses_sha256": "fa4c61ebab236c2d6720f2171aba230292bd834bd65bed6dc6673a9900d60747",
   "cases": [
     {
       "case_id": "14-03",
+      "http_status": 200,
       "found": true,
       "checks": {
         "Стоимость и НДС": true,
         "Единовременная оплата": true,
         "Верхний предел длительности": true,
-        "Календарные дни и начало отсчёта": true,
+        "Календарные дни и начало отсчета": true,
         "Оба способа подключения": true,
         "Нет сроков соседней акции": true
       },
@@ -19,6 +20,7 @@
     },
     {
       "case_id": "07-07",
+      "http_status": 200,
       "found": true,
       "checks": {
         "Базовый запрет": true,
@@ -31,6 +33,7 @@
     },
     {
       "case_id": "05-03",
+      "http_status": 200,
       "found": true,
       "checks": {
         "Хранение 14 дней с даты приостановления": true,
@@ -43,10 +46,11 @@
     },
     {
       "case_id": "03-06",
+      "http_status": 200,
       "found": true,
       "checks": {
         "Общий запрет перепродажи услуг": true,
-        "Отдельное упоминание поддержки VDS, паролей и API": true
+        "Поддержка VDS, пароли и API": true
       },
       "citations": 3,
       "all_exact": true
