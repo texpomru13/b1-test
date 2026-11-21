@@ -24,6 +24,8 @@ from app.ingestion.chunker import LengthFn
 from app.ingestion.scopes import requested_scope_keys, scope_key
 from app.reliability.policy import retry_async
 from app.retrieval.bm25 import Bm25Adapter
+from app.retrieval.day_definition import prioritize_day_definition
+from app.retrieval.tables import attach_price_headings
 from app.storage.qdrant_repo import DENSE_NAME, SPARSE_NAME, FingerprintMismatchError
 from qdrant_client import AsyncQdrantClient, models
 
@@ -83,6 +85,7 @@ class ContextChunk:
     list_heading_id: str | None = None
     scope_id: str | None = None
     scope_label: str | None = None
+    table_heading_span: tuple[int, int] | None = None
 
 
 def _context_unit(chunk_id: str, payload: dict[str, Any]) -> list[ContextChunk]:
@@ -235,6 +238,7 @@ async def hybrid_search(
     # 3) mandatory rerank (fail closed)
     timer = time.monotonic()
     units = {str(p.id): _context_unit(str(p.id), p.payload or {}) for p in candidates}
+    attach_price_headings(units)
     documents = [
         RerankDocument(id=key, text="\n".join(_scoped_text(part) for part in unit))
         for key, unit in units.items()
@@ -269,6 +273,7 @@ async def hybrid_search(
     included: set[str] = set()
     labels = {c.scope_label for unit in units.values() for c in unit if c.scope_label}
     requested = requested_scope_keys(question, labels)
+    ordered = prioritize_day_definition(question, ordered)
     for point in ordered:
         if len(context) >= settings.context_top_k:
             break
