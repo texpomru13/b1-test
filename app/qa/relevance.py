@@ -12,6 +12,7 @@ from py_rust_stemmers import SnowballStemmer
 from app.qa.evidence import issue_evidence
 from app.qa.glosses import without_unproven_gloss
 from app.qa.grounding import LocatedQuote, ProvenanceError, quote_at_offsets
+from app.qa.limits import restore_sublimit_punctuation
 from app.qa.schemas import Claim, Evidence
 from app.retrieval.search import ContextChunk
 
@@ -242,6 +243,7 @@ def refine_answer_scope(question: str, claims: list[Claim], located: dict[int, l
             claim.text = without_unproven_gloss(
                 claim.text, [q.quote_raw for q in located[index]], question,
             )
+            claim.text = restore_sublimit_punctuation(claim.text, located[index])
         except ValueError as exc:
             raise ProvenanceError(str(exc)) from exc
     _requested_bound(question, claims, located)
