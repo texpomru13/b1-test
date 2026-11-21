@@ -171,6 +171,74 @@ def _measures(text: str) -> Iterator[tuple[NumericFact, int, int]]:
             yield NumericFact(value, role), match.start(), unit.end()
 
 
+_BAND_AMOUNT = r"(?:\d+(?:[.,]\d+)?|один|одного|одну|одной)"
+_BAND_UNIT = "(?:" + "|".join(_UNITS.values()) + ")"
+_BAND = re.compile(
+    rf"\b(?:(?:от|с)\s+(?P<a>{_BAND_AMOUNT})\s*(?P<ua>{_BAND_UNIT})?\s+"
+    rf"(?:до|по)\s+(?P<b>{_BAND_AMOUNT})\s*(?P<ub>{_BAND_UNIT})"
+    rf"|(?P<op>свыше|более|менее|до|от|не менее|не более)\s+"
+    rf"(?P<n>{_BAND_AMOUNT})\s*(?P<u>{_BAND_UNIT}))", re.I,
+)
+_ROW_SEPARATOR = re.compile(r"\s*[—–:=|]\s*|\s+-\s+|[ ]*\t[ \t]*")
+
+
+def _band_key(match: re.Match[str]) -> tuple[str, ...]:
+    def endpoint(value: str, unit: str) -> tuple[str, str]:
+        role = next(k for k, pattern in _UNITS.items() if re.fullmatch(pattern, unit, re.I))
+        modifier = re.match(r"рабоч|календарн", unit, re.I)
+        return (_amount_value(value) if value[0].isdigit() else "1",
+                (modifier[0].lower() + " " if modifier else "") + role)
+
+    if match["op"]:
+        op = match["op"].lower()
+        return ("свыше" if op == "более" else op, *endpoint(match["n"], match["u"]))
+    return ("от-до", *endpoint(match["a"], match["ua"] or match["ub"]),
+            *endpoint(match["b"], match["ub"]))
+
+
+def _check_range_rows(text: str, quotes: list[str]) -> list[tuple[int, int]]:
+    """Only the value in the row for the stated interval can support that pairing."""
+    rows: dict[tuple[str, ...], set[NumericFact]] = {}
+    for quote in quotes:
+        for band in _BAND.finditer(quote):
+            separator = _ROW_SEPARATOR.match(quote, band.end())
+            if not separator:
+                continue
+            cell = quote[separator.end():separator.end() + 120]
+            if value := next(_measures(cell), None):
+                fact, start, _ = value
+                if start == 0:
+                    rows.setdefault(_band_key(band), set()).add(fact)
+    if not rows:
+        return []
+    roles = {fact.role for facts in rows.values() for fact in facts}
+    checked = []
+    # One claim may enumerate multiple condition/value pairs in document order.
+    # Reversed wording (value before condition) is unambiguous for a single pair.
+    bands = list(_BAND.finditer(text))
+    outputs = {fact for fact, start, _ in _measures(text)
+               if fact.role in roles and not any(b.start() <= start < b.end() for b in bands)}
+    if not bands and any(facts & outputs for facts in rows.values()) and len(rows) > 1:
+        raise ValueError("Укажи диапазон, для которого приведено значение из таблицы.")
+    for i, band in enumerate(bands):
+        right = bands[i + 1].start() if i + 1 < len(bands) else len(text)
+        values = {fact for fact, _, _ in _measures(text[band.end():right]) if fact.role in roles}
+        if not values and len(bands) == 1:
+            values = {fact for fact, _, _ in _measures(text[:band.start()]) if fact.role in roles}
+        if not values and len(outputs) == 1:
+            values = outputs  # one result may explicitly be shared by adjacent bands
+        if not values:
+            if outputs:
+                raise ValueError("Раздели диапазоны и соответствующие им величины на утверждения.")
+            continue
+        allowed = rows.get(_band_key(band), set())
+        for fact in values:
+            if {item for item in allowed if item.role == fact.role} != {fact}:
+                raise ValueError("Диапазон и величина должны совпадать с одной строкой источника.")
+        checked.append(band.span())
+    return checked
+
+
 def _limit(prefix: str, role: str) -> str | None:
     if direct := _DIRECT_LIMIT.search(prefix):
         return "не менее" if direct[1].lower() in {"не менее", "не меньше"} else "не более"
@@ -222,6 +290,7 @@ def qualify_numeric_text(text: str, quotes: list[str]) -> str:
     Conflicting bounds or payment terms need a new draft with separate claims.
     The verifier sees the revised wording and the very same citations.
     """
+    matched_bands = _check_range_rows(text, quotes)
     evidence: dict[NumericFact, set[str | None]] = {}
     for quote in quotes:
         previous = 0
@@ -234,7 +303,10 @@ def qualify_numeric_text(text: str, quotes: list[str]) -> str:
     amounts: set[NumericFact] = set()
     for fact, start, end in _measures(text):
         own = _limit(text[previous:start], fact.role)
-        limits = evidence.get(fact, set())
+        # A range endpoint was verified together with its own row value. Another
+        # row may use this number as the opposite bound ("до 1"/"свыше 1").
+        limits = (set() if any(a <= start < b for a, b in matched_bands)
+                  else evidence.get(fact, set()))
         if any(limits):
             if len(limits) != 1:
                 raise ValueError("У величины разные условия. Раздели утверждения и доказательства.")

@@ -5,13 +5,14 @@ from __future__ import annotations
 import math
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
+from itertools import pairwise
 from pathlib import Path
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.ingestion.canonical import CanonicalDocument
 from app.ingestion.errors import ParseFailedError
-from app.ingestion.rules import conditional_rules
+from app.ingestion.rules import conditional_rules, parenthesized_items
 from app.ingestion.sections import SectionSpan
 
 APPROX_CHARS_PER_TOKEN = 3
@@ -115,7 +116,7 @@ class _OffsetSplitter(RecursiveCharacterTextSplitter):
                 yield start + len(raw) - len(raw.lstrip()), trimmed
 
 
-def _split_rules(
+def _split_rule_segment(
     splitter: _OffsetSplitter, text: str, length: LengthFn, limit: int,
 ) -> Iterator[tuple[int, str, bool]]:
     if length(text) <= limit:
@@ -135,6 +136,15 @@ def _split_rules(
         pos = end
     for local, chunk in splitter.spans(text[pos:]):
         yield pos + local, chunk, True
+
+
+def _split_rules(
+    splitter: _OffsetSplitter, text: str, length: LengthFn, limit: int,
+) -> Iterator[tuple[int, str, bool]]:
+    boundaries = sorted({0, len(text), *parenthesized_items(text)})
+    for begin, end in pairwise(boundaries):
+        for start, chunk, complete in _split_rule_segment(splitter, text[begin:end], length, limit):
+            yield begin + start, chunk, complete
 
 
 def _segment_bounds(

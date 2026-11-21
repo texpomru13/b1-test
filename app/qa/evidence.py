@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from itertools import pairwise
 
+from app.ingestion.rules import parenthesized_items
 from app.qa.grounding import LocatedQuote, quote_at_offsets
 from app.retrieval.search import ContextChunk
 
@@ -28,6 +29,9 @@ def issue_evidence(sources: dict[str, ContextChunk]) -> dict[str, LocatedQuote]:
         for match in _BOUNDARY.finditer(chunk.text):
             if not _CONTINUATION.match(chunk.text, match.end()):
                 boundaries.append(match.end())
+        # Also support source chunks indexed before parenthesized articles
+        # became separate retrieval units. These spans remain inside the budget.
+        boundaries = sorted({*boundaries, *parenthesized_items(chunk.text)})
         # Bound the label overhead for tables and very short paragraphs.
         stride = (len(boundaries) + _MAX_SPANS_PER_CHUNK - 1) // _MAX_SPANS_PER_CHUNK
         boundaries = [*boundaries[::stride], len(chunk.text)]

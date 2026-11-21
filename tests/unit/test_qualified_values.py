@@ -50,3 +50,31 @@ def test_bounds_and_payment_apply_to_the_matching_value_and_role() -> None:
     with pytest.raises(ValueError, match="оплаты"):
         same_price = other.replace("Кабель 10", "Кабель 7250")
         qualify_numeric_text("Цена 7250 рублей.", [PRICE, same_price])
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_rate_applies_to_its_own_interval_even_when_bounds_repeat(reverse: bool) -> None:
+    rows = ["на срок от 91 до 180 дней — 15,15%",
+            "на срок от 181 дня до 1 года — 15,85%",
+            "на срок свыше 1 года — 15,05%"]
+    quote = "; ".join(reversed(rows) if reverse else rows)
+    valid = "Для срока свыше одного года ставка составляет 15,05%."
+    assert qualify_numeric_text(valid, [quote]) == valid
+    both = "Для срока от 91 до 180 дней — 15,15%, для срока свыше 1 года — 15,05%."
+    assert qualify_numeric_text(both, [quote]) == both
+    for invalid in ("Для срока свыше 1 года ставка 15,85%.",
+                    "Для срока до 1 года ставка 15,05%.",
+                    "Ставка составляет 15,05%.",
+                    "Для сроков от 91 до 180 дней и свыше 1 года ставка 15,05%."):
+        with pytest.raises(ValueError, match=r"[Дд]иапазон"):
+            qualify_numeric_text(invalid, [quote])
+
+
+def test_band_in_other_quote_cannot_supply_unrelated_or_ambiguous_table_rate() -> None:
+    row = "От 10 до 12 месяцев: 3,7%"
+    with pytest.raises(ValueError, match="одной строкой"):
+        qualify_numeric_text("Свыше 12 месяцев — 3,7%.",
+                            [row, "Свыше 12 месяцев: 4,2%"])
+    with pytest.raises(ValueError, match="одной строкой"):
+        qualify_numeric_text("От 10 до 12 месяцев — 3,7%.",
+                            [row, "От 10 до 12 месяцев: 4,2%"])

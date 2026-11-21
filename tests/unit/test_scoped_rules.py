@@ -251,3 +251,55 @@ def test_only_whole_repeated_claim_with_shared_evidence_is_removed():
     # Distinct statements and their original evidence remain aligned.
     assert [c.text for c in claims] == [rules, "По заявке."]
     assert located == {0: [a, b], 1: [a]}
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+async def test_parenthesized_independent_rules_keep_exact_spans_and_rerank_budget(reverse):
+    import re
+
+    from app.ingestion.rules import conditional_rules
+
+    rules = ["Передача отчёта запрещена, кроме проверки по согласованию с комиссией.",
+             "Заявитель вправе копировать выписку только после регистрации."]
+    if reverse:
+        rules.reverse()
+    text = "Статья о выдаче\nОбязанности\n" + "\n".join(
+        f"({n}) {rule}" for n, rule in enumerate(rules, 1)
+    )
+    doc = pages(text)
+    chunks = split(doc)
+    copy = next(c for c in chunks if "копировать" in c.text)
+    assert re.fullmatch(r"\([12]\) Заявитель вправе копировать выписку только после регистрации\.",
+                        copy.text)
+    assert doc.text[copy.char_start:copy.char_end] == copy.text
+    context, scored = await retrieve(chunks, [copy.index], "Можно ли копировать выписку?",
+                                     context_budget_tokens=len(copy.text))
+    assert len(context) == 1 and list(scored.values()) == [copy.text]
+    assert not (await retrieve(chunks, [copy.index], "Можно ли копировать выписку?",
+                               context_budget_tokens=len(copy.text) - 1))[0]
+
+    # The PDF may already have been indexed as one chunk. Issued evidence still
+    # picks a complete numbered item and does not charge or cite an unseen neighbour.
+    old = ContextChunk("x", 0, text, None, 1, 1, 0, len(text), .8)
+    spans = issue_evidence({"x": old})
+    chosen = next(k for k, q in spans.items() if "копировать" in q.quote_raw)
+    assert spans[chosen].quote_raw == copy.text
+    assert copy.text in [text[a:b] for a, b in conditional_rules(text)]
+    supported = Claim(text=copy.text, evidence=[chosen])
+    assert validate_claims([supported], {"x": old}, question="Можно ли копировать выписку?",
+                           spans=spans, render_conditional_rules=True)
+
+
+def test_parenthesized_list_under_prohibition_or_exception_stays_with_its_lead():
+    from app.ingestion.rules import parenthesized_items
+
+    text = "Заказчику запрещено:\n(1) Передавать отчёт.\n(2) Публиковать данные."
+    assert not list(parenthesized_items(text))
+    assert [c.text for c in split(pages(text))] == [text]
+    old = ContextChunk("x", 0, text, None, 1, 1, 0, len(text), .8)
+    assert [q.quote_raw for q in issue_evidence({"x": old}).values()] == [text]
+    ordinary = "(1) Действие запрещено.\n(2) Кроме случаев ремонта по согласованию."
+    assert list(parenthesized_items(ordinary)) == [0]
+    assert [c.text for c in split(pages(ordinary))] == [ordinary]
+    cross_reference = "Исполнитель действует согласно разделу\n(2) Настоящего соглашения."
+    assert not list(parenthesized_items(cross_reference))
