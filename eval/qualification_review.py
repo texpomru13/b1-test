@@ -196,6 +196,31 @@ supported (всё применимо и подтверждено цитатам�
 "critical":false,"reason":""}]} с точным количеством элементов в исходном порядке."""
 
 
+def review_schema(fact_count: int, claim_count: int) -> dict:
+    claim = {
+        "type": "object", "additionalProperties": False,
+        "required": ["verdict", "critical", "reason"],
+        "properties": {
+            "verdict": {"type": "string", "enum": sorted(VERDICTS)},
+            "critical": {"type": "boolean"},
+            "reason": {"type": "string"},
+        },
+    }
+    return {
+        "type": "object", "additionalProperties": False,
+        "required": ["required_covered", "claims"],
+        "properties": {
+            "required_covered": {
+                "type": "array", "minItems": fact_count, "maxItems": fact_count,
+                "items": {"type": "boolean"},
+            },
+            "claims": {
+                "type": "array", "minItems": claim_count, "maxItems": claim_count, "items": claim,
+            },
+        },
+    }
+
+
 def model_review(rows: list[dict], review: dict, path: Path, base_url: str, model: str) -> None:
     with httpx.Client(base_url=base_url, timeout=240) as client:
         tags = client.get("/api/tags")
@@ -231,21 +256,30 @@ def model_review(rows: list[dict], review: dict, path: Path, base_url: str, mode
             needed_context = len((MODEL_INSTRUCTIONS + payload).encode()) + 2400
             if needed_context > 65536:
                 raise ValueError(f"review {row['req_id']} manually: long evidence context")
-            response = client.post("/api/chat", json={
-                "model": model, "format": "json", "think": False, "stream": False,
-                "options": {"temperature": 0, "seed": 7, "num_ctx": max(8192, needed_context),
-                            "num_predict": 1600},
-                "messages": [{"role": "system", "content": MODEL_INSTRUCTIONS},
-                             {"role": "user", "content": payload}],
-            })
-            response.raise_for_status()
-            raw = json.loads(response.json()["message"]["content"])
-            candidate = {**label, "required_covered": raw["required_covered"],
-                         "claims": [{"text": text, **{k: verdict[k] for k in
-                                                      ("verdict", "critical", "reason")}}
-                                    for text, verdict in zip(row["claims"], raw["claims"],
-                                                             strict=True)]}
-            check_review(row, candidate)
+            schema = review_schema(len(row["required_facts"]), len(row["claims"]))
+            for attempt in range(3):
+                try:
+                    response = client.post("/api/chat", json={
+                        "model": model, "format": schema, "think": False, "stream": False,
+                        "options": {
+                            "temperature": 0, "seed": 7 + attempt,
+                            "num_ctx": max(8192, needed_context), "num_predict": 1600,
+                        },
+                        "messages": [{"role": "system", "content": MODEL_INSTRUCTIONS},
+                                     {"role": "user", "content": payload}],
+                    })
+                    response.raise_for_status()
+                    raw = json.loads(response.json()["message"]["content"])
+                    candidate = {**label, "required_covered": raw["required_covered"], "claims": [
+                        {**verdict, "text": text}
+                        for text, verdict in zip(row["claims"], raw["claims"], strict=True)
+                    ]}
+                    check_review(row, candidate)
+                except (ValueError, KeyError, TypeError, httpx.TimeoutException) as exc:
+                    if attempt == 2:
+                        raise ValueError(f"could not review {row['req_id']}") from exc
+                else:
+                    break
             label.update(candidate)
             write_json(path, review)
             print(f"reviewed {row['req_id']}", flush=True)
