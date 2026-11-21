@@ -181,6 +181,7 @@ def _run_owned(
         "page_count": str(result.page_count),
         "chunk_count": str(len(result.chunks)),
         "length_fn": result.length_fn_id,
+        "ocr_pages": ",".join(str(p.page) for p in result.canonical.pages if p.ocr),
     }, token=lease_token)
     logger.info("parse_completed", job_id=job_id, pages=result.page_count,
                 chunks=len(result.chunks))

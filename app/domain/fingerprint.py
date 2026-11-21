@@ -9,11 +9,13 @@ from __future__ import annotations
 import hashlib
 
 from app.config.settings import Settings
+from app.ingestion.pipeline import PARSER_VERSION
 
 
 def upload_fingerprint(*, file_sha256: str, title: str | None, settings: Settings) -> str:
     processing = "|".join(
         [
+            PARSER_VERSION,
             f"chunk={settings.chunk_tokens}",
             f"overlap={settings.chunk_overlap_tokens}",
             f"lexnorm=v{settings.lexical_normalizer_version}",

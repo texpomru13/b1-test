@@ -39,6 +39,7 @@ class PageSpan:
     char_start: int
     char_end: int  # half-open
     has_text: bool
+    ocr: bool = False
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,7 @@ def build_canonical(pages: list[ExtractedPage]) -> CanonicalDocument:
         cursor += len(normalized)
         parts.append(normalized)
         spans.append(
-            PageSpan(page=page.page, char_start=start, char_end=cursor, has_text=page.has_text)
+            PageSpan(page=page.page, char_start=start, char_end=cursor, has_text=page.has_text,
+                     ocr=page.ocr)
         )
     return CanonicalDocument(text="".join(parts), pages=spans)

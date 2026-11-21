@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from app.ingestion.rules import conditional_rules
+from app.ingestion.rules import COMMITMENT, conditional_rules
 from app.ingestion.scopes import requested_scope_keys, scope_key
 from app.qa.counts import unsupported_object_count
 from app.qa.numbers import unsupported_numbers
@@ -185,8 +185,7 @@ def _check_rule_meaning(question: str, claim: Claim, quotes: list[LocatedQuote])
     evidence = " ".join(q.quote_raw for q in quotes)
     if "письменн" in text.lower() and "письменн" not in evidence.lower():
         raise ProvenanceError("источник не устанавливает письменную форму для этого действия")
-    if not (_PERMISSION.search(text) or _ASKS_PERMISSION.search(question)):
-        return
+    regulatory = _PERMISSION.search(text) or _ASKS_PERMISSION.search(question)
     for q in quotes:
         for left, right in conditional_rules(q.chunk.text):
             # A clipped excerpt can omit an exception at either end. Find the
@@ -195,12 +194,20 @@ def _check_rule_meaning(question: str, claim: Claim, quotes: list[LocatedQuote])
                     or q.char_start >= q.chunk.char_start + right):
                 continue
             rule = q.chunk.text[left:right]
+            if not regulatory and not COMMITMENT.search(rule):
+                continue
             # A leading consent proviso can move intact to the end of a claim.
             # An exception to a prohibition needs the entire rule: repeating
             # its words under a wider permission changes their logical scope.
             consent = re.match(r"^(с (?:письменного )?согласия [^,.:;]{1,100}?)"
                                r"(?:,|\s+(?:допуска|разреш|вправе))", rule, re.I)
             required = consent[1] if consent and not _NEGATIVE.search(rule) else rule
+            if COMMITMENT.search(rule):
+                # For a conditional guarantee the answer may paraphrase the
+                # promised outcome, but must preserve the attached proviso.
+                tail = re.search(r",\s*((?:если|при условии(?:,? что)?)\b.+)", rule, re.I | re.S)
+                if tail:
+                    required = tail[1]
             if _rule_text(required) not in _rule_text(text):
                 raise ProvenanceError(
                     "перенеси целиком правило с условиями и исключениями в отдельный claim: "

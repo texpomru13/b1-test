@@ -15,6 +15,8 @@ FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb
 # DOCX citation pages refer to the PDF produced with these fonts and LibreOffice.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        poppler-utils \
+        tesseract-ocr tesseract-ocr-rus tesseract-ocr-eng \
         libreoffice-writer \
         fonts-liberation \
         fonts-dejavu-core \

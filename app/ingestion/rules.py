@@ -10,6 +10,7 @@ _SENTENCE_END = re.compile(
     r'|\n[ \t]*\n+'
 )
 _MODAL = re.compile(r"\b(?:запрещ|запрет\b|не\s+вправе|вправе|разреш|допуска[ею]|нельзя)", re.I)
+COMMITMENT = re.compile(r"\b(?:гарантир|обязуе|обязую|обязан)", re.I)
 _LIMIT = re.compile(r"\b(?:за исключением|кроме|только|исключительно|при условии|"
                     r"при наличии|по согласованию|с согласия|если)\b", re.I)
 
@@ -18,6 +19,6 @@ def conditional_rules(text: str) -> Iterator[tuple[int, int]]:
     start = 0
     for end in [*(m.end() for m in _SENTENCE_END.finditer(text)), len(text)]:
         raw = text[start:end]
-        if _MODAL.search(raw) and _LIMIT.search(raw):
+        if _LIMIT.search(raw) and (_MODAL.search(raw) or COMMITMENT.search(raw)):
             yield start + len(raw) - len(raw.lstrip()), start + len(raw.rstrip())
         start = end

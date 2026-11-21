@@ -23,6 +23,8 @@ def assemble_answer(state: QaResult) -> AnswerResponse:
         if key in by_span:
             return by_span[key]
         next_id = len(citations) + 1
+        ocr_pages = [seg["page"] for seg in quote.chunk.segments if seg.get("ocr")
+                     and seg["char_start"] < quote.char_end and seg["char_end"] > quote.char_start]
         citations.append(
             Citation(
                 id=next_id,
@@ -33,6 +35,7 @@ def assemble_answer(state: QaResult) -> AnswerResponse:
                 chunk_id=quote.chunk.chunk_id,
                 char_start=quote.char_start,
                 char_end=quote.char_end,
+                **({"ocr_pages": ocr_pages} if ocr_pages else {}),
             )
         )
         by_span[key] = next_id

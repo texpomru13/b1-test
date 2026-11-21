@@ -46,6 +46,7 @@ class Citation(BaseModel):
     chunk_id: str
     char_start: int = Field(ge=0)
     char_end: int = Field(gt=0)
+    ocr_pages: list[int] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _span(self) -> Citation:

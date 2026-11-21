@@ -45,6 +45,7 @@ class ChunkSegment:
     page: int
     char_start: int
     char_end: int
+    ocr: bool = False
 
 
 @dataclass(frozen=True)
@@ -117,6 +118,10 @@ class _OffsetSplitter(RecursiveCharacterTextSplitter):
 def _split_rules(
     splitter: _OffsetSplitter, text: str, length: LengthFn, limit: int,
 ) -> Iterator[tuple[int, str, bool]]:
+    if length(text) <= limit:
+        for local, chunk in splitter.spans(text):
+            yield local, chunk, True
+        return
     pos = 0
     for start, end in conditional_rules(text):
         for local, chunk in splitter.spans(text[pos:start]):
@@ -196,7 +201,7 @@ def split_into_chunks(
                     governing_complete=complete and len(governing) == len(ancestors),
                     segments=[
                         ChunkSegment(
-                            page=span.page,
+                            page=span.page, ocr=span.ocr,
                             char_start=max(start, span.char_start),
                             char_end=min(end, span.char_end),
                         )

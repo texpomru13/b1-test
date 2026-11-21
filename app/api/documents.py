@@ -204,6 +204,7 @@ async def get_document(request: Request, doc_id: str) -> DocumentDetail:
         updated_at=record.get("updated_at", ""),
         page_count=int(record["page_count"]) if record.get("page_count") else None,
         chunk_count=int(record["chunk_count"]) if record.get("chunk_count") else None,
+        ocr_pages=[int(p) for p in record.get("ocr_pages", "").split(",") if p],
         source_sha256=record.get("file_sha256"),
         accepted_run_id=record.get("accepted_run_id"),
         index_fingerprint=record.get("index_fingerprint"),

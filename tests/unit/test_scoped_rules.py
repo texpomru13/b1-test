@@ -170,8 +170,7 @@ async def test_07_07_archive_rejected_and_complete_rule_with_sanction_is_support
     with pytest.raises(ProvenanceError, match="письменную форму"):
         validate_claims([claim(bad, rule_source, rule["text"])], sources, question=row["question"])
     corrected = [claim(" ".join(rule["text"].split()), rule_source, rule["text"]),
-                 claim("Штраф 100 000 рублей за каждый случай нарушения.", penalty_source,
-                       penalty["text"])]
+                 claim(" ".join(penalty["text"].split()), penalty_source, penalty["text"])]
     verified = validate_claims(corrected, sources, question=row["question"])
     assert all(q.page == 9 for qs in verified.values() for q in qs)
 
@@ -190,3 +189,22 @@ def test_modal_rule_preserves_direction_and_all_conditions(source, wrong):
     with pytest.raises(ProvenanceError):
         validate_claims([claim(wrong, chunk)], sources, question="Можно ли это сделать?")
     assert validate_claims([claim(source, chunk)], sources, question="Можно ли это сделать?")
+
+
+def test_05_03_conditional_storage_guarantee_applies_only_to_operator_hardware():
+    doc = build_canonical(extract_pdf(next((ROOT / "test_documents").glob("05_*.pdf")),
+                                      max_pages=100).pages)
+    raw = next(c for c in split(doc) if "если эти данные\nхранились" in c.text)
+    source = ContextChunk("x", raw.index, raw.text, raw.section, raw.page_from, raw.page_to,
+                          raw.char_start, raw.char_end, .8)
+    sources = {"x": source}
+    spans = issue_evidence(sources)
+    condition_id = next(k for k, q in spans.items() if "если эти данные" in q.quote_raw)
+    duration = "Исполнитель гарантирует сохранность данных 14 дней с даты приостановления услуг"
+    question = "Как долго исполнитель хранит данные после приостановления услуг?"
+    with pytest.raises(ProvenanceError, match="условиями"):
+        validate_claims([Claim(text=duration, evidence=[condition_id])], sources,
+                        question=question, spans=spans)
+    qualified = duration + ", если эти данные хранились на оборудовании Исполнителя."
+    assert validate_claims([Claim(text=qualified, evidence=[condition_id])], sources,
+                           question=question, spans=spans)

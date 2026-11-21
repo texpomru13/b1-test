@@ -6,6 +6,7 @@ import threading
 import time
 import uuid
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -173,7 +174,8 @@ def test_delivery_for_an_owned_job_changes_nothing(tmp_path: Path) -> None:
 def _prepare_indexing(lifecycle: FakeLifecycle, monkeypatch: pytest.MonkeyPatch,
                       indexing: Any) -> None:
     result = type("ParseResultStub", (), {"page_count": 1, "chunks": [object()],
-                                          "length_fn_id": "approx"})()
+                                          "length_fn_id": "approx",
+                                          "canonical": SimpleNamespace(pages=[])})()
     monkeypatch.setattr(tasks, "parse_document", lambda **kwargs: result)
     monkeypatch.setattr(tasks, "save_parse_artifacts", lambda *a, **k: None)
     monkeypatch.setattr(tasks, "_get_bm25", lambda settings: object())
