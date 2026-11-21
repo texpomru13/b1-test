@@ -1,0 +1,191 @@
+{
+  "run": "final",
+  "api": "http://127.0.0.1:65221",
+  "started_at": "2026-11-21T16:08:57.726901+00:00",
+  "initial_split": "all",
+  "doc_ids": {
+    "climate-paris": "1309d10f794a444d87fea524906cd10a",
+    "corruption-un": "8249bd4290804aec8b8de0afa77f05a4",
+    "environment-cbd": "838351be65564a5cb25d74c767c1e1a7",
+    "global-agenda": "c49e2ada46bc4561910662a13e3a9c46",
+    "marks-singapore": "111dadeead13460b8a622c5cbed73657",
+    "marks-tlt": "1c214392cf0248c6a050f0d657978d96",
+    "rights-disability": "62936476d199411a8b86485258ee27af",
+    "trade-cisg": "6b550182d74e4d859838f8ec9772c091",
+    "trade-electronic": "69f672da8fcb49e28f66952aae67a78c",
+    "trade-mediation": "dcb0f7cb64854383b3128703e9b08bc8"
+  },
+  "ready": {
+    "status": "ready",
+    "components": {
+      "redis": "ok",
+      "qdrant": "ok",
+      "local_models": "ok",
+      "llm": "ok"
+    },
+    "model_ready": true
+  },
+  "inputs": {
+    "api_source_sha256": "de8097bd6d8197325568f5e3af7ca9c48748630b15e474e1e8d2faa02531a682",
+    "documents": {
+      "climate-paris": {
+        "doc_id": "1309d10f794a444d87fea524906cd10a",
+        "source_sha256": "210d16cc0b57af1bba547fe815fb80cc62e3952973359ba9f775b8917aac81ce",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "6459e86a8f784a83a8a85313e5392103",
+        "export_sha256": "9c027735f592796cc464e2fb26fbf1a2c5b7845eb29fa913e417b45f7e48eca8"
+      },
+      "corruption-un": {
+        "doc_id": "8249bd4290804aec8b8de0afa77f05a4",
+        "source_sha256": "98754127d9f589d58e77c9e783acaef177ae7ca57b8c132b92277edb64083076",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "9054e787f57f4562bd858b0375532d7f",
+        "export_sha256": "83944737f40329f97722c6987d517c9d30040f7c25b89c50c49d51c62237c821"
+      },
+      "environment-cbd": {
+        "doc_id": "838351be65564a5cb25d74c767c1e1a7",
+        "source_sha256": "a6438505f6772144e9d5dae095a8fa8fbd61f42bb649ad1d9c825da8eef3a4d8",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "333b26362dc6415a8247add60507ba69",
+        "export_sha256": "81e480ec582b690a43d615245e9467cac22a6cc3739658450d284642a928d162"
+      },
+      "global-agenda": {
+        "doc_id": "c49e2ada46bc4561910662a13e3a9c46",
+        "source_sha256": "a9fdb06d1ec08835d2382918d70f0c6d886d145e5550d7617ec39b243363582a",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "e28c4f53e2dc40d9a9fecfafce840be0",
+        "export_sha256": "9f3fd6efe5a8d9b3d04f2013d666e423243e6dd53cb5d17ae197ec8fc3af1d8c"
+      },
+      "marks-singapore": {
+        "doc_id": "111dadeead13460b8a622c5cbed73657",
+        "source_sha256": "f412c14e4f721134dff6e086a9c0f17c703d4a545897a47aa34f69a1d31c4330",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "4f27f9562dee48f09c4c71ef0b49ebbf",
+        "export_sha256": "249592b0ec1dd04a60dbdaccdfc9ff64f411e2ba7beabd3658d0d8dd45069210"
+      },
+      "marks-tlt": {
+        "doc_id": "1c214392cf0248c6a050f0d657978d96",
+        "source_sha256": "c8a49866d456fc2684bae10cff81b29e088d1bab18bd1182648c5d76fa47d8b8",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "e34b1a430bd847f99397acf04267c431",
+        "export_sha256": "15cdfafae15ba6e7ad921b8ca22ba510142b6b669073bc2611f97b8b45fe2ef4"
+      },
+      "rights-disability": {
+        "doc_id": "62936476d199411a8b86485258ee27af",
+        "source_sha256": "411def23cacde97de02dc864d3de0edf9972eb12f86de03493eea10da3ba5f19",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "2e80ba657f974945bc7b00c79a6d2b50",
+        "export_sha256": "50279a02b8d1cb19cc646fe5851077eb4b9ab11a019e2102eab863efc085e46e"
+      },
+      "trade-cisg": {
+        "doc_id": "6b550182d74e4d859838f8ec9772c091",
+        "source_sha256": "619ebf3fd7e246890807e5d792cd38ec1e260bc6a41cf334488da4a458a75476",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "bc7e9c90ff764fe1be85f97bc662f172",
+        "export_sha256": "03c9992a2c4388d362be62a9a2c1c8979eaf216f7ac0b9ac927b134968f92410"
+      },
+      "trade-electronic": {
+        "doc_id": "69f672da8fcb49e28f66952aae67a78c",
+        "source_sha256": "db7855d3bca0d3214753dca0c932e913ff29ec970da41422a591dd5404112eee",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "12bb14acd8c54855aa3c31c9206a1ef1",
+        "export_sha256": "5715deebd06d2384a946bbdb312272de24fbc525b37f2ca9482318b9daeeb0dc"
+      },
+      "trade-mediation": {
+        "doc_id": "dcb0f7cb64854383b3128703e9b08bc8",
+        "source_sha256": "1a152034635bf146c2fc50e85851065db6ec2d6f500bd6086d2deb7cf5d8d402",
+        "index_fingerprint": "da25fad7878a9dbc56d33ad393e3317bd04e58d3f699ac04340f51f4ec4058b6",
+        "accepted_run_id": "a82186a54ca641d4af793abce0b00f7d",
+        "export_sha256": "5ea0143fc7cdb174a5339e8016baee392df4e18e080f06ef23535bf9c895ab8e"
+      }
+    },
+    "gold_sha256": "3f13784e7dd2b951359239f17ae1c795f4585a3961ab1efa4e4ac5ebf1b71020",
+    "runtime": {
+      "project": "b1-scope1121",
+      "images": {
+        "api": {
+          "image_id": "sha256:2558f88f0124aa54f3fba7e350196a61b6403a18b623500feeaede1e4f1d7888",
+          "source_sha256": "de8097bd6d8197325568f5e3af7ca9c48748630b15e474e1e8d2faa02531a682"
+        },
+        "worker": {
+          "image_id": "sha256:77c48bff8aba6b872e234e7f77ae748e7b53c223754f40d07ef0393fd22fc863",
+          "source_sha256": "de8097bd6d8197325568f5e3af7ca9c48748630b15e474e1e8d2faa02531a682"
+        },
+        "dispatcher": {
+          "image_id": "sha256:14196bcb6e8440412468b707e499e5028d049d3c599eaa3ccdc214d81c489f1d",
+          "source_sha256": "de8097bd6d8197325568f5e3af7ca9c48748630b15e474e1e8d2faa02531a682"
+        },
+        "local-models": {
+          "image_id": "sha256:0fcaa457b0f92d4922354165fc60e674cb8108d0d7a29db039db0cbead2b3c38",
+          "source_sha256": "fbae39d0ede9b0bab60c6111ed800c37f3fd0070d30cb3fa41be467424833f3e"
+        },
+        "redis": {
+          "image_id": "sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53"
+        },
+        "qdrant": {
+          "image_id": "sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2"
+        }
+      },
+      "settings": {
+        "llm_provider": "ollama",
+        "llm_model": "qwen3.5:9b-q4_K_M",
+        "llm_read_timeout_s": 300,
+        "qa_deadline_s": 900,
+        "local_context_tokens": 16384,
+        "llm_max_output_tokens": 2048,
+        "llm_reasoning_budget_tokens": 4096,
+        "llm_thinking": "off",
+        "llm_temperature": 0.0,
+        "embedding_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+        "embedding_instruction_version": "1",
+        "dense_top_k": 60,
+        "sparse_top_k": 60,
+        "fusion_method": "rrf",
+        "rerank_input_k": 60,
+        "context_top_k": 8,
+        "bm25_language": "russian",
+        "bm25_avg_len": 256,
+        "chunk_tokens": 450,
+        "chunk_overlap_tokens": 64,
+        "context_budget_tokens": 6000,
+        "qdrant_collection": "document_chunks",
+        "max_concurrent_qa": 5,
+        "max_repair_attempts": 1,
+        "max_llm_calls_per_question": 4,
+        "llm_max_attempts": 2
+      },
+      "local_models": {
+        "loaded_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+        "revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+        "reranker_model": "BAAI/bge-reranker-v2-m3",
+        "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+        "reranker_adapter": "cross_encoder",
+        "device": "cpu",
+        "LM_BATCH_SIZE": "4",
+        "LM_RERANKER_BATCH": "2"
+      },
+      "llm_digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+      "ocr": {
+        "engine": "tesseract 5.5.0",
+        "packages": [
+          "poppler-utils\t25.03.0-5+deb13u4",
+          "tesseract-ocr-eng\t1:4.1.0-2",
+          "tesseract-ocr-rus\t1:4.1.0-2"
+        ]
+      }
+    }
+  },
+  "workers": 1,
+  "git_commit": "2fb04a5e38f9f2d5f6077f8901c65f8ed0c16977",
+  "git_dirty": false,
+  "hardware": {
+    "platform": "macOS-26.7.3-arm64-arm-64bit",
+    "arch": "arm64",
+    "cpu": "Apple M4 Max",
+    "memory_bytes": 137438953472
+  },
+  "result_type": "live",
+  "finished_at": "2026-11-21T16:08:59.646409+00:00",
+  "response_count": 90,
+  "responses_sha256": "9adb4f953b44b92d85001c976730b503b78d171b0b511fcf65ecc4926360fc26"
+}

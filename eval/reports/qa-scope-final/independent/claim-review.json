@@ -1,0 +1,1174 @@
+{
+  "reviewer": "qwen3.6:27b-q4_K_M@3a40c32f1450b8380412898385b0e00df5d6d2d801dd192ca1acb7e735cd050e",
+  "reviewer_type": "model",
+  "rows": [
+    {
+      "req_id": "ind-climate-paris-01",
+      "input_sha256": "6935d5076dee2a6a2ab5e8a7ce76adaebb6345ebe11f36342d4354e79c8c68be",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Целью Парижского соглашения является удержание прироста глобальной средней температуры намного ниже 2 °С сверх доиндустриальных уровней. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В рамках этой цели прилагаются усилия в целях ограничения роста температуры до 1,5 °С сверх доиндустриальных уровней. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-climate-paris-02",
+      "input_sha256": "e24d841c19b0fc89c2374046445aa386a810dee261745ff7794eaafc3cd67c3a",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Каждая Сторона сообщает определяемый на национальном уровне вклад раз в пять лет. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-climate-paris-03",
+      "input_sha256": "962a8547c16a3f9011ff79f3fe498239fee61d5f44b8b6229df9ab7470b5f6ed",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Первое глобальное подведение итогов назначено на 2023 год. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Дальнейшие глобальные подведения итогов проводятся каждые пять лет. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-climate-paris-04",
+      "input_sha256": "219e4be628b39f4c503792810fc47104f8f0629bfdb43cabd05704b4701c4319",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Парижское соглашение вступает в силу на тридцатый день после того, как не менее 55 Сторон Конвенции, на долю которых, по оценкам, приходится в совокупности как минимум 55 процентов общих глобальных выбросов парниковых газов, сдадут на хранение свои документы о ратификации, принятии, одобрении или присоединении. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-climate-paris-05",
+      "input_sha256": "12e29259c12d14385371b8909513de49c89a73be2dde0e4578850e80ce032a13",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Такая организация не пользуется правом голоса, если своим правом пользует ся какое -либо из ее государств -членов, и наоборот. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-climate-paris-06",
+      "input_sha256": "9b3e5bd0f739769be722bd3a205dc4c8908f196adfb31fc91ddfdc0e363fac9f",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В любое время по истечении трех лет с даты вступления настоящего Соглашения в силу для той или иной Стороны эта Сторона может выйти из настоящего Соглашения, направив письменное уведомление Депозитарию. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Выход вступает в силу по истечении одного года с даты получения Депозитарием уведомления о выходе или в более поздний срок, указанный в уведомлении. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-climate-paris-07",
+      "input_sha256": "e03b8d694d5a3012d4ad475c14e4e717427309d99c9338074152eb41bc1b3f26",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-climate-paris-08",
+      "input_sha256": "ff44c6141b4edfd6c43b5ebc644a65e39a0750817971e36247baec78c297f0f1",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-corruption-un-01",
+      "input_sha256": "58a92ef8aa46fae3a1cc13bcfa33fabe437ac09f4fd94d2e513b31f834d76310",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Государства-участники не отказывают в предоставлении взаимной правовой помощи согласно настоящей статье на основании банковской тайны. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Государство-участник не уклоняется от принятия мер в соответствии с положениями настоящего пункта, ссылаясь на необходимость сохранения банковской тайны. [2]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Каждое Государство-участник обеспечивает, в случае внутренних уголовных расследований в связи с преступлениями, признанными таковыми в соответствии с настоящей Конвенцией, наличие в рамках своей внутренней правовой системы надлежащих механизмов для преодоления препятствий, которые могут возникнуть в результате применения законодательства о банковской тайне. [3]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-corruption-un-02",
+      "input_sha256": "b8284e4c1d3d1343f5f50acd49689b1cfe896565201228ceb5e291922db377e9",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Государства-участники не могут отказывать в выполнении просьбы о выдаче лишь на том основании, что преступление считается также связанным с налоговыми вопросами. [1]"
+        },
+        {
+          "verdict": "irrelevant",
+          "critical": false,
+          "reason": "Утверждение касается взаимной правовой помощи (ст. 22), а вопрос задан исключительно о выдаче (ст. 16). Хотя факт верен по документу, он не отвечает на поставленный вопрос о выдаче.",
+          "text": "Государства-участники не могут отказывать в выполнении просьбы о взаимной правовой помощи лишь на том основании, что преступление считается также связанным с налоговыми вопросами. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-corruption-un-03",
+      "input_sha256": "2d34087f305084acef5737eff9119ab815d4ac0fab5ca9b3193f61125452d64b",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Возвращение активов согласно настоящей главе представляет собой основополагающий принцип настоящей Конвенции, и Государства-участники самым широким образом сотрудничают друг с другом и предоставляют друг другу помощь в этом отношении. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-corruption-un-04",
+      "input_sha256": "73cd2fbc0356c3bead5fea2826a44a0258b6eb228458dc9f9a2f4d9f25dc280d",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Настоящая Конвенция вступает в силу на девяностый день после даты сдачи на хранение тридцатой ратификационной грамоты или документа о принятии, утверждении или присоединении. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-corruption-un-05",
+      "input_sha256": "2a91112af573aa69386425093dabf1664a93dfb26cc4bc3959a2b84034e7aacf",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Депозитарием настоящей Конвенции назначается Генеральный секретарь Организации Объединенных Наций. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-corruption-un-06",
+      "input_sha256": "ad05b30a4a068646f55d4ce6391a3e05c82f328b98707bf0a39c8c92b5a031fa",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Любой отказ в предоставлении взаимной правовой помощи мотивируется. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-corruption-un-07",
+      "input_sha256": "dbf462a3799233b7534f8b72a442eef22aec6aaf4fa30c5101217afeea76165e",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-corruption-un-08",
+      "input_sha256": "b75111d6d173986a428835aa39b1cfb70e92333001701b2a4116111e8b431b64",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-environment-cbd-01",
+      "input_sha256": "89549fc55c34c6d9f96b5e78385c7f95673006922c6e13e10908e756ea21ebbe",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Первое совещание Конференции Сторон созывается Директором-исполнителем Программы Организации Объединенных Наций по окружающей среде. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Первое совещание Конференции Сторон созывается не позднее, чем через один год после вступления настоящей Конвенции в силу. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-environment-cbd-02",
+      "input_sha256": "099ac3a805b67f23756bc77c4dd7f0e9b0f1decc239eb18cd46404b0cf53e13e",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Внеочередные совещания Конференции Сторон созываются тогда, когда Конференция может счесть это необходимым, или по письменной просьбе любой Стороны, при условии, что в течение шести месяцев после направления секретариатом просьбы в их адрес эта просьба будет поддержана не менее чем одной третью Сторон. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-environment-cbd-03",
+      "input_sha256": "56a4ff3342bd179a7a37aff82e76babe8463906dbd0f91034433ec4517dd7aaf",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В споре между двумя сторонами председатель арбитражного суда назначается двумя арбитрами, назначенными каждой из сторон, по взаимному согласию. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Два назначенных таким образом арбитра по взаимному согласию назначают третьего арбитра, выполняющего функции председателя суда. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-environment-cbd-04",
+      "input_sha256": "2d1d792706167db49081fea758a736fc10dcbb5d22a5ec064e06af57af154f0c",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Конвенция вступает в силу на девяностый день со дня сдачи на хранение тридцатого документа о ратификации, принятии, одобрении или присоединении. [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-environment-cbd-05",
+      "input_sha256": "0ecd290784ae5916541483726ea74726c15dd946ca8bb0a7e532d7ac2bcc46c2",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "ind-environment-cbd-06",
+      "input_sha256": "838d7d267e142eb50ba8f535dfcd0902df285c50ce9e63406b035d0fbebab0e8",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Функции Депозитария настоящей Конвенции и любых протоколов выполняет Генеральный секретарь Организации Объединенных Наций. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-environment-cbd-07",
+      "input_sha256": "c06038f15faeae570c9a4781b7b7b646783171f4d8dc4ad87b1b0fccb40246e6",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-environment-cbd-08",
+      "input_sha256": "82b7cf0409b38c6102e352790a89f2747dbb9a127dd6ea6cd721086246a09fdc",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-global-agenda-01",
+      "input_sha256": "4646abf3e166d13609a7b8c505d6c29a3d88ccf9a9673848f2dcee6dff42ee51",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В Повестке дня объявлено 17 целей и 169 связанных с ними задач. [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-global-agenda-02",
+      "input_sha256": "91ebf5ebfa1f322fdd9856c4c9a0d8373a979b091956321fc6508e86e1f88b83",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Минимальный годовой рост валового внутреннего продукта на уровне не менее 7 процентов в год. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-global-agenda-03",
+      "input_sha256": "181cd36e36ffe3c09875e4fad0a900d79d33a3369e3f3c3b920c30fc35fcfc88",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "К 2030 году ликвидировать крайнюю нищету для всех людей во всем мире (в настоящее время крайняя нищета определяется как проживание на сумму менее чем 1,25 долл. США в день). [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-global-agenda-04",
+      "input_sha256": "c174c403477575feae652cc67c9b758ab3d045c8721432ebc500ef5ed5c1e47e",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Политический форум высокого уровня, который будет проводиться под эгидой Генеральной Ассамблеи, будет проводиться каждые четыре года. [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-global-agenda-05",
+      "input_sha256": "9ab5f5f870f2d8df8c501d5b26d61598f7a3343e806f3b5e2eaf2a4b941398b5",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Страны обязаны принимать всестороннее участие в проведении регулярных и всеобъемлющих обзоров прогресса на субнациональном, национальном, региональном и глобальном уровнях. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Политический форум высокого уровня будет играть центральную роль в надзоре за целым комплексом процессов осуществления последующей деятельности и проведения обзора на глобальном уровне. [2]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Наши правительства несут главную ответственность за проведение на национальном, глобальном и региональном уровнях последующей деятельности и обзора прогресса в реализации этих целей и задач на протяжении предстоящих 15 лет. [3]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Мы обязуемся в течение следующих 15 лет систематически осуществлять последующую деятельность и проводить обзор осуществления настоящей Повестки дня. [4]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-global-agenda-06",
+      "input_sha256": "96f38046dee53bc7562cb95cf89a417f0e714a1ab5518567713edd75eb6cc9e2",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "ind-global-agenda-07",
+      "input_sha256": "d082ce309f847f42a5d8fca02c58d730ca3f8c418214ebf6b0cd7089ed3d1ded",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-global-agenda-08",
+      "input_sha256": "a5b7adebdf0673b824fb9e89feccd444c5b8d7875839271cf5628e03b9218ca6",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-marks-singapore-01",
+      "input_sha256": "7d857b0d66326ec87262f27d1d3d68172fab1e86875e1176a45912524504c12e",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Для первоначального вступления в силу настоящего Договора необходимо, чтобы десять государств или межправительственных организаций сдали на хранение свои ратификационные грамоты или акты о присоединении. [1][2]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "После сдачи указанных документов Договор вступает в силу через три месяца. [1][3]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-marks-singapore-02",
+      "input_sha256": "51f199a9e463e684972e69602432c88db98be1eb2289ba3b4449f619f7d6368b",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "ind-marks-singapore-03",
+      "input_sha256": "20157efc5284bcf346bc1ac37a61ba67a625ca005e101518aeffa6f5915da2dc",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Статья 6 Одиа регистрация для товаров и/или услуг, ОтllОСЯЩliХСЯ 1< UeCI<OЛЬI<li.Jit I<ЛaCCa.llt Если товары и/или услуги, относящиеся к нескольким классам Ниццкой классификации, включены в одну и ту же заявку, то по этой заявке производится одна регистрация. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-marks-singapore-04",
+      "input_sha256": "8ae47cc79f1187a54318e1a0e566a5d0c6ba36d89568a0126a99f9700cc404a9",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Любая Договаривающаяся сторона может требовать, чтобы доверенность, в соответствии с которой представитель имеет право отзывать заявку или отказываться от регистрации знака, четко оговаривала это. (d) Если сообщение Ведомству передает лицо, указанное в нем в качестве представителя, но на момент получения такого сообщения Ведомство не располагает необходимой доверенностью, Договаривающаяся сторона может требовать, чтобы такая доверенность была представлена ее Ведомству в течение срока, установленного Договаривающейся стороной, и с учетом минимального срока, предписанного Инструкцией. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-marks-singapore-05",
+      "input_sha256": "fa6ca5cc2f3911cadab589eda6259be19ae43475e58acc95c5beb96904d9df29",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Сингапурский договор не применяется к коллективным, сертификационным и гарантийным знакам. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-marks-singapore-06",
+      "input_sha256": "d1befdd7a5123d59a911e74b5e6a5094607a7987f7cea1d6c732528412c466ee",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Международное бюро подготавливает заседания и выполняет функции секретариата Ассамблеи. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-marks-singapore-07",
+      "input_sha256": "5412941ccdeb163cf54949b39a5f39c61834b32e803994414a67b1d7089dc3ef",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-marks-singapore-08",
+      "input_sha256": "994ccd51f56fd16771359facc61293dd504768140ae58a58df35b50807e6893c",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-marks-tlt-01",
+      "input_sha256": "2b702676cf7c01acee2fb0352c5d405ba5336e6329b8231c414a6f7d5afe388b",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "ind-marks-tlt-02",
+      "input_sha256": "1adaf19eeb956bc132d22a96400a96c5f708a1ea3bca23c670376dddf9e69c11",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Срок действия первичной регистрации составляет десять лет. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Регистрация может быть продлена на последующие десятилетние периоды. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-marks-tlt-03",
+      "input_sha256": "2dac264ee8f60c050bd9c871b48271c17e359e68b52f43893613dd9c94d9ceee",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "ind-marks-tlt-04",
+      "input_sha256": "cf109d14aedf3e2414b0522803cfde2127bf349c08d73beaf9e175c0827c3063",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Каждой группе товаров или услуг должна предшествовать номер класса, к которому относится данная группа товаров или услуг. [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-marks-tlt-05",
+      "input_sha256": "78a51e806999c7189f3cd2b89da275d17d7cd63634e9c115336e1357085b14d1",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Ведомство не может проводить экспертизу регистрации по существу для целей ее продления. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-marks-tlt-06",
+      "input_sha256": "12a3f8c9b8af70b11fe6abc0bc94e6632e609850d9f8f7b9c8f0084fd24e88ee",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "ind-marks-tlt-07",
+      "input_sha256": "fa33933ad90d7a6e0e55db039627d369b56487a03397f4256a217371a8e4c06c",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-marks-tlt-08",
+      "input_sha256": "5156243306c3c974980c2bd25e8ba80cc2794c18d413ddbea934cf3051e13db2",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-rights-disability-01",
+      "input_sha256": "f8c1d43355ef3814ebff9b040477cccc52ec0ef8fb2f0933b9d5ba4efbe7d094",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Нет, по причине инвалидности исключать ребенка из системы бесплатного и обязательного начального образования нельзя. [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-rights-disability-02",
+      "input_sha256": "7e28c01c916037f923bf456defa37e7038e6936b44a1b31eeae35f5b4299dc91",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В момент вступления настоящей Конвенции в силу Комитет состоит из двенадцати экспертов. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "После еще шестидесяти ратификаций Конвенции или присоединений к ней членский состав Комитета увеличивается на шесть человек, достигая максимума — восемнадцати членов. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-rights-disability-03",
+      "input_sha256": "672cfefe48efd5cd0f78da77f4ff98a426635c2c3400e9bbeaf3a545b580cb6b",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Обычный срок полномочий члена Комитета составляет четыре года. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Члены Комитета имеют право быть переизбранными только один раз. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-rights-disability-04",
+      "input_sha256": "3d128a2110360c9b6113e5003de0a093dbeea24dd6b5a4d6dfcdc062cb92de61",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Государства-участники представляют последующие доклады не реже чем раз в четыре года. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Государства-участники представляют последующие доклады также тогда, когда об этом просит Комитет. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Комитет может запрашивать у государств-участников дополнительную информацию, имеющую отношение к осуществлению настоящей Конвенции. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-rights-disability-05",
+      "input_sha256": "70c6eaff8f7caa6e6a640794cb49b192911af57ef4b3ecce895daf779cce9c60",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Оговорки, не совместимые с объектом и целью настоящей Конвенции, не допускаются. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-rights-disability-06",
+      "input_sha256": "f5a695091dc7a0c88c26afba2f7797d5026f1d7c7494aa173feffe8b1180b18b",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Конвенция первоначально вступает в силу на тридцатый день после сдачи на хранение двадцатой ратификационной грамоты или документа о присоединении. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-rights-disability-07",
+      "input_sha256": "6aba873f4985c9d47dfcb32eda5afb16fed0567ae4cb5ad5889f60afc7f8b568",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-rights-disability-08",
+      "input_sha256": "70947e3afa95af0d67d3500e6e80bee69b79196dadc55a796bf47f3d05e43577",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-trade-cisg-01",
+      "input_sha256": "049347faeb24e1217d65df67ac438d6fa02d9cd4bc69263e696203074ab267d5",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "ind-trade-cisg-02",
+      "input_sha256": "dbd6ddf4597d5e691ca13ab00f7b378cce11224bbec469799f37def8c38fca93",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Конвенция не применяется к продаже электроэнергии. [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-cisg-03",
+      "input_sha256": "5be7eb9dc8f54390bdc658ae00b1c069aa73320d678a21d6a26e580344e4ee8a",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Молчание или бездействие само по себе не является акцептом. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-cisg-04",
+      "input_sha256": "3052a8ce1f531bc2d258f499ea78d18d26ef20fcd1a68351cb629494bc1e1659",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Оферта, даже когда она является безотзывной, может быть отменена оферентом, если сообщение об отмене получено адресатом оферты раньше, чем сама оферта, или одновременно с ней. [1][2][3][4][5][6][7]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-cisg-05",
+      "input_sha256": "56c490fc59d884af85c1408bba163d2bb1f9d1e53a371c04a78cf51b0b1b4e6c",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В любом случае покупатель утрачивает право ссылаться на не- соответствие товара, если он не дает продавцу извещения о нем не позднее, чем в пределах двухлетнего срока, считая с даты фактической передачи товара покупателю, поскольку этот срок не противоречит до- говорному сроку гарантии. [1][2]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Он должен направить уведомление о любом его несоответствии условиям договора в течение разумного срока с того момента, когда он обнаружил или должен был обнаружить это несоот- ветствие, и не позднее чем через два года с того момента, когда товар был фактически вручен покупателю, за исключением тех случаев, ког- да этот срок не соответствует установленному в договоре гарантийно- му сроку. [1][2]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Он должен направить уведомление о любом его несоответствии условиям договора в течение разумного срока с того момента, когда он обнаружил или должен был обнаружить это несоот- ветствие, и не позднее чем через два года с того момента, когда товар был фактически вручен покупателю, за исключением тех случаев, ког- да этот срок не соответствует установленному в договоре гарантийно- му сроку. [2][3]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-cisg-06",
+      "input_sha256": "4006103a76ff599f5b28ef2b852197f91022356079526ffd540c08a0a4604d41",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Статья 40 Продавец не вправе ссылаться на положения статей 38 и 39, если несоответствие товара связано с фактами, о которых он знал или не мог не знать и о которых он не сообщил покупателю. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-cisg-07",
+      "input_sha256": "f1cc4cfac62d817660480d7e62bc93f4af7f1e2048971a01d6396ff2bc543350",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-trade-cisg-08",
+      "input_sha256": "7bc36c9b6f10ddb5965d0c827df37f4ca759f2c1fa2ee7601af512cb58096022",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-trade-electronic-01",
+      "input_sha256": "22db90dd421869456fe1981ddaa1fc6598b30174182afd1021b1604fe66fd186",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Стороны не обязаны использовать или принимать электронные сообщения, однако их согласие на это может быть выведено из поведения стороны. [1][2]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Сообщение или договор не могут быть лишены действительности или исковой силы на том лишь основании, что они составлены в форме электронного сообщения. [1][3]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-electronic-02",
+      "input_sha256": "09e66f5eb94eadce900590740385b21996a75d973cbfa7163a169213f5438047",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В случаях, когда законодательство требует, чтобы сообщение или договор были представлены в письменной форме, или предусматривает наступление определенных последствий в случае отсутствия письменной формы, это требование считается выполненным путем представления электронного сообщения , если содержащаяся в нем информация является доступной для ее последующего использования . [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-electronic-03",
+      "input_sha256": "9b79c498067aae63c53b90befae028a90d56bc3d613c9978b3927a3c4f3dcaf2",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Временем получения электронного сообщения по другому электронному адресу адресата является момент, когда создается возможность для его извлечения адресатом по этому адресу и адресату становится известно о том, что электронное сообщение было отправлено по этому адресу. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-electronic-04",
+      "input_sha256": "160b5478be469ae25086e908d01a482ae977f0187c0eac0fd281ee22d985bb8d",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Статья 11 Приглашения представлять оферты Предложение заключить договор, сделанное посредством одного или нескольких электронных сообщений , которое адресовано не одной или нескольким конкретным сторонам , а является общедоступным для сторон, использующих информационные системы , включая предложения , в которых используются интерактивные прикладные средства для размещения заказов через такие информационные системы , следует считать приглашением представлять оферты, если только в нем ясно не указывается намерение стороны, делающей предложение , считать себя связанной в случае акцепта . [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-electronic-05",
+      "input_sha256": "0c651c7120e86dfa04226542337c983f561cfcee8e1369edad302c7df962beb0",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Согласно настоящей Конвенции никакие оговорки не допускаются. [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-electronic-06",
+      "input_sha256": "2c15c1599f41b4252fec65b4fab7a4d3885dda0e0f3a23a153d9935819104220",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "wrong_scope",
+          "critical": true,
+          "reason": "В ответе приведено условие вступления в силу Конвенции для государства, присоединившегося ПОСЛЕ сдачи третьей ратификационной грамоты (пункт 2 статьи 23). Вопрос же касается первоначального вступления в силу Конвенции в целом, что регулируется пунктом 1 статьи 23 (через 6 месяцев после сдачи третьей грамоты). Ответ подменяет объект: вместо общего момента вступления в силу приводится правило для последующих участников.",
+          "text": "Если государство ратифицирует, принимает или утверждает настоящую Конвенцию или присоединяется к ней после сдачи на хранение третьей ратификационной грамоты или документа о принятии , утверждении или присоединении , настоящая Конвенция вступает в силу для этого государства в первый день месяца по истечении шести месяцев после даты сдачи на хранение его ратификационной грамоты или документа о принятии , утверждении или присоединении . [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-electronic-07",
+      "input_sha256": "7cd7239ae94daebf0264aeea76715cbc48b2939a46d5427bd030d8ced9c06eaf",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-trade-electronic-08",
+      "input_sha256": "b5d2bafa51b777b7bce7bc07626e7c118ad7e140e89664e332af27bce87e8fd9",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-trade-mediation-01",
+      "input_sha256": "bc005bed566bd4f238ace2c2b531fb5aef7301a674ec36d3731ad2da11a66905",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Конвенция не применяется к мировым соглашениям, заключенным для урегулирования споров, возникающих из сделок, совершенных потребителем в личных, семейных или домашних целях. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-mediation-02",
+      "input_sha256": "296fc36ab07f3ee2eae04133745da84b1632350d75946a8877d021984e29fc02",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Сторона в споре представляет компетентному органу подписанное сторонами мировое соглашение и доказательство того, что мировое соглашение является результатом медиации. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-mediation-03",
+      "input_sha256": "b379a50b7103777d34141e792a983de0520d364fe48873a98f8831877ee92d5a",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "ind-trade-mediation-04",
+      "input_sha256": "7d7d14cda15e06ced12b037ef2fc6cb7b3cdf96f050d1fcc542c4cf2bed6a699",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Конвенция вступает в силу через шесть месяцев после сдачи на хранение третьей ратификационной грамоты или документа о принятии, утверждении или присоединении. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-mediation-05",
+      "input_sha256": "30a14661e0101c616430523e50b3140cd12615469af4589e916a5778ac32e4f8",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Никакие оговорки, за исключением тех, которые прямо указаны в статье 8(1)(а) и (b), не допускаются (статья 8(2) Конвенции). [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Конвенция допускает определенные оговорки в соответствии со статьей 8(1)(а) и (b). [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-mediation-06",
+      "input_sha256": "f696aee061f81e4400721e6a9c397c9e4113db656ccf51536b0d4e9890db2f11",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Отзыв оговорки сдается на хранение Генеральному секретарю как депозитарию. [1][2]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Отзыв оговорки вступает в силу через шесть месяцев после сдачи на хранение. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "ind-trade-mediation-07",
+      "input_sha256": "b59bdc0be224c6bcdeb0c7bcde6ea5222ab7541ddd16653adc1cc468fb7fddd7",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "ind-trade-mediation-08",
+      "input_sha256": "5d2c620eb7f8290a0bcf1c7ba95d9bd871e403d4b35a62d0f7f6b4b1ebddc992",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-climate-paris-01->corruption-un",
+      "input_sha256": "340f4fe2be75c81288c33e2a167b38e60b0bc73ee20cb48db25ec7f7f7f229c3",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-corruption-un-01->environment-cbd",
+      "input_sha256": "0db1456c7b7316c64a438bd0ab24197ad3d8d089c0dec08edfc81d0c77ea1ac1",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-environment-cbd-01->global-agenda",
+      "input_sha256": "c4a2bb3f53350a1386820060b3e528182b460286eba72992841f04d2eacddfd7",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-global-agenda-01->marks-singapore",
+      "input_sha256": "6eb39632a7291505b6e14d3ec838f211c20cf1d67a8946bd93177a7061ba626f",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-marks-singapore-01->marks-tlt",
+      "input_sha256": "1aa8c0cc7fe3cc6a8a836d187e71c9590eb1a9352fdd07d7948d6f672fb540de",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-marks-tlt-01->rights-disability",
+      "input_sha256": "a27e226ddd710f413f4a944d8ccf1227ee39652667bc96e1f433729d57ad7fad",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-rights-disability-01->trade-cisg",
+      "input_sha256": "5308d41f21b56f40870ac1f17863afe5c24c1164deb14855232148676e464581",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-trade-cisg-01->trade-electronic",
+      "input_sha256": "e4a220ec6efe512f4cac27e33e603684551199ddb32f761517e568078fa5a0b6",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-trade-electronic-01->trade-mediation",
+      "input_sha256": "4bc3126dd17014577fd34dc2391e69e0274f1d8211691fec313e63a32db9a245",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-ind-trade-mediation-01->climate-paris",
+      "input_sha256": "d06e78e4051f9e40b46974d4a50d9476f5ec3a72d5e69d81f43d399524027218",
+      "required_covered": [],
+      "claims": []
+    }
+  ]
+}

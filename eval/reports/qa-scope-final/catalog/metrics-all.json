@@ -1,0 +1,189 @@
+{
+ "outcomes": {
+  "gold": {
+   "found": 213,
+   "not_found": 110
+  },
+  "isolation": {
+   "not_found": 35,
+   "found": 1
+  }
+ },
+ "by_category": {
+  "comparison": {
+   "num": 11,
+   "den": 11,
+   "value": 1.0
+  },
+  "condition": {
+   "num": 33,
+   "den": 33,
+   "value": 1.0
+  },
+  "conditional": {
+   "num": 6,
+   "den": 6,
+   "value": 1.0
+  },
+  "exact": {
+   "num": 48,
+   "den": 52,
+   "value": 0.9231
+  },
+  "exception": {
+   "num": 1,
+   "den": 1,
+   "value": 1.0
+  },
+  "multi": {
+   "num": 33,
+   "den": 35,
+   "value": 0.9429
+  },
+  "multi_clause": {
+   "num": 6,
+   "den": 6,
+   "value": 1.0
+  },
+  "negation": {
+   "num": 21,
+   "den": 21,
+   "value": 1.0
+  },
+  "no_answer": {
+   "num": 101,
+   "den": 103,
+   "value": 0.9806
+  },
+  "paraphrase": {
+   "num": 50,
+   "den": 53,
+   "value": 0.9434
+  },
+  "table": {
+   "num": 2,
+   "den": 2,
+   "value": 1.0
+  }
+ },
+ "run": "final",
+ "split": "all",
+ "gold_sha256": "c1c4e388f1e97e7a420b4b691752b82be27e572487c2ac743d30125b14988166",
+ "n_requests": 359,
+ "n_gold": 323,
+ "n_gold_planned": 323,
+ "missing_gold": [],
+ "n_answerable": 220,
+ "n_no_answer": 103,
+ "n_isolation": 36,
+ "structured_validity_200": {
+  "num": 359,
+  "den": 359,
+  "value": 1.0
+ },
+ "citation_span_validity": {
+  "num": 446,
+  "den": 446,
+  "value": 1.0
+ },
+ "cross_doc_leakage_citations": {
+  "num": 0,
+  "den": 446,
+  "value": 0.0
+ },
+ "isolation_correct_not_found": {
+  "num": 35,
+  "den": 36,
+  "value": 0.9722
+ },
+ "isolation_found_true": [
+  "iso-contract-05-04->06"
+ ],
+ "positive_hit_at_candidates": {
+  "num": 218,
+  "den": 220,
+  "value": 0.9909
+ },
+ "all_spans_in_candidates": {
+  "num": 214,
+  "den": 220,
+  "value": 0.9727
+ },
+ "context_evidence_coverage_all": {
+  "num": 211,
+  "den": 220,
+  "value": 0.9591
+ },
+ "context_evidence_coverage_any": {
+  "num": 217,
+  "den": 220,
+  "value": 0.9864
+ },
+ "mean_span_recall_context": 0.9742,
+ "ndcg@10_rerank": 0.9355,
+ "span_recall@1_rerank": 0.8384,
+ "span_recall@3_rerank": 0.9417,
+ "span_recall@5_rerank": 0.9583,
+ "span_recall@8_rerank": 0.9598,
+ "span_recall@20_rerank": 0.9693,
+ "span_recall@60_rerank": 0.9818,
+ "answerable_found": {
+  "num": 211,
+  "den": 220,
+  "value": 0.9591
+ },
+ "answerable_not_found": {
+  "num": 9,
+  "den": 220,
+  "value": 0.0409
+ },
+ "answerable_errors": {
+  "num": 0,
+  "den": 220,
+  "value": 0.0
+ },
+ "found_cites_gold_span": {
+  "num": 210,
+  "den": 211,
+  "value": 0.9953
+ },
+ "found_covers_all_gold_spans": {
+  "num": 172,
+  "den": 211,
+  "value": 0.8152
+ },
+ "correct_abstention_negatives": {
+  "num": 101,
+  "den": 103,
+  "value": 0.9806
+ },
+ "negatives_errors": {
+  "num": 0,
+  "den": 103,
+  "value": 0.0
+ },
+ "latency_ms_200": {
+  "n": 359,
+  "p50": 62679,
+  "p95": 109137,
+  "max": 225889
+ },
+ "stage_ms_p50": {
+  "context": 2,
+  "encode": 788,
+  "fusion": 6,
+  "rerank": 36987
+ },
+ "stage_ms_p95": {
+  "context": 5,
+  "encode": 1941,
+  "fusion": 15,
+  "rerank": 72031
+ },
+ "provenance": {
+  "result_type": "replay",
+  "responses_sha256": "34882156547453fc9367bb63f013f512aed9608b559bec6a3f9e1080b528b548",
+  "gold_sha256": "c1c4e388f1e97e7a420b4b691752b82be27e572487c2ac743d30125b14988166",
+  "live_manifest_sha256": "e06835dadcd1367801f2615ff128fabaeddc45ff218bf5bb26e5576478b04100"
+ }
+}

@@ -1,0 +1,877 @@
+{
+  "reviewer": "qwen3.6:27b-q4_K_M@3a40c32f1450b8380412898385b0e00df5d6d2d801dd192ca1acb7e735cd050e",
+  "reviewer_type": "model",
+  "rows": [
+    {
+      "req_id": "atlas-01",
+      "input_sha256": "b784bebb0799bed442bbe1a14e7643063fb6429b4046c59e891880b9ede309b9",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Цена абонемента «Шамот» составляет 5100 рублей в месяц. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Абонемент «Шамот» предоставляет 15 часов занятий в месяц. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "atlas-02",
+      "input_sha256": "285f4221e5b4ba0230a548648978d45797189fe264cf805ad9743de8ffed5de5",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Абонемент «Глина» не может быть передан другому лицу, так как закрепляется за одним посетителем. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "atlas-03",
+      "input_sha256": "14d0a2fe12ff92da6cdc1cbd99075a8fe9ffb640ca45f8b72550582b854a963b",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Неиспользованные часы абонемента «Шамот» сгорают при переходе на следующий месяц, если абонемент не продлен до конца текущего месяца. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "atlas-04",
+      "input_sha256": "b190646af25a1c9eb3d2bc210d9894e72e183d09b4205e0e1b31047eb3f08c0b",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Посетитель отменяет занятие через личный кабинет. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "При отмене не позже чем за 18 часов до начала занятия часы сохраняются. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "atlas-05",
+      "input_sha256": "02b69bb923272c41009f98b94da374cce6129ce41db5f4d76170ff4e84452615",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "За отдельный глазурный обжиг мастерская берёт 260 рублей за килограмм изделия. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "atlas-06",
+      "input_sha256": "235ff257e0b47c1c9c826fecc47f66bfd95867b70b697ef1d5aa1c286ee374dc",
+      "required_covered": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "3. Гостевые посещения Приглашать гостей в мастерскую запрещено. Исключение действует для открытой смены при одновременном присутствии мастера и предварительной записи гостя. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "За нарушение правила мастерская аннулирует гостевой визит. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "atlas-07",
+      "input_sha256": "b2a0088d7129b2f240f513eb9ca2cf5757def8e1b5694d01a6967e98a041c0a2",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Мастерская хранит готовое изделие 23 календарных дня со дня сообщения о готовности. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "atlas-08",
+      "input_sha256": "308b851561ade4fa3bafcb36a947b807d75d6b17990cfc1d6f964ed954b32f8e",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "atlas-09",
+      "input_sha256": "4b55d32c3ff4453144baa15fe5ad634b813ac624732d7098583f722256153796",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "atlas-10",
+      "input_sha256": "0d0acac7cacc62e2f1be95f770abd4a689be7cb80896deb0467e3a1018484984",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "marina-01",
+      "input_sha256": "884b3ce5f899976ae822abcadfb9f6a8aa0f7004b1c4a9bed266012dafef59cb",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Часовая ставка за лодку «Камыш» составляет 690 рублей. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Залог за лодку «Камыш» составляет 2400 рублей. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "marina-02",
+      "input_sha256": "53dc1ea6660e8c60f45408c1517d0af1e66808272c415a7c98971d70f0644474",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Залог возвращает кассир после осмотра корпуса инструктором. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "marina-03",
+      "input_sha256": "5924d96f5ec4ca6ec57484451078fea6ff4b92305c601f6acb986452ce7f5c08",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Неполный час проката округляется до целого часа в большую сторону. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "marina-04",
+      "input_sha256": "3a9c2db5f9b2e88265044a9327901cf27d873bea34c3e3e66c7f45f0cf385156",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Ни одна из перечисленных лодок не может пересекать линию жёлтых буёв, так как выход за линию жёлтых буёв запрещён для обеих категорий лодок. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "marina-05",
+      "input_sha256": "e392576aa19d520fadda85d24ce6ee00acad55d56b3054a57d9021c5012e7a77",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Предоплата за утренний рейс возвращается при отмене за 9 часов или ранее. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Предоплата за вечерний рейс возвращается при отмене за 15 часов или ранее. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "marina-06",
+      "input_sha256": "d25b0389b217e6ca5075411dfd726b992eab301580634a9c91fa145648cf6142",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "3. Допуск к управлению Передавать управление гребной лодкой другому посетителю запрещается. Исключение допускается во время учебного рейса только в присутствии инструктора. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "marina-07",
+      "input_sha256": "d9accf006cd0912a061fe15426cde4e117f46b60b96e58af77abb6b0f310dcdd",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "При сильном ветре решение о закрытии станции принимает начальник смены. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "О закрытии начальник смены сообщает по громкой связи. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "marina-08",
+      "input_sha256": "e1ba7604946e0739b6210881519a452ba63b80e12cc6e4db30fc84afd4768374",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "marina-09",
+      "input_sha256": "ebf1c5612b409dd0507cf8acd4dc774921d684fd6e5d3fd780269b2bb9f6ce54",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "marina-10",
+      "input_sha256": "438d4d5a70cc01a83612220bebc1aa034b99105a93becfc8b15bd9bae0c752af",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "relay-01",
+      "input_sha256": "98d00ca6ccac6318e0f0a608f70a80c18ae0b13ac227fefc485064e47f2fe3db",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Для заказа фонда «Парус» заявка принимается не позднее чем за три рабочих дня до визита. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "relay-02",
+      "input_sha256": "c6faa3825f6fad7eecd63ab9be24ed0f440e8a002f0bcdab9320cd8c0e614055",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Читатель заказывает архивное дело через электронный каталог. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "На один читательский билет одновременно выдают не более четырёх дел. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "relay-03",
+      "input_sha256": "922bd88abf599eb4cb3d6ce2b77c6004399c453b3b0f85132877ff2350fb271f",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "За одну страницу цифровой копии в формате «Цвет» взимается плата 34 рубля. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "relay-04",
+      "input_sha256": "5767286035770bbcf76fe80e18d133750eb8949d6f9eda2efd8ae4b689c3f7da",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Цифровые копии передают читателю по защищённой ссылке. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Ссылка на цифровые копии действует 11 календарных дней с момента отправки. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "relay-05",
+      "input_sha256": "1c61b2252334d03dd98100eb23bfb904d5e5c671d9c19750fe7fb445fab72216",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Правила пометок на подлиннике и на выданной бумажной копии различаются: на подлинниках пометы запрещены даже мягким карандашом, а на выданной читателю бумажной копии пометы разрешены. [1][2]"
+        }
+      ]
+    },
+    {
+      "req_id": "relay-06",
+      "input_sha256": "78b83771a12d1a90b5adff3d063e07a449a989eb34f69015806b56f3d218eec9",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Фотосъёмка фонда «Парус» разрешена только без вспышки и с разрешения хранителя. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "relay-07",
+      "input_sha256": "1942bacb585b00685791b9c382ba7708b572050259304881e8561e3506ae7c8e",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "При обнаружении утраты листа дежурный составляет акт до возврата дела в хранилище. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "relay-08",
+      "input_sha256": "b4a86c573bf1ed9a63863c2d30e3b4a6d1332e94619922e4463a698b8810de0c",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "relay-09",
+      "input_sha256": "4dbd68f1970a57e173872f233ad3a0f6dbc1404019a30e53faa93284f4c067aa",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "relay-10",
+      "input_sha256": "4987b9efbe070be61d3fe1ea5d125a6f554d5a215e84dbeefb55a9de63095ba9",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "birch-01",
+      "input_sha256": "1fb84a1031d253b7bc62a7b53cfcb6d78411b7b0f611f2117861ab6c74b96220",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Короб серии «Утро» содержит 6 саженцев и стоит 1740 рублей. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "birch-02",
+      "input_sha256": "0cc32c734164202bff3d0f7c0abc78436f78b5da3971b277a49c7a2581ac114d",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Короба серии «Утро» выдают в течение двух рабочих дней после подтверждения заказа. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "birch-03",
+      "input_sha256": "d63de53ff155caf73617151713c417ad1dafd4729a3474f0960a654cb66ee91d",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Нет, подтверждения заказа недостаточно для начала отгрузки серии «Заря», так как отгрузка начинается только после поступления полной оплаты. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "birch-04",
+      "input_sha256": "e313aec824a1cc82cba420a446e53d4b11c70a3b6afc760b1ffc9881cfa9a841",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Расходы на доставку до участка несёт заказчик. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "birch-05",
+      "input_sha256": "d5162e0737399298116096be7c67f9dd795d6954b36753577c0cb7dc8b98fa99",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "За каждый возвращённый целый поддон питомник перечисляет заказчику 180 рублей. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Перечисление выполняется в течение семи рабочих дней после подписания акта приёма тары. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "birch-06",
+      "input_sha256": "2c58305f76c054a5eac9c4a3c9eadedad22d56a01e2cc4d981abe6efa30d1b3a",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Заказчик должен отметить повреждение в акте приёмки и передать фотографию в день доставки. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Фотографию принимает диспетчер через личный кабинет заказчика. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "birch-07",
+      "input_sha256": "ea46b62504a0c32029157a35bd161bcd233192475db22b6583eb8529115bc4fe",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Растения, повреждённые после посадки заказчиком, замене не подлежат. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "birch-08",
+      "input_sha256": "c7ad5478f1771e9381889f299a75fdb7a66504b65a1a738b41183df503c846b3",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "birch-09",
+      "input_sha256": "6ce465ea84b8a9c91cfee5f663af6510d60782c2381dc6328e19b315db7c2cce",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "birch-10",
+      "input_sha256": "6b2bc90ab63dae6c97ad45c29adbbf248c42e68b84fe761df569aaffd2e98ce3",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "prism-01",
+      "input_sha256": "3a286c4295afdaea83b55d9923b47ce07865bfd9cd7fcb0b06762b44c3599e7d",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Цена пробы по пакету «Исток» составляет 1450 рублей. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Срок исследования по пакету «Исток» составляет 4 рабочих дня. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "prism-02",
+      "input_sha256": "206c26fefcf0691a3824086957734ad07fa5f3d6b41aa081b1b4f57921fae704",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Лаборатория принимает пробы в опломбированных ёмкостях объёмом не менее 600 миллилитров. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "prism-03",
+      "input_sha256": "52f77f21f705c77b40f71a49d5c6e6e954f1867124277c4f009e2340bb93cde9",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Предельный срок перевозки пробы «Исток» с момента отбора не должен превышать шести часов. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Для пробы «Русло» предельный срок перевозки составляет девять часов с момента отбора. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "prism-04",
+      "input_sha256": "327d41158342cd905506b17a96ac7549bc841984d0764fa1052678d3c0037371",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Представителю выдача разрешена только при предъявлении доверенности и удостоверения личности. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "prism-05",
+      "input_sha256": "cce962b7765bd97e1ded57988cb758fab61985ca645c40f07020c34fee6a2543",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Заявитель не получит черновые результаты исследований до выдачи протокола, так как они не выдаются никаким получателям. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "prism-06",
+      "input_sha256": "8492d22d06f5e2e290fcea01d830559b67ec84e744e1c92e4be9b46f9a4e2b35",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Архив лаборатории хранит окончательный протокол восемнадцать месяцев со дня подписания. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "prism-07",
+      "input_sha256": "8889adac48cb1d875297538263384f90000eb48d57ccb827c87565fb14fe4f19",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "prism-08",
+      "input_sha256": "7ea8d8e5793a2feb23727df200e0ba622b0bd522ee2ceeab9cf5402c164b684e",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "prism-09",
+      "input_sha256": "293b5fbc8582bec20ea7e70f7b403bdd37fa311b18f6a0dabb19116f710ad7d5",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "prism-10",
+      "input_sha256": "ea43eb90dbd25bf6c8e12c4c1da32c34541f2c2e564b9fd631bc2f43a4ae7eb8",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "fir-01",
+      "input_sha256": "d292e5d30f81eac7eb22648e14f3bea78da781a4ec21f43dac05173e22532b54",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Стоимость часа в зале «Оникс» утром составляет 720 рублей. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "fir-02",
+      "input_sha256": "6589df808876ae4c2c57deed0453c34cfc04c1c9cf31d0174afe86da026ae58a",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "fir-03",
+      "input_sha256": "c7361edf4173c8691debe09d7b116ffe926aa54c83cf5fa5c7d9f108802b611d",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В зале «Оникс» предел составляет десять исполнителей. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "В зале «Янтарь» может одновременно находиться не более шести исполнителей. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "fir-04",
+      "input_sha256": "c9db78ac8a4ef6b6abd42c09a1d90d5f7de768337237da1f6531ef95e3321e90",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Администратор подтверждает бронирование после поступления задатка. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "fir-05",
+      "input_sha256": "d442b6973182e2c700c33ca03ee26b02f83367b951e9fdec5f863e0844456ac1",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Заявка на бесплатный перенос репетиции подаётся не позднее чем за 27 часов до начала. [1]"
+        },
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Заявку на перенос подписывает руководитель коллектива. [2]"
+        }
+      ]
+    },
+    {
+      "req_id": "fir-06",
+      "input_sha256": "8a9a53b54c7c1d42fd512979f52f40d742ea0baff6abcbf7a0388a122d174f6f",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "verdict": "supported",
+          "critical": false,
+          "reason": "",
+          "text": "Вынос стоек допускается только в фойе и только в сопровождении администратора. [1]"
+        }
+      ]
+    },
+    {
+      "req_id": "fir-07",
+      "input_sha256": "5a8cf77b8397a549c1e7acc88870662357bac80a6297ea75d6de7dcd954b8ef3",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "fir-08",
+      "input_sha256": "f07ba10a4a9a6baf92980ba73ea89f30b2e2f7f73cb0f8e2b14096f07af75386",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "fir-09",
+      "input_sha256": "4614387f2dad5103a56c6b83bd018c9a48e21119ec7aecb0eb5cfeffd837c815",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "fir-10",
+      "input_sha256": "ecc5a95e31461c64cd8e2cd9af1550263a47a67aef6faac61bec440896f3785a",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-atlas-01->birch",
+      "input_sha256": "982f5a843c1c39c5ea9ed44cc96ff8eafd098a43d1f61e1b6493841b5715d5fa",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-marina-01->prism",
+      "input_sha256": "3fbe3d98c68d9a1fffd74969ba117c63ae0a1a7bb0403e341ee41d9a569ffa66",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-relay-01->atlas",
+      "input_sha256": "a150bedb6ffbbbee47b4cc0071237057638b708b1da026c2d52181daf3a8f0e2",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-birch-01->fir",
+      "input_sha256": "2c9f828b8af297ec64a4cce1a1bb23f8b5934af29ce29d190eb3deea7ba000b4",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-prism-01->relay",
+      "input_sha256": "e58c4e7677fc04c4ad15d500330e48c073d0203cde25c06725da7ecb942e36e1",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-fir-01->marina",
+      "input_sha256": "afd41bdc456650d9e03581ddcb06585feb0fa91ce119f802e5e34750e3ea6f18",
+      "required_covered": [],
+      "claims": []
+    }
+  ]
+}

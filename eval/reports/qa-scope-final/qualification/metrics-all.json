@@ -1,0 +1,176 @@
+{
+ "outcomes": {
+  "gold": {
+   "found": 39,
+   "not_found": 21
+  },
+  "isolation": {
+   "not_found": 6
+  }
+ },
+ "by_category": {
+  "comparison": {
+   "num": 4,
+   "den": 4,
+   "value": 1.0
+  },
+  "condition": {
+   "num": 6,
+   "den": 6,
+   "value": 1.0
+  },
+  "exact": {
+   "num": 7,
+   "den": 7,
+   "value": 1.0
+  },
+  "exception": {
+   "num": 2,
+   "den": 2,
+   "value": 1.0
+  },
+  "multi": {
+   "num": 6,
+   "den": 7,
+   "value": 0.8571
+  },
+  "negation": {
+   "num": 3,
+   "den": 3,
+   "value": 1.0
+  },
+  "no_answer": {
+   "num": 20,
+   "den": 20,
+   "value": 1.0
+  },
+  "paraphrase": {
+   "num": 7,
+   "den": 7,
+   "value": 1.0
+  },
+  "table": {
+   "num": 4,
+   "den": 4,
+   "value": 1.0
+  }
+ },
+ "run": "final",
+ "split": "all",
+ "gold_sha256": "076d86c2f38e92a1c30dcac2f11a3824108728b6dc3a8fe8b62822c793aa73b6",
+ "n_requests": 66,
+ "n_gold": 60,
+ "n_gold_planned": 60,
+ "missing_gold": [],
+ "n_answerable": 40,
+ "n_no_answer": 20,
+ "n_isolation": 6,
+ "structured_validity_200": {
+  "num": 66,
+  "den": 66,
+  "value": 1.0
+ },
+ "citation_span_validity": {
+  "num": 51,
+  "den": 51,
+  "value": 1.0
+ },
+ "cross_doc_leakage_citations": {
+  "num": 0,
+  "den": 51,
+  "value": 0.0
+ },
+ "isolation_correct_not_found": {
+  "num": 6,
+  "den": 6,
+  "value": 1.0
+ },
+ "isolation_found_true": [],
+ "positive_hit_at_candidates": {
+  "num": 40,
+  "den": 40,
+  "value": 1.0
+ },
+ "all_spans_in_candidates": {
+  "num": 40,
+  "den": 40,
+  "value": 1.0
+ },
+ "context_evidence_coverage_all": {
+  "num": 40,
+  "den": 40,
+  "value": 1.0
+ },
+ "context_evidence_coverage_any": {
+  "num": 40,
+  "den": 40,
+  "value": 1.0
+ },
+ "mean_span_recall_context": 1.0,
+ "ndcg@10_rerank": 1.0,
+ "span_recall@1_rerank": 1.0,
+ "span_recall@3_rerank": 1.0,
+ "span_recall@5_rerank": 1.0,
+ "span_recall@8_rerank": 1.0,
+ "span_recall@20_rerank": 1.0,
+ "span_recall@60_rerank": 1.0,
+ "answerable_found": {
+  "num": 39,
+  "den": 40,
+  "value": 0.975
+ },
+ "answerable_not_found": {
+  "num": 1,
+  "den": 40,
+  "value": 0.025
+ },
+ "answerable_errors": {
+  "num": 0,
+  "den": 40,
+  "value": 0.0
+ },
+ "found_cites_gold_span": {
+  "num": 39,
+  "den": 39,
+  "value": 1.0
+ },
+ "found_covers_all_gold_spans": {
+  "num": 38,
+  "den": 39,
+  "value": 0.9744
+ },
+ "correct_abstention_negatives": {
+  "num": 20,
+  "den": 20,
+  "value": 1.0
+ },
+ "negatives_errors": {
+  "num": 0,
+  "den": 20,
+  "value": 0.0
+ },
+ "latency_ms_200": {
+  "n": 66,
+  "p50": 53018,
+  "p95": 86542,
+  "max": 142870
+ },
+ "stage_ms_p50": {
+  "context": 0,
+  "encode": 779,
+  "fusion": 5,
+  "rerank": 33603
+ },
+ "stage_ms_p95": {
+  "context": 0,
+  "encode": 1562,
+  "fusion": 13,
+  "rerank": 57476
+ },
+ "provenance": {
+  "result_type": "replay",
+  "responses_sha256": "165845e5cb96acdef236a8f436865847dc531fbd2fe3190bd19b0452ab3a1592",
+  "gold_sha256": "076d86c2f38e92a1c30dcac2f11a3824108728b6dc3a8fe8b62822c793aa73b6",
+  "live_manifest_sha256": "ba9be5c9ac3092dc463a2edc344959a5cc22a18d7a8c01499c57d396a4051c61"
+ }
+}
