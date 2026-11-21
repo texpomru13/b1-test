@@ -21,6 +21,21 @@ def test_qualification_corpus_and_unsigned_source_sheet(harness):
     assert harness.source_reviewer(source_sheet, {c["case_id"] for c in cases}) is None
 
 
+def test_source_sheet_links_from_a_symlinked_directory(harness, tmp_path):
+    import re
+
+    from qualification_data import source_sheet
+
+    folder = tmp_path / "files" / "worksheets"
+    folder.mkdir(parents=True)
+    alias = tmp_path / "current"
+    alias.symlink_to(folder, target_is_directory=True)
+    content = source_sheet(harness.qualification_cases(), alias / "review.md")
+    links = re.findall(r"\]\(<([^>]+)>\)", content)
+    assert links
+    assert all((alias / link.split("#", 1)[0]).is_file() for link in links)
+
+
 def test_extra_unlisted_claim_cannot_count_as_correct(harness):
     row = {
         "req_id": "a", "expected_found": True, "found": True, "required_facts": ["100 рублей"],

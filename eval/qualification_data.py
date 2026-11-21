@@ -157,7 +157,7 @@ def source_sheet(cases: list[dict], output: Path, pack: Path = PACK) -> str:
     for case in cases:
         fid = case["doc_fixture_id"]
         if fid != last_doc:
-            path = Path(os.path.relpath(docs[fid], output.parent))
+            path = Path(os.path.relpath(docs[fid], output.parent.resolve()))
             lines += ["", f"## Документ [{docs[fid].name}](<{path.as_posix()}>)", ""]
             last_doc = fid
         lines += ["", f"### {case['case_id']}", "", case["question"], "",
