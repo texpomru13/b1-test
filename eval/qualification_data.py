@@ -16,7 +16,6 @@ sys.path.insert(0, str(ROOT))
 from app.ingestion.canonical import build_canonical
 from app.ingestion.pdf_loader import extract_pdf
 
-
 PACK_SIZES = {
     "qualification": (6, 10),
     "contracts-six": (6, 10),
