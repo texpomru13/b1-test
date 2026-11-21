@@ -65,10 +65,12 @@ def main() -> None:
     parser.add_argument("--no-isolation", action="store_true")
     parser.add_argument("--workers", type=int, default=1,
                         help="simultaneous requests for correctness runs")
+    parser.add_argument("--admission-timeout-s", type=float, default=0,
+                        help="retry HTTP 429 admission responses for this long")
     parser.add_argument("--timeout-s", type=float, default=960.0)
     args = parser.parse_args()
-    if args.workers < 1:
-        parser.error("--workers must be positive")
+    if args.workers < 1 or args.admission_timeout_s < 0:
+        parser.error("--workers must be positive and --admission-timeout-s nonnegative")
 
     gold = load_jsonl(gold_path())
     fixtures = sorted({c["doc_fixture_id"] for c in gold})
@@ -107,14 +109,16 @@ def main() -> None:
     if meta_path.exists():
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
         if (meta["api"] != args.api or meta.get("inputs") != inputs
-                or meta.get("workers", 1) != args.workers):
+                or meta.get("workers", 1) != args.workers
+                or meta.get("admission_timeout_s", 0) != args.admission_timeout_s):
             parser.error("the API, build, settings, documents or gold changed; use a new --run")
     else:
         if previous or manifest_path.exists():
             parser.error("saved responses are missing their provenance; use a new --run")
         meta = {"run": args.run, "api": args.api, "started_at": datetime.now(UTC).isoformat(),
                 "initial_split": args.split, "doc_ids": doc_ids, "ready": ready.json(),
-                "inputs": inputs, "workers": args.workers, **environment()}
+                "inputs": inputs, "workers": args.workers,
+                "admission_timeout_s": args.admission_timeout_s, **environment()}
         write_json(meta_path, meta)
     if manifest_path.exists():
         saved_manifest = json.loads(manifest_path.read_text())
@@ -130,9 +134,16 @@ def main() -> None:
         started = time.monotonic()
         record = dict(req, doc_id=doc_id,
                       asked_at=datetime.now(UTC).isoformat(timespec="seconds"))
+        rejections = []
         try:
-            resp = client.post(f"/api/v1/documents/{doc_id}/questions",
-                               json={"question": req["question"], "debug": True})
+            while True:
+                resp = client.post(f"/api/v1/documents/{doc_id}/questions",
+                                   json={"question": req["question"], "debug": True})
+                wait = started + args.admission_timeout_s - time.monotonic()
+                if resp.status_code != 429 or wait <= 0:
+                    break
+                rejections.append(resp.headers.get("X-Request-ID"))
+                time.sleep(min(5, wait))
             record["http_status"] = resp.status_code
             record["request_id"] = resp.headers.get("X-Request-ID")
             try:
@@ -143,6 +154,8 @@ def main() -> None:
             record["http_status"] = None
             record["body"] = {"_client_error": f"{type(exc).__name__}: {exc}"}
         record["wall_ms"] = int((time.monotonic() - started) * 1000)
+        if rejections:
+            record["admission_rejection_request_ids"] = rejections
         return record
 
     with out_path.open("a", encoding="utf-8") as fh, ThreadPoolExecutor(args.workers) as pool:
