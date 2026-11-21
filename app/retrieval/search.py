@@ -26,6 +26,7 @@ from app.reliability.policy import retry_async
 from app.retrieval.articles import article_gaps, article_units
 from app.retrieval.bm25 import Bm25Adapter
 from app.retrieval.day_definition import prioritize_day_definition
+from app.retrieval.offer_details import prioritize_source_details
 from app.retrieval.tables import attach_price_headings, price_table_gaps
 from app.storage.qdrant_repo import DENSE_NAME, SPARSE_NAME, FingerprintMismatchError
 from qdrant_client import AsyncQdrantClient, models
@@ -282,6 +283,7 @@ async def hybrid_search(
     labels = {c.scope_label for unit in units.values() for c in unit if c.scope_label}
     requested = requested_scope_keys(question, labels)
     ordered = prioritize_day_definition(question, ordered)
+    ordered = prioritize_source_details(question, ordered, units)
     for point in ordered:
         if len(context) >= settings.context_top_k:
             break

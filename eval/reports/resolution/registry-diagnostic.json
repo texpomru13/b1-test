@@ -1,0 +1,147 @@
+{
+  "kind": "development_replay",
+  "question": "Кто ведет центральный Реестр ООН по статье III Конвенции о регистрации объектов и каков режим доступа к его сведениям?",
+  "fixture": "space",
+  "document_id": "b2dce1b4b1b04922afef085c4d9e6c5c",
+  "baseline_app_commit": "7ac18db946e50558b5470d9832f4fee19e7a26be",
+  "model_digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+  "context_chunks": [
+    {
+      "chunk_id": "773ac714-c3f0-57af-9d63-88ae17bd8e6a",
+      "chunk_index": 247,
+      "page_from": 89,
+      "page_to": 90
+    },
+    {
+      "chunk_id": "adf70a76-aa1b-5216-a33f-d43cb49fe0c6",
+      "chunk_index": 77,
+      "page_from": 35,
+      "page_to": 35
+    },
+    {
+      "chunk_id": "c7f53d44-f675-55d0-928b-a92319e387e4",
+      "chunk_index": 88,
+      "page_from": 37,
+      "page_to": 38
+    },
+    {
+      "chunk_id": "75e5e5ee-d2b6-5f2d-8712-132b07c7484c",
+      "chunk_index": 245,
+      "page_from": 89,
+      "page_to": 89
+    },
+    {
+      "chunk_id": "740bbed2-6d56-53f5-8da3-66ebea74127e",
+      "chunk_index": 86,
+      "page_from": 37,
+      "page_to": 37
+    },
+    {
+      "chunk_id": "ec33b32e-f62e-5483-a00a-17c0a2cf2fa2",
+      "chunk_index": 84,
+      "page_from": 36,
+      "page_to": 37
+    },
+    {
+      "chunk_id": "12a2b437-080b-587a-bbd1-e3b992f12cf3",
+      "chunk_index": 249,
+      "page_from": 91,
+      "page_to": 91
+    },
+    {
+      "chunk_id": "19a6ab33-2ca0-5bac-94c8-5de0250bd869",
+      "chunk_index": 78,
+      "page_from": 35,
+      "page_to": 35
+    }
+  ],
+  "model_calls": [
+    {
+      "schema": "draft_answer",
+      "raw": {
+        "answerable": true,
+        "claims": [
+          {
+            "text": "Центральный Реестр ведет Генеральный секретарь Организации Объединенных Наций.",
+            "evidence": [
+              "source-2.1",
+              "source-6.1",
+              "source-8.1"
+            ]
+          },
+          {
+            "text": "Реестр заносится информация, представляемая в соответствии со статьей IV Конвенции о регистрации.",
+            "evidence": [
+              "source-6.1"
+            ]
+          },
+          {
+            "text": "Сведения о режиме доступа к Реестру в предоставленных источниках не указаны.",
+            "evidence": [
+              "source-1.1",
+              "source-1.2",
+              "source-1.3",
+              "source-1.4",
+              "source-2.1",
+              "source-3.1",
+              "source-3.2",
+              "source-3.3",
+              "source-3.4",
+              "source-3.5",
+              "source-4.1",
+              "source-4.2",
+              "source-5.1",
+              "source-5.2",
+              "source-5.3",
+              "source-5.4",
+              "source-6.1",
+              "source-7.1",
+              "source-7.2",
+              "source-7.3",
+              "source-8.1"
+            ]
+          }
+        ],
+        "missing_information": [
+          "Информация о режиме доступа к сведениям Реестра (кто имеет право доступа, условия доступа, публичность данных) отсутствует в предоставленных источниках."
+        ]
+      }
+    },
+    {
+      "schema": "draft_answer",
+      "raw": {
+        "answerable": true,
+        "claims": [
+          {
+            "text": "Центральный Реестр ведет Генеральный секретарь Организации Объединенных Наций.",
+            "evidence": [
+              "source-2.1",
+              "source-6.1",
+              "source-8.1"
+            ]
+          },
+          {
+            "text": "Режим доступа к сведениям Реестра в предоставленных источниках не описан.",
+            "evidence": [
+              "source-2.1",
+              "source-6.1",
+              "source-8.1"
+            ]
+          }
+        ],
+        "missing_information": [
+          "Информация о режиме доступа к сведениям Реестра (кто имеет право доступа, условия доступа, публичность данных) отсутствует в предоставленных источниках."
+        ]
+      }
+    }
+  ],
+  "http_status": 502,
+  "response": {
+    "error": {
+      "code": "MODEL_OUTPUT_INVALID",
+      "message": "the model failed to produce valid structured output after the allowed repair attempt",
+      "retryable": true,
+      "request_id": "351e6bcaddc6454f8b0b11021c422f26"
+    }
+  }
+}

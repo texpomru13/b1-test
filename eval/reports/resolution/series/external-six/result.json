@@ -1,0 +1,142 @@
+{
+  "series": "external-six",
+  "plan_sha256": "48329ece0a9aaca66a6a2824c186ade85bb996053cb5c7c7ef2680dbeaa47d74",
+  "app_commit": "66ba699de816a18441ae697d4f7b40c266c83a75",
+  "app_source_sha256": "e001762d92f34bbd802277022bafff3277c9d2e72ba0dcca64598790db345a2f",
+  "manifest_sha256": "8720d1f0eb4f3893195df8e74af1776b5ebcbbc5a1f881e4c3c57441173e9972",
+  "responses_sha256": "c7d59d506c7bb4b850e14e387d5bc43fb244a9af65ced3712310cb1f4e8f43bd",
+  "review_sha256": "cdf1ed956fe1c1e17d44a5dc95da66ec8eec4ee90b2b6a1aacbbe86c9b95cfdd",
+  "reviewer": "OpenAI Codex — сверка обязательных фактов и каждого выданного утверждения с целевым документом и цитатами",
+  "reviewer_type": "model",
+  "strata": {
+    "incomplete": {
+      "passed": 6,
+      "total": 6,
+      "failed_ids": []
+    },
+    "complete_control": {
+      "passed": 1,
+      "total": 1,
+      "failed_ids": []
+    },
+    "false_positive": {
+      "passed": 0,
+      "total": 0,
+      "failed_ids": []
+    }
+  },
+  "critical_ids": [],
+  "coverage": [
+    13,
+    13
+  ],
+  "invalid_schema_ids": [],
+  "invalid_citation_ids": [],
+  "requests": [
+    {
+      "req_id": "external-roerich-02",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "В ответе названы четыре занятия и 1500 рублей за абонемент именно подростковой группы. Обе цитаты относятся к странице 1 прейскуранта основного здания. Первая устанавливает единицу валюты, вторая показывает строку 11 с количеством занятий и ценой."
+    },
+    {
+      "req_id": "external-roerich-03",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "В тексте ответа присутствуют каждая среда, 19:00 и отдельная покупка входного билета по прейскуранту. Обе ссылки на странице 2 подтверждают правило. Вторая цитата длиннее необходимого, а последнее предложение повторяет условие из первого."
+    },
+    {
+      "req_id": "external-roerich-06",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Заголовок цен в рублях на странице 1, строка 32 на странице 2 и её собственная сноска подтверждают 150 рублей на человека и допуск к присоединению в пределах первых 20 минут. Текст воспроизводит формулировку сноски без противоположного пояснения."
+    },
+    {
+      "req_id": "external-troika-01",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Пункты 4.1.4 и 4.1.4.1 на странице 12 вместе раскрывают получение карты на срок до пяти лет, последствия невозврата в течение пяти лет и порядок раздела 8. Цена равна залогу на дату получения, включая НДС. Все дополнительные положения об акцепте покупки и использовании залога содержатся в указанных цитатах."
+    },
+    {
+      "req_id": "external-troika-02",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Пункт 4.1.2 на странице 12 подтверждает залог и одновременную покупку минимум одного билета на одну поездку. Дополнительные сведения о маршрутах и балансе «Кошелька» приведены в той же цитате. Пункт 4.3.2 на странице 13 исключает оба требования для мест из пункта 4.3.1. Сувенирный магазин назван в пункте 4.3.1, на который прямо ссылается приложенная цитата."
+    },
+    {
+      "req_id": "external-troika-03",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "В ответе прямо указаны обе величины. Пункт 11.2 на странице 30 подтверждает приостановку на 14 календарных дней, а пункт 11.3 — один раз за весь период. Присоединённый в конце второй цитаты номер страницы не меняет содержание правила."
+    },
+    {
+      "req_id": "external-moreon-07",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 1,
+      "required": 1,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Сохранилась полнота контрольного ответа. Пункт 2.10 на странице 5 прямо исключает применение акций и скидок комплекса при покупке абонемента."
+    }
+  ]
+}

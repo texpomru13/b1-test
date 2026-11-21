@@ -8,7 +8,8 @@ from __future__ import annotations
 import enum
 import re
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pydantic_core import PydanticCustomError
 
 
 class Evidence(BaseModel):
@@ -39,9 +40,18 @@ class DraftAnswer(BaseModel):
 
     @model_validator(mode="after")
     def _consistent_answer(self) -> DraftAnswer:
+        if self.answerable and self.claims and any(gap.strip() for gap in self.missing_information):
+            raise PydanticCustomError("partial_draft", "draft identifies missing evidence")
         if self.answerable != bool(self.claims) or (self.answerable and self.missing_information):
             raise ValueError("answerable requires claims covering all requested information")
         return self
+
+
+def is_incomplete_draft(error: Exception) -> bool:
+    """A well-formed partial answer can safely abstain when source repair is exhausted."""
+    return isinstance(error, ValidationError) and all(
+        item["type"] == "partial_draft" for item in error.errors()
+    )
 
 
 DRAFT_JSON_SCHEMA: dict = {

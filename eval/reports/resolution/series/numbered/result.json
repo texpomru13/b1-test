@@ -1,0 +1,112 @@
+{
+  "series": "numbered",
+  "plan_sha256": "48329ece0a9aaca66a6a2824c186ade85bb996053cb5c7c7ef2680dbeaa47d74",
+  "app_commit": "66ba699de816a18441ae697d4f7b40c266c83a75",
+  "app_source_sha256": "e001762d92f34bbd802277022bafff3277c9d2e72ba0dcca64598790db345a2f",
+  "manifest_sha256": "efb4b5427018aad28768d0d8f3908abf8da21ca087b602df344d32eaed3a475e",
+  "responses_sha256": "a8127e55551a6f2fd80bed2945f93c4e9b71e8558fff815ceeba8750ff02c9ad",
+  "review_sha256": "0681ebad95edde1e96d3989d7482b23a6a8ca43ac4e8cbda864e8e29898c4990",
+  "reviewer": "OpenAI Codex",
+  "reviewer_type": "model",
+  "strata": {
+    "incomplete": {
+      "passed": 1,
+      "total": 1,
+      "failed_ids": []
+    },
+    "complete_control": {
+      "passed": 4,
+      "total": 4,
+      "failed_ids": []
+    },
+    "false_positive": {
+      "passed": 0,
+      "total": 0,
+      "failed_ids": []
+    }
+  },
+  "critical_ids": [],
+  "coverage": [
+    13,
+    13
+  ],
+  "invalid_schema_ids": [],
+  "invalid_citation_ids": [],
+  "requests": [
+    {
+      "req_id": "10-01",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "В источнике и ответе ровно два предела. Общий равен 10% страховой суммы. В скобках указаны отдельное условие по одному случаю и его база — 10% от лимита ответственности по одному страховому случаю. Вне скобок сохранена оговорка об ином условии договора. Ответ отсылает к подпунктам е) и ж) и не добавляет оснований страхового покрытия."
+    },
+    {
+      "req_id": "12-01",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Срок в три года исчисляется с подписания. Оба сведения прямо приведены в пункте 6.1."
+    },
+    {
+      "req_id": "02-01",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Сохранены сумма, к которой применяется ставка 0,4%, и порог свыше 300 000 тенге. Обязанность клиента подтверждена заголовком и подпунктом 5.9."
+    },
+    {
+      "req_id": "04-01",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Названы постоянная арендная плата в размере 158 400 рублей за месяц, начало начисления с 1 апреля 2022 года и включение НДС по действующей ставке. Ссылка на подпункт 3.1.1 охватывает все эти сведения."
+    },
+    {
+      "req_id": "01-01",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Пункт 7.1 подтверждает пени 0,05% от просроченной суммы за каждый день, уплату по требованию поставщика и исключение при нарушении поставщиком своих обязательств."
+    }
+  ]
+}

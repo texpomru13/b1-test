@@ -10,7 +10,9 @@ from functools import lru_cache
 from py_rust_stemmers import SnowballStemmer
 
 from app.qa.evidence import issue_evidence
+from app.qa.glosses import without_unproven_gloss
 from app.qa.grounding import LocatedQuote, ProvenanceError, quote_at_offsets
+from app.qa.limits import restore_sublimit_punctuation
 from app.qa.schemas import Claim, Evidence
 from app.retrieval.search import ContextChunk
 
@@ -50,6 +52,19 @@ _ANALOGY = re.compile(r"\b(?:аналогичн\w*|по аналогии|так(
 _TIME = re.compile(r"\b(?:время|времени|срок\w*|дн\w*|сут\w*|час\w*|минут\w*)\b", re.I)
 _TRIGGER_REF = re.compile(r"\b(?:при|если|в случае)\s+[^.;:]{3,140}?"
                           r"\b(?:п\.|пунктах?\b|пункте\b|статье\b)\s*(\d+(?:\.\d+)*)", re.I)
+
+# Compare what is being changed, not just the shared noun or procedure.
+# Synonyms of one attribute remain eligible; an unspecified attribute does not
+# create a conflict. The object itself must occur in both noun phrases.
+_PROPERTIES = {
+    "term": r"срок\w*|продолжительност\w*|длительност\w*|период\w*",
+    "price": r"стоимост\w*|цен[а-яё]*|тариф\w*",
+    "quantity": r"количеств\w*|объ[её]м\w*|числ[а-яё]*",
+    "place": r"адрес\w*|мест[а-яё]*|местоположени\w*",
+}
+_CHANGE = re.compile(r"\b(?:изменени|пересмотр|корректировк|продлени|согласовани)"
+                     r"\w*\s+(?P<attribute>" + "|".join(_PROPERTIES.values())
+                     + r")\s+(?P<object>[а-яё][а-яё-]{2,})\b", re.I)
 
 
 @lru_cache(maxsize=8192)
@@ -162,6 +177,29 @@ def _prefer_joint_evidence(
             located[i] = [exact]
 
 
+def _different_attribute(question: str, local: str, direct: str) -> bool:
+    if _COMPARE.search(question):
+        return False
+    direct_terms = set(_terms(direct))
+    for asked in _CHANGE.finditer(question):
+        target = _stem(asked["object"])
+        if target not in direct_terms or _stem(asked["attribute"]) not in direct_terms:
+            continue
+        requested_family = next(pattern for pattern in _PROPERTIES.values()
+                                if re.fullmatch(pattern, asked["attribute"], re.I))
+        if re.search(r"\b(?:" + requested_family + r")\b", local, re.I):
+            continue
+        for rule in _CHANGE.finditer(local):
+            if _stem(rule["object"]) != target:
+                continue
+            for property_words in _PROPERTIES.values():
+                if re.fullmatch(property_words, rule["attribute"], re.I):
+                    if (not re.fullmatch(property_words, asked["attribute"], re.I)
+                            and not re.search(r"\b(?:" + property_words + r")\b", question, re.I)):
+                        return True
+    return False
+
+
 def _redundant_branch(
     question: str, statement: str, quotes: list[LocatedQuote], direct: list[LocatedQuote],
 ) -> bool:
@@ -173,6 +211,8 @@ def _redundant_branch(
     local_text = " ".join(q.quote_raw for q in quotes)
     if (_ANALOGY.search(statement) and not _ANALOGY.search(local_text)
             and not _COMPARE.search(question) and not _ANALOGY.search(question)):
+        return True
+    if _different_attribute(question, local_text, other_text):
         return True
     # A labeled schedule establishes times for the named service/resource only.
     # Keep the row if that owner is explicitly requested or connected by a direct rule.
@@ -198,6 +238,14 @@ def _redundant_branch(
 def refine_answer_scope(question: str, claims: list[Claim], located: dict[int, list[LocatedQuote]],
                         sources: dict[str, ContextChunk]) -> dict[int, list[LocatedQuote]]:
     """Keep a direct answer with its own context; the semantic verifier still checks coverage."""
+    for index, claim in enumerate(claims):
+        try:
+            claim.text = without_unproven_gloss(
+                claim.text, [q.quote_raw for q in located[index]], question,
+            )
+            claim.text = restore_sublimit_punctuation(claim.text, located[index])
+        except ValueError as exc:
+            raise ProvenanceError(str(exc)) from exc
     _requested_bound(question, claims, located)
     _prefer_joint_evidence(question, claims, located, sources)
     if len(claims) < 2:

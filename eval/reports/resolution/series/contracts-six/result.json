@@ -1,0 +1,127 @@
+{
+  "series": "contracts-six",
+  "plan_sha256": "48329ece0a9aaca66a6a2824c186ade85bb996053cb5c7c7ef2680dbeaa47d74",
+  "app_commit": "66ba699de816a18441ae697d4f7b40c266c83a75",
+  "app_source_sha256": "e001762d92f34bbd802277022bafff3277c9d2e72ba0dcca64598790db345a2f",
+  "manifest_sha256": "7d7b654de81ccff3d187c3b724221e1b6e047210c3165eed664b72c05d69d49b",
+  "responses_sha256": "c8bec776cb9b8185c945f48651aa3630c45ab567acec64fc5bf6b6f8096107a0",
+  "review_sha256": "faee4c7a1a28aef63f41b50fb4862b23a7fad5d27aa521e26891eede17110d44",
+  "reviewer": "OpenAI Codex",
+  "reviewer_type": "model",
+  "strata": {
+    "incomplete": {
+      "passed": 3,
+      "total": 3,
+      "failed_ids": []
+    },
+    "complete_control": {
+      "passed": 3,
+      "total": 3,
+      "failed_ids": []
+    },
+    "false_positive": {
+      "passed": 0,
+      "total": 0,
+      "failed_ids": []
+    }
+  },
+  "critical_ids": [],
+  "coverage": [
+    14,
+    14
+  ],
+  "invalid_schema_ids": [],
+  "invalid_citation_ids": [],
+  "requests": [
+    {
+      "req_id": "contract-07-04",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Сохраняется редакция, указанная в договоре-задании. Согласованное применение другой редакции фиксируют в ДД. Оба утверждения подтверждены пунктом 4.2. Ответ сохраняет обозначение ДД в формулировке источника."
+    },
+    {
+      "req_id": "contract-07-05",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "В ответе назван весь период ежедневной съёмки до окончательного завершения работ. Фотографии сохраняют по итогам дня в общем электронном архиве, к которому заказчик имеет свободный доступ в любое время. Все части подтверждены пунктом 13.1.11."
+    },
+    {
+      "req_id": "contract-11-06",
+      "stratum": "incomplete",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "incomplete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Ответ называет дополнительное соглашение и все три источника оснований для изменения срока. Общие правила письменного оформления, возврата оригинала и последствий невозврата опираются на соответствующие пункты. Условия пересмотра цены в ответ не включены."
+    },
+    {
+      "req_id": "contract-04-04",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 3,
+      "required": 3,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Верно разграничены собственники отделимых и неотделимых улучшений. Прямо указано, что затраты арендатора на неотделимые улучшения не возмещаются. Первому утверждению достаточно ссылки [1]."
+    },
+    {
+      "req_id": "contract-02-04",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Счёт-фактура и акт выполненных работ перечислены в подпункте 3.8. Заголовок раздела устанавливает, что документы после расчётов предоставляет исполнитель."
+    },
+    {
+      "req_id": "contract-05-04",
+      "stratum": "complete_control",
+      "expected_found": true,
+      "found": true,
+      "baseline_verdict": "complete",
+      "schema_valid": true,
+      "citation_problems": [],
+      "passed": true,
+      "covered": 2,
+      "required": 2,
+      "bad_segments": 0,
+      "critical": false,
+      "assessment": "Заказ оформляется в личном кабинете исполнителя, предоплата возможна любым доступным в нём способом. Первую часть прямо подтверждает ссылка [1], вторую — [6]. Несколько дополнительных ссылок для ответа избыточны."
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "plan_sha256": "48329ece0a9aaca66a6a2824c186ade85bb996053cb5c7c7ef2680dbeaa47d74",
+  "app_commit": "66ba699de816a18441ae697d4f7b40c266c83a75",
+  "requests": 31,
+  "strata": {
+    "incomplete": {
+      "passed": 15,
+      "total": 15,
+      "failed_ids": []
+    },
+    "complete_control": {
+      "passed": 16,
+      "total": 16,
+      "failed_ids": []
+    },
+    "false_positive": {
+      "passed": 0,
+      "total": 0,
+      "failed_ids": []
+    }
+  },
+  "critical_ids": [],
+  "coverage": [
+    65,
+    65
+  ],
+  "invalid_schema_ids": [],
+  "invalid_citation_ids": [],
+  "observed_answerable_pairs": {
+    "n": 31,
+    "full_before": 16,
+    "full_after": 31,
+    "delta_percentage_points": 48.38709677419355,
+    "incomplete_to_full": 15,
+    "full_to_incomplete": 0,
+    "full_to_full": 16,
+    "incomplete_to_incomplete": 0
+  },
+  "estimated_population_after": {
+    "n": 66,
+    "unmeasured": 35,
+    "baseline_full": 51,
+    "estimated_full": 66.0,
+    "estimated_full_percent": 100.0,
+    "retained_in_baseline_full_exact_95_percent_interval": [
+      43,
+      51
+    ],
+    "estimated_full_exact_95_percent_interval": [
+      58,
+      66
+    ],
+    "estimated_full_percent_exact_95_percent_interval": [
+      87.87878787878788,
+      100.0
+    ]
+  }
+}

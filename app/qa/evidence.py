@@ -14,7 +14,7 @@ from app.retrieval.search import ContextChunk
 # lettered clauses, between paragraphs, or after a sentence ending. A period
 # terminating a clause number or short abbreviation is not a sentence ending.
 _BOUNDARY = re.compile(
-    r"\n[ \t]*\n\s*|\n\s*(?=(?:\d+(?:\.\d+)+[.)]?|[а-я][)])\s)"
+    r"\n[ \t]*\n\s*|\n\s*(?=(?:\d+(?:\.\d+)+[.)]?|[а-яa-hj-uwyz][)])\s)"
     r"|(?<=[!?])\s+(?=[А-ЯЁA-Z])|(?<=[а-яёa-z]{3}\.)\s+(?=[А-ЯЁA-Z])"
 )
 _CONTINUATION = re.compile(
