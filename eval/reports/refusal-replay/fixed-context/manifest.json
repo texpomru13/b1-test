@@ -1,15 +1,15 @@
 {
   "experiment": "live_generation_and_verification_with_fixed_retrieval_context",
-  "source_commit": "d45b40b7c8e59518871e1ab341ea5d99f1f7ea2b",
-  "api_source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64",
-  "started_utc": "2026-11-21T08:02:04Z",
-  "finished_utc": "2026-11-21T08:08:05Z",
+  "source_commit": "f89180849615c5a74543b37eb460180380c2e6a4",
+  "api_source_sha256": "a484d579332408c9615898f7683d1d0b31af052d37f3efb6d1a4c6e7fe15ae56",
+  "started_utc": "2026-11-21T08:32:30Z",
+  "finished_utc": "2026-11-21T08:35:26Z",
   "driver": "eval/replay_refusals.py",
   "driver_sha256": "fca59eac65db7f608ba8e61b3ac0236357ddcd4cb1e30e5d5f0c1831bdadc124",
   "contexts": "../contexts.jsonl",
   "contexts_sha256": "190072c24f1a617f1c6cc11676f43586f8d3062cef78e5dd85ff9820ba3f4134",
   "provider": "Ollama",
-  "endpoint": "http://127.0.0.1:11593",
+  "endpoint": "http://127.0.0.1:11594",
   "model": {
     "name": "qwen3.5:9b-q4_K_M",
     "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90"
@@ -26,10 +26,10 @@
   },
   "document_api_requests": 0,
   "total_cases": 13,
-  "llm_calls": 27,
+  "llm_calls": 25,
   "outcomes": {
-    "answered": 5,
-    "not_found": 8
+    "answered": 6,
+    "not_found": 7
   },
   "source_checks": "Quotes exactly match their archived retrieval chunk and canonical document slice; physical pages, sections and citation markers checked.",
   "citations_verified_by_case": {
@@ -45,17 +45,18 @@
     "14-01": 0,
     "14-02": 0,
     "14-04": 0,
-    "14-08": 0
+    "14-08": 8
   },
   "semantic_review": "agent",
-  "responses_sha256": "d739905b3134777238889898914f041949a32768966834627ae958433dae31da",
-  "stage_events_sha256": "c9bfddcf105125124d407bc8a72147bc06abc9250090a528a91f75cd169cb645",
+  "responses_sha256": "735365969cc5d06cf4930843ac269c6058eeb87c33e04287d780ef19f5a9a29c",
+  "stage_events_sha256": "b513e9262a14c2c6ac8c836e29ba7a07d907de9e0fb74852dc4aaa7a17661137",
   "semantic_verdicts": {
     "complete": 4,
-    "refusal": 8,
-    "imprecise": 1
+    "imprecise": 1,
+    "incorrect": 1,
+    "refusal": 7
   },
-  "review_sha256": "2829fa6880467b1552fd9b84c9a9272400d358942faaf2c66557eb8282b66285",
+  "review_sha256": "c152ed27b6d6e690a28dc8f072060b467476be631a7df7f0c16e72f4c2b76a9b",
   "event_timezone": "Asia/Yekaterinburg, UTC+05:00",
-  "exact_citations": 12
+  "exact_citations": 20
 }

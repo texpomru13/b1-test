@@ -1,50 +1,47 @@
 {
   "01-02": [
-    "2026-11-21 13:02:17 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
+    "2026-11-21 13:32:41 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
   ],
   "01-03": [
-    "2026-11-21 13:02:30 [info     ] verifier_verdict               coverage=partial repairs=0 verdicts=[<ClaimVerdict.INSUFFICIENT: 'insufficient'>]",
-    "2026-11-21 13:02:30 [warning  ] provenance_rejected            error='claim 0 «Если товар имеет срок годности 18 месяцев и более, то Поставщик обязан поставить товар с таким сроком годности, чтобы в момент приемки товара до его окончания оставалось не менее о»: insuffic'",
-    "2026-11-21 13:02:40 [info     ] verifier_verdict               coverage=partial repairs=1 verdicts=[<ClaimVerdict.INSUFFICIENT: 'insufficient'>]",
-    "2026-11-21 13:02:40 [warning  ] provenance_rejected            error='claim 0 «Если товар имеет срок годности 18 месяцев и более, то Поставщик обязан поставить товар с таким сроком годности, чтобы в момент приемки товара до его окончания оставалось не менее о»: insuffic'"
+    "2026-11-21 13:32:51 [info     ] verifier_verdict               coverage=partial repairs=0 verdicts=[<ClaimVerdict.INSUFFICIENT: 'insufficient'>]",
+    "2026-11-21 13:32:51 [warning  ] provenance_rejected            error='claim 0 «Если товар имеет срок годности 18 месяцев и более, то Поставщик обязан поставить товар с таким сроком годности, чтобы в момент приемки товара до его окончания оставалось не менее о»: insuffic'",
+    "2026-11-21 13:32:58 [info     ] verifier_verdict               coverage=partial repairs=1 verdicts=[<ClaimVerdict.INSUFFICIENT: 'insufficient'>]",
+    "2026-11-21 13:32:58 [warning  ] provenance_rejected            error='claim 0 «Если товар имеет срок годности 18 месяцев и более, то Поставщик обязан поставить товар с таким сроком годности, чтобы в момент приемки товара до его окончания оставалось не менее о»: insuffic'"
   ],
   "03-05": [
-    "2026-11-21 13:03:05 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
+    "2026-11-21 13:33:08 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
   ],
   "05-03": [
-    "2026-11-21 13:03:14 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 14 (день). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах докум'",
-    "2026-11-21 13:03:25 [info     ] verifier_verdict               coverage=full repairs=1 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
+    "2026-11-21 13:33:18 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
   ],
   "10-01": [
-    "2026-11-21 13:04:09 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 5.1.1 (пункт). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах д'",
-    "2026-11-21 13:04:42 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 5.1.1 (пункт). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах д'"
+    "2026-11-21 13:33:27 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 5.1.1 (пункт). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах д'",
+    "2026-11-21 13:33:31 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 5.1.1 (пункт). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах д'"
   ],
   "10-04": [
-    "2026-11-21 13:05:10 [warning  ] provenance_rejected            error='перенеси целиком правило с условиями и исключениями в отдельный claim: 11.2. При наступлении события, имеющего признаки страхового случая, Страхователь (Застрахованное лицо) обязан: а) предпринять все'",
-    "2026-11-21 13:05:18 [warning  ] provenance_rejected            error='перенеси целиком правило с условиями и исключениями в отдельный claim: 11.2. При наступлении события, имеющего признаки страхового случая, Страхователь (Застрахованное лицо) обязан: а) предпринять все'"
+    "2026-11-21 13:33:39 [warning  ] provenance_rejected            error='перенеси целиком правило с условиями и исключениями в отдельный claim: 11.2. При наступлении события, имеющего признаки страхового случая, Страхователь (Застрахованное лицо) обязан: а) предпринять все'",
+    "2026-11-21 13:33:43 [warning  ] provenance_rejected            error='перенеси целиком правило с условиями и исключениями в отдельный claim: 11.2. При наступлении события, имеющего признаки страхового случая, Страхователь (Застрахованное лицо) обязан: а) предпринять все'"
   ],
   "11-06": [
-    "2026-11-21 13:05:26 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>]"
+    "2026-11-21 13:33:51 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>]"
   ],
   "13-03": [
-    "2026-11-21 13:05:32 [info     ] draft_not_answerable           repairs=0"
+    "2026-11-21 13:33:55 [info     ] draft_not_answerable           repairs=0"
   ],
   "13-05": [
-    "2026-11-21 13:05:49 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
+    "2026-11-21 13:34:06 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
   ],
   "14-01": [
-    "2026-11-21 13:06:42 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 79 (рубль). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах доку'",
-    "2026-11-21 13:06:51 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 79 (рубль). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах доку'"
+    "2026-11-21 13:34:36 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 79 (рубль). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах доку'",
+    "2026-11-21 13:34:44 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 79 (рубль). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах доку'"
   ],
   "14-02": [
-    "2026-11-21 13:07:20 [info     ] draft_not_answerable           repairs=0"
+    "2026-11-21 13:34:55 [info     ] draft_not_answerable           repairs=0"
   ],
   "14-04": [
-    "2026-11-21 13:07:30 [info     ] draft_not_answerable           repairs=0"
+    "2026-11-21 13:35:03 [info     ] draft_not_answerable           repairs=0"
   ],
   "14-08": [
-    "2026-11-21 13:08:00 [info     ] verifier_verdict               coverage=partial repairs=0 verdicts=[<ClaimVerdict.INSUFFICIENT: 'insufficient'>, <ClaimVerdict.INSUFFICIENT: 'insufficient'>, <ClaimVerdict.UNSUPPORTED: 'unsupported'>, <ClaimVerdict.INSUFFICIENT: 'insufficient'>]",
-    "2026-11-21 13:08:00 [warning  ] provenance_rejected            error='claim 0 «Участник акции «Тест-драйв» может получить только одну видеокамеру, так как повторное приобретение Пакета услуг по Акции не допускается.»: insufficient Цитата запрещает повторное приобретение'",
-    "2026-11-21 13:08:05 [info     ] draft_not_answerable           repairs=1"
+    "2026-11-21 13:35:26 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
   ]
 }
