@@ -13,7 +13,6 @@ CLAUDE.md
 .github
 .gitignore
 .dockerignore
-Dockerfile
 compose.yaml
 run
 test_documents

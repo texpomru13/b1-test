@@ -7,7 +7,8 @@ from pathlib import Path
 
 
 def source_digest(root: Path, package: str) -> str:
-    paths = [root / "pyproject.toml", root / "uv.lock", *sorted((root / package).rglob("*.py"))]
+    paths = [root / "Dockerfile", root / "pyproject.toml", root / "uv.lock",
+             *sorted((root / package).rglob("*.py"))]
     digest = hashlib.sha256()
     for path in paths:
         digest.update(path.relative_to(root).as_posix().encode() + b"\0")

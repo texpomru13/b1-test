@@ -83,6 +83,12 @@ def compose_runtime(project: str, instance: str) -> dict:
         images[name]["source_sha256"] = actual
     api = docker_id(project, "api")
     runtime = json.loads(command("docker", "exec", "-i", api, "python", "-", stdin=MODEL_CONFIG))
+    worker = docker_id(project, "worker")
+    runtime["ocr"] = {
+        "engine": command("docker", "exec", worker, "tesseract", "--version").splitlines()[0],
+        "packages": command("docker", "exec", worker, "dpkg-query", "-W", "tesseract-ocr-rus",
+                            "tesseract-ocr-eng", "poppler-utils").splitlines(),
+    }
     model_container = docker_id(project, "local-models")
     for key in ("LM_BATCH_SIZE", "LM_RERANKER_BATCH"):
         runtime["local_models"][key] = command("docker", "exec", model_container, "printenv", key)
