@@ -176,7 +176,8 @@ def source_sheet(cases: list[dict], output: Path, pack: Path = PACK) -> str:
             lines.append("Доказательства в PDF")
             lines.append("")
             for i, span in enumerate(case["evidence"], 1):
-                pages = ", ".join(str(o["page"]) for o in span["occurrences"])
+                numbers = sorted({o["page"] for o in span["occurrences"]})
+                pages = ", ".join(f"[{n}](<{path.as_posix()}#page={n}>)" for n in numbers)
                 quote = " ".join(span["text"].splitlines())
                 lines.append(f"{i}. Стр. {pages}. «{quote}»")
             if case["forbidden_facts"]:
