@@ -1,0 +1,46 @@
+{
+  "questions": 60,
+  "isolation_probes": 6,
+  "required_facts_and_conditions": [
+    57,
+    75
+  ],
+  "complete_correct_answers": [
+    26,
+    40
+  ],
+  "correct_refusals": [
+    20,
+    20
+  ],
+  "isolation_refusals": [
+    6,
+    6
+  ],
+  "unjustified_claim_segments": 5,
+  "critical_error_cases": [
+    "marrakesh-06",
+    "space-03",
+    "space-05"
+  ],
+  "thresholds": {
+    "schema": true,
+    "exact_sources_and_coordinates": true,
+    "critical_errors_zero": false,
+    "required_recall_at_least_90_percent": false,
+    "complete_answers_at_least_85_percent": false,
+    "all_absences_refused": true,
+    "all_isolation_refused": true
+  },
+  "quality_thresholds_met": false,
+  "reviewer": "OpenAI Codex (ассистент, сверка ответов по утверждениям и зафиксированным данным)",
+  "reviewer_type": "model",
+  "human_gold_review": false,
+  "human_gold_reviewer": null,
+  "source_review_sha256": "f2eef65b86e34e9c7b68b9c78ea7b38bb3d582ed8772e7899e52a6d0d3680788",
+  "lock_sha256": "afc371e01cd33b766eafd48ca109cb0edf227b766a4e43032436db046190ae71",
+  "responses_sha256": "1ab2cf85aa0063a49518ed478734093e3aa2c0daea07f2b5f917bfb52c25d774",
+  "metrics_sha256": "62c7f838bfd12a112c045340fefd64d73ea3d5881e3e65858010ad5db84a281a",
+  "review_sha256": "46511120815626ee17a0924d241b23f9e9a1c952ca38114491bfa9555306ed67",
+  "independent_human_acceptance": false
+}

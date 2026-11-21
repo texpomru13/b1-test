@@ -1,15 +1,15 @@
 {
   "run": "final",
-  "api": "http://127.0.0.1:65145",
-  "started_at": "2026-11-21T07:31:46.215874+00:00",
+  "api": "http://127.0.0.1:65146",
+  "started_at": "2026-11-21T08:49:09.505438+00:00",
   "initial_split": "all",
   "doc_ids": {
-    "bulletin": "b2d7ad3c5f3948bba7dbdfe2c92821df",
-    "echr": "8191ea5e5e6b46718806482ab96e5a26",
-    "marrakesh": "6b544de6bbb542f18d481791594bf3de",
-    "nairobi": "53c8d8f4c1b04e34a74848305eadeba4",
-    "nice": "1ba4292566f140dfb4e7d985f921d5e4",
-    "space": "6e0ed747adb7488282fec123e05fc083"
+    "bulletin": "71823b2c90b0472faf1b04d64a1674ac",
+    "echr": "8487782e5d774881b223b10df570e948",
+    "marrakesh": "e1a3e3a72f9a445689dfd09257e36825",
+    "nairobi": "99c1b9cfe67e48448be504fc1fd09a55",
+    "nice": "2c188c128b024b81ae9e13cb20012f05",
+    "space": "b2dce1b4b1b04922afef085c4d9e6c5c"
   },
   "ready": {
     "status": "ready",
@@ -22,69 +22,69 @@
     "model_ready": true
   },
   "inputs": {
-    "api_source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64",
+    "api_source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3",
     "documents": {
       "bulletin": {
-        "doc_id": "b2d7ad3c5f3948bba7dbdfe2c92821df",
+        "doc_id": "71823b2c90b0472faf1b04d64a1674ac",
         "source_sha256": "7abddd3d710bf29d30bbba53b4461179749e161c164208a6669462afc6100204",
-        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
-        "accepted_run_id": "a2c557e0b5ee452bacfe977f363c2289",
-        "export_sha256": "fc8ac6b3bc84c35d3aa9c716dc99b4774dbe52954c98818ad6388b4e99c24c18"
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "520cd4ea288145edbb4f1acd0f03f066",
+        "export_sha256": "f78bebe627b35c551c4ac02150092b3a63998dc03ef5ba7312bce606a6390bfd"
       },
       "echr": {
-        "doc_id": "8191ea5e5e6b46718806482ab96e5a26",
+        "doc_id": "8487782e5d774881b223b10df570e948",
         "source_sha256": "296057360f96327bf4f6f62f54b1721737b495a2b99346e45cbc96e941f7b22e",
-        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
-        "accepted_run_id": "ecba2689a8b94fafade0f3280fa0e212",
-        "export_sha256": "0e00f05c18bb0030362843e0fa31b9489704fcfa1c8b355a5514441d4818edd9"
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "cb7d35015c6940ff934ba8ab9cfa1aee",
+        "export_sha256": "1f270d2ccaccf612f45bf242bdaaf4e0b4f58d4409933a17cd7c6518d2d69f00"
       },
       "marrakesh": {
-        "doc_id": "6b544de6bbb542f18d481791594bf3de",
+        "doc_id": "e1a3e3a72f9a445689dfd09257e36825",
         "source_sha256": "00b8a6dfae17775340554043521551ffaf62b0b744b3489b14841542384de47d",
-        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
-        "accepted_run_id": "2f21acf7c3c649339c1c564831b3251f",
-        "export_sha256": "336634b9a76eb5ba05f199ada63d7fca67c42f302710e01322569102323caee2"
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "5ee78586683846fea2b2268d13d3b4ab",
+        "export_sha256": "4d17d91b6c81d3ad570239ec496f3572259b46d12c14549b640a581a4e38f615"
       },
       "nairobi": {
-        "doc_id": "53c8d8f4c1b04e34a74848305eadeba4",
+        "doc_id": "99c1b9cfe67e48448be504fc1fd09a55",
         "source_sha256": "0326b8ff8a126837a92041ad607ab7da26a57442df385e6d76e5d6bf213cea58",
-        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
-        "accepted_run_id": "e22472a406774624889c0f4da233939a",
-        "export_sha256": "69d03884423746709bde89f60121ce4f8a6feba1c47235f6159838b65b4bdad8"
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "d0046ae69aaa4dd5a02b93c92253e1a2",
+        "export_sha256": "48aff06fc537719f5cc80df68e50399dee83b551348bd6bb27ea8af0fb808fea"
       },
       "nice": {
-        "doc_id": "1ba4292566f140dfb4e7d985f921d5e4",
+        "doc_id": "2c188c128b024b81ae9e13cb20012f05",
         "source_sha256": "e2f836130307907a6809e4c9355645a08e24befddeebc7d2aa5531b5c6162c48",
-        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
-        "accepted_run_id": "7380a05605574afb8fae0a611515f1c5",
-        "export_sha256": "c1c3659e86bcd24df9b7620cf8184e94636440ffbce4ed8b03478d0d2740040e"
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "856de15e232c4920a016bc77de061945",
+        "export_sha256": "4ae3d4f5de7489a943f7e8b83113c7e0e9e14d8e5d2ba9b8b72e7cdd29e52c3a"
       },
       "space": {
-        "doc_id": "6e0ed747adb7488282fec123e05fc083",
+        "doc_id": "b2dce1b4b1b04922afef085c4d9e6c5c",
         "source_sha256": "a1834f4caa6ce60c49aa7a4fbe26731a70f7ad788b1ed6308c3afebf57efb1d8",
-        "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
-        "accepted_run_id": "54023a068e2b4e2fbcb744cf90003b46",
-        "export_sha256": "a77c855927e54d407d22bf44a9166daad0bf57ded115631db3bea72fe71fe4a5"
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "eac7b83188c94725afced1219e725357",
+        "export_sha256": "00a65d7312c1d22981d6a78a765c5d230c239e7d479c6aed2ca3866872af0ee1"
       }
     },
     "gold_sha256": "2de34068b885807093d40cbe9a87c38f5f75f523ab439f5009faa87b23d0b0e9",
     "runtime": {
-      "project": "b1-release1121",
+      "project": "b1-delivery1121",
       "images": {
         "api": {
-          "image_id": "sha256:938b09739d07582a0a39c9825690c0f73a4403c6fb03fe80ad28a3b434904e21",
-          "source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64"
+          "image_id": "sha256:51ae01264b8f4ac647dfec923277bc1c27c172b41cb0e96a8836fac42c2d95c5",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
         },
         "worker": {
-          "image_id": "sha256:8d8afee2070f34620669234f9af61554cd8ba723e203fa27a52217746b731225",
-          "source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64"
+          "image_id": "sha256:c886c2d5fcf328d3ff464ef03d7ba8a18461bb0358e05ca4203fcb6d6b76cde9",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
         },
         "dispatcher": {
-          "image_id": "sha256:e2820fac12ae9ccfffc6eafe5c6d5121a881e8ac3b3811c9fc25d0a94a16b9bb",
-          "source_sha256": "dd8449f7c86f0b1311320561606bde51cdb831fe93c2a8cf5c062426cba7fc64"
+          "image_id": "sha256:f4e558b371d4f5add5196ead06cc91e6da73f1185a8303764e9c68664fe40b5c",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
         },
         "local-models": {
-          "image_id": "sha256:716a17a816749b27119e2ea4ec0f793dd098467b305947d15c7da7864360d5ce",
+          "image_id": "sha256:390baeaa0b3908ad8898ddbbbfe687d529d2a37cf39ac03ee4c1092b59a6042c",
           "source_sha256": "fbae39d0ede9b0bab60c6111ed800c37f3fd0070d30cb3fa41be467424833f3e"
         },
         "redis": {
@@ -143,7 +143,7 @@
       }
     }
   },
-  "git_commit": "d45b40b7c8e59518871e1ab341ea5d99f1f7ea2b",
+  "git_commit": "59bf55e6172d9a737194bb462b5eb455732b0c99",
   "git_dirty": false,
   "hardware": {
     "platform": "macOS-26.7.3-arm64-arm-64bit",
@@ -152,7 +152,7 @@
     "memory_bytes": 137438953472
   },
   "result_type": "live",
-  "finished_at": "2026-11-21T08:02:00.507637+00:00",
+  "finished_at": "2026-11-21T09:42:12.609738+00:00",
   "response_count": 66,
-  "responses_sha256": "f77d2055fc8982c34a21201f6d2d6524569bc9a1893533017c659d29ea466d6f"
+  "responses_sha256": "1ab2cf85aa0063a49518ed478734093e3aa2c0daea07f2b5f917bfb52c25d774"
 }
