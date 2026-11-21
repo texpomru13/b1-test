@@ -36,12 +36,13 @@ from app.qa.grounding import (
 )
 from app.qa.prompts import (
     GENERATION_SYSTEM_V1,
+    SOURCE_PRECEDENCE_CHECK,
     VERIFIER_SYSTEM_V1,
     generation_user_prompt,
     render_sources,
     verifier_user_prompt,
 )
-from app.qa.relevance import refine_answer_scope
+from app.qa.relevance import explicit_source_priority, narrow_priority_evidence, refine_answer_scope
 from app.qa.schemas import (
     DRAFT_JSON_SCHEMA,
     VERIFY_JSON_SCHEMA,
@@ -190,6 +191,7 @@ async def run_qa(
         result.refusal_stage = "no_context"
         return result
     sources = {f"source-{i}": c for i, c in enumerate(retrieval.context, 1)}
+    priority = explicit_source_priority(sources)
     spans = issue_evidence(sources)
     prompt = generation_user_prompt(question, render_sources(sources, spans))
     feedback = ""
@@ -231,6 +233,8 @@ async def run_qa(
                 return result
             stage = "evidence"
             located = recover_evidence(draft.claims, sources, spans)
+            if priority is not None:
+                narrow_priority_evidence(question, draft.claims, located, sources, priority)
             stage = "facts"
             restore_claim_wording(draft.claims, located, sources, question,
                                   extractive=True, complete_qualifications=True)
@@ -257,6 +261,8 @@ async def run_qa(
             supplement = "" if choices else _coverage_sources(spans, located, remaining,
                                                                deps.length_fn)
             verifier = EXTRACT_VERIFIER if choices else VERIFIER_SYSTEM_V1
+            if priority is not None:
+                verifier += SOURCE_PRECEDENCE_CHECK
             raw = await _call_json(
                 deps, result, deadline, system=verifier,
                 user=verifier_user_prompt(question, claims_block, supplement),

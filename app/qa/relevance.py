@@ -9,7 +9,7 @@ from functools import lru_cache
 from py_rust_stemmers import SnowballStemmer
 
 from app.qa.glosses import without_unproven_gloss
-from app.qa.grounding import LocatedQuote, ProvenanceError
+from app.qa.grounding import LocatedQuote, ProvenanceError, quote_at_offsets
 from app.qa.limits import restore_sublimit_punctuation
 from app.qa.schemas import Claim
 from app.retrieval.search import ContextChunk
@@ -50,7 +50,11 @@ _SOURCE_PRIORITY = (
                rf"(?:(?:услови\w*|положени\w*|текст\w*)\s+)?(?:{_SOURCE})", re.I),
 )
 _ASK_BOTH = re.compile(r"\b(?:сравни\w*|сопостав\w*|чем отлича\w*|в чем разниц\w*)\b", re.I)
-_ASK_MAIN = re.compile(r"\b(?:по тексту|что указано в)\s+основн\w*\s+договор\w*", re.I)
+_ASK_MAIN = re.compile(r"\b(?:по(?: тексту)?|что указано в)\s+основн\w*\s+договор\w*", re.I)
+_QUALIFIES_CLAUSE = re.compile(
+    r"\b(?:если|только|исключительно|кроме|за исключением|при|без|для|когда|"
+    r"в случае|в зависимости от|до тех пор)\b", re.I,
+)
 _COMPARE = re.compile(r"\b(?:сравн\w*|сопостав\w*|различ\w*|расхожден\w*|"
                       r"противореч\w*|разниц\w*|отлич\w*|форм[аеуы]|образц\w*|"
                       r"приложени\w*|акт[аеу]?)\b", re.I)
@@ -125,6 +129,73 @@ def _requested_bound(
                               "применимый предел или ответь answerable=false.")
 
 
+def explicit_source_priority(sources: dict[str, ContextChunk]) -> str | None:
+    """Return the preferred appendix number, an empty string for the main text."""
+    priority = {
+        (match["number"] or "")
+        for chunk in sources.values()
+        for pattern in _SOURCE_PRIORITY
+        for match in pattern.finditer(" ".join(chunk.text.split()))
+    }
+    return priority.pop() if len(priority) == 1 else None
+
+
+def _source_number(chunk: ContextChunk) -> str | None:
+    if not chunk.scope_id and not chunk.scope_label:
+        return ""
+    match = re.match(r"^приложение\s*(?:№\s*)?(\d+(?:\.\d+)*)\b",
+                     chunk.scope_label or "", re.I)
+    return match[1] if match else None
+
+
+def _priority_measurements(
+    sources: dict[str, ContextChunk], number: str,
+) -> list[tuple[set[str], set[tuple[str, str]]]]:
+    return [
+        (set(_terms(sentence)), _measures(sentence))
+        for chunk in sources.values() if _source_number(chunk) == number
+        for sentence in _SENTENCE.split(chunk.text) if _MEASURE.search(sentence)
+    ]
+
+
+def narrow_priority_evidence(
+    question: str, claims: list[Claim], located: dict[int, list[LocatedQuote]],
+    sources: dict[str, ContextChunk], number: str,
+) -> None:
+    """Cite an exact independent clause without an adjacent conflicting measurement."""
+    if _ASK_BOTH.search(question) or _ASK_MAIN.search(question):
+        return
+    authority = _priority_measurements(sources, number)
+    if not authority:
+        return
+    question_terms = set(_terms(question))
+    for index, claim in enumerate(claims):
+        if _measures(claim.text):
+            continue
+        words = claim.text.rstrip(".!? ").split()
+        if len(words) < 2:
+            continue
+        exact = re.compile(r"(?<!\w)" + r"\s+".join(map(re.escape, words)) + r"[.!?]?\s*$", re.I)
+        for pos, quote in enumerate(located[index]):
+            match = exact.search(quote.quote_raw)
+            if _source_number(quote.chunk) == number or match is None:
+                continue
+            prefix = _SENTENCE.split(quote.quote_raw[:match.start()])[-1].rstrip()
+            if not prefix.endswith((",", ";")) or _QUALIFIES_CLAUSE.search(prefix):
+                continue
+            values = _measures(prefix)
+            topic = question_terms & set(_terms(prefix))
+            if not any(len(topic & terms) >= 2
+                       and any(a != b and unit_a == unit_b
+                               for a, unit_a in values for b, unit_b in measures)
+                       for terms, measures in authority):
+                continue
+            offset = quote.char_start - quote.chunk.char_start
+            end = len(quote.quote_raw.rstrip())
+            located[index][pos] = quote_at_offsets(quote.chunk, offset + match.start(),
+                                                   offset + end)
+
+
 def _validate_source_priority(
     question: str, claims: list[Claim], located: dict[int, list[LocatedQuote]],
     sources: dict[str, ContextChunk],
@@ -132,32 +203,14 @@ def _validate_source_priority(
     """Reject a conflicting fact when the selected context establishes precedence."""
     if _ASK_BOTH.search(question) or _ASK_MAIN.search(question):
         return
-    priority = {
-        (match["number"] or "")
-        for chunk in sources.values()
-        for pattern in _SOURCE_PRIORITY
-        for match in pattern.finditer(" ".join(chunk.text.split()))
-    }
-    if len(priority) != 1:
+    number = explicit_source_priority(sources)
+    if number is None:
         return
-    number = priority.pop()
 
-    def source_number(chunk: ContextChunk) -> str | None:
-        if not chunk.scope_id and not chunk.scope_label:
-            return ""
-        match = re.match(r"^приложение\s*(?:№\s*)?(\d+(?:\.\d+)*)\b",
-                         chunk.scope_label or "", re.I)
-        return match[1] if match else None
-
-    authority = [
-        (_terms(sentence), _measures(sentence))
-        for chunk in sources.values() if source_number(chunk) == number
-        for sentence in _SENTENCE.split(chunk.text)
-        if _MEASURE.search(sentence)
-    ]
+    authority = _priority_measurements(sources, number)
     for index, claim in enumerate(claims):
         measured = _measures(claim.text)
-        if len(measured) != 1 or any(source_number(q.chunk) == number for q in located[index]):
+        if len(measured) != 1:
             continue
         value, dimension = next(iter(measured))
         subject = (set(_terms(claim.text)) & set(_terms(question))

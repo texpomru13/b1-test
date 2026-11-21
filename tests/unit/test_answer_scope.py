@@ -1,6 +1,6 @@
 import pytest
 from app.qa.grounding import ProvenanceError, locate_quote
-from app.qa.relevance import refine_answer_scope
+from app.qa.relevance import explicit_source_priority, narrow_priority_evidence, refine_answer_scope
 from app.qa.schemas import Claim
 from app.retrieval.search import ContextChunk
 
@@ -16,6 +16,9 @@ def assess(question, rows):
         sources[key] = chunk
         claims.append(Claim(text=statement, evidence=[f"{key}.1"]))
         refs[i] = [locate_quote(chunk, quote)]
+    priority = explicit_source_priority(sources)
+    if priority is not None:
+        narrow_priority_evidence(question, claims, refs, sources, priority)
     out = refine_answer_scope(question, claims, refs, sources)
     assert list(out) == list(range(len(claims)))
     return [c.text for c in claims], out
@@ -57,6 +60,23 @@ def test_appendix_with_explicit_priority_preserves_18_liters_and_its_quote(rever
     neutral = ("Резервная цистерна вмещает 40 л.",
                primary[1].split("При расхождении")[0], None)
     assert assess(q, [neutral, alt])[0] == [neutral[0], alt[0]]
+
+
+@pytest.mark.parametrize("qualifier", ["", "При досрочной сдаче "])
+def test_priority_narrows_citation_only_for_an_independent_clause(qualifier):
+    question = "Какова вместимость резервной цистерны и что входит в её обслуживание?"
+    preferred = "Вместимость резервной цистерны составляет 18 л."
+    duty = "В обслуживание входит очистка цистерны."
+    subject = "резервная" if qualifier else "Резервная"
+    strike = qualifier + subject + " цистерна вмещает 40 л, " + duty.lower()
+    main = "При расхождении применяются условия Приложения № 8.\n" + strike
+    claims, refs = assess(question, [(preferred, preferred, "Приложение № 8"),
+                                     (duty, main, None)])
+    assert claims == [preferred, duty]
+    quote = refs[1][0]
+    assert quote.quote_raw == (main if qualifier else duty.lower())
+    assert quote.chunk.text[quote.char_start - quote.chunk.char_start:
+                           quote.char_end - quote.chunk.char_start] == quote.quote_raw
 
 
 @pytest.mark.parametrize("reverse", [True, False])
