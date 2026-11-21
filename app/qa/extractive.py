@@ -80,6 +80,69 @@ class Selection(BaseModel):
     polarity: Literal["yes", "no", "rule"]
 
 
+_NUMBERED_SENTENCE = re.compile(
+    r"(?:^|\n)\s*\(\d+\)\s+(?P<text>[А-ЯЁ][^.!?;:]{12,280}[.!?])"
+)
+_TOKENS = re.compile(r"[\w]+", re.UNICODE)
+_DEFINITION = re.compile(
+    r"\b(?P<text>(?:(?:данное|такое|это)\s+)?(?:определение|понятие|термин|категория)"
+    r"\s+(?:включает|охватывает)\s+[^;.!?]{3,190}?[,;]\s*"
+    r"(?:в\s+том\s+числе|включая|как)\s+(?P<example>[^;.!?]{3,100})[.!])", re.I,
+)
+_MEMBERSHIP = re.compile(r"\b(?:распространя|включа|охватыва|подпада|относит)\w*", re.I)
+
+
+def _tokens(text: str) -> tuple[str, ...]:
+    return tuple(_TOKENS.findall(text.casefold().replace("ё", "е")))
+
+
+def bind_local_clauses(question: str, claims: list[Claim], spans: dict[str, LocatedQuote]) -> None:
+    """Use existing source IDs for an explicit definition or a reordered numbered sentence."""
+    for claim in claims:
+        selected = {key: spans[key] for key in claim.evidence
+                    if isinstance(key, str) and key in spans}
+        if not selected or len(selected) != len(claim.evidence):
+            continue
+        if (_MEMBERSHIP.search(claim.text) and _MEMBERSHIP.search(question)
+                and "не" not in _tokens(claim.text)):
+            definitions = {}
+            for key, q in selected.items():
+                for m in _DEFINITION.finditer(q.quote_raw):
+                    example = words(m["example"])
+                    if (example and example <= words(claim.text) and example <= words(question)
+                            and words(m["text"]) - words(claim.text)):
+                        definitions[" ".join(m["text"].split())] = key
+            if len(definitions) == 1:
+                definition = next(iter(definitions))
+                # Keep the original scope and conditions and let every existing
+                # check verify the added category against the very same citation.
+                wording = definition[:1].upper() + definition[1:]
+                claim.text = claim.text.rstrip(" .") + ". " + wording
+                continue
+        original = _tokens(claim.text)
+        if not 4 <= len(original) <= 40:
+            continue
+        chunks = {q.chunk.chunk_id for q in selected.values()}
+        if len(chunks) != 1:
+            continue
+        candidates = {}
+        for key, q in spans.items():
+            if q.chunk.chunk_id not in chunks:
+                continue
+            for sentence in _NUMBERED_SENTENCE.finditer(q.quote_raw):
+                tokens = _tokens(sentence["text"])
+                # A moved introductory or trailing phrase preserves its word
+                # forms and order. Keep negations and numerals in the match.
+                if len(tokens) == len(original) and any(
+                    tokens[i:] + tokens[:i] == original for i in range(len(tokens))
+                ):
+                    candidates[key] = " ".join(sentence["text"].split())
+        if len(candidates) == 1:
+            key, sentence_text = next(iter(candidates.items()))
+            if key not in selected:
+                claim.text, claim.evidence = sentence_text, [key]
+
+
 def reading_passages(question: str, spans: dict[str, LocatedQuote]) -> dict[str, LocatedQuote]:
     terms = words(question)
     scored = []
@@ -135,6 +198,7 @@ def from_selection(raw: dict, choices: dict[str, LocatedQuote], question: str) -
     for key in ids:
         text = " ".join(choices[key].quote_raw.split())
         text = re.sub(r"^(?:\d+(?:\.\d+)*[.)]|\(\d+\))\s+(?=[А-ЯЁA-Z])", "", text)
+        text = text.rstrip(",;")
         claims.append(Claim(text=text, evidence=[key]))
     if claims and _CLOSED.match(question) and selection.polarity != "rule":
         prefix = "Да." if selection.polarity == "yes" else "Нет."

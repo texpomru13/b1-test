@@ -10,10 +10,13 @@ if TYPE_CHECKING:
     from app.retrieval.search import ContextChunk
 
 _NUMBER = r"\d+(?:\.\d+)*"
+_ARTICLE_NO = rf"(?:{_NUMBER}|[IVXLCDM]+)"
 _REQUEST = re.compile(rf"\b(?:(?P<article>стать[яиюеёй]+|ст\.)|"
-                      rf"(?P<protocol>протокол(?:а|е|у|ом)?))\s*(?:№\s*)?({_NUMBER})\b", re.I)
+                      rf"(?P<protocol>протокол(?:а|е|у|ом)?))\s*(?:№\s*)?({_ARTICLE_NO})\b", re.I)
 _MORE = re.compile(r"\s*(?:[-–—,]|и\s)\s*\d")
-_HEADING = re.compile(rf"^[ \t]*(?:(?P<article>статья)\s+(?P<a>{_NUMBER})"
+_RELATIVE = re.compile(r",\s*котор\w*\b[^,;?!]*$", re.I)
+_GROUP_REF = re.compile(r"\b(?:упомянут|перечисленн|названн|указанн)\w*\s+в\s*$", re.I)
+_HEADING = re.compile(rf"^[ \t]*(?:(?P<article>статья)\s+(?P<a>{_ARTICLE_NO})"
                       rf"|(?P<protocol>протокол)\s*(?:№\s*)?(?P<p>{_NUMBER})"
                       r"|(?P<boundary>протокол|раздел\s+[IVXLCDM]+))[ \t]*$", re.I | re.M)
 
@@ -44,9 +47,15 @@ def _named(question: str) -> dict[str, str]:
     request: dict[str, str] = {}
     for ref in _REQUEST.finditer(question):
         kind = "article" if ref["article"] else "protocol"
+        # A party described by a cross-reference may exercise its right under
+        # an entirely different provision. Keep the full scoped candidate set.
+        before = question[:ref.start()]
+        if (_GROUP_REF.search(before)
+                or (_RELATIVE.search(before) and "," in question[ref.end():])):
+            continue
         if (kind in request and request[kind] != ref[3]) or _MORE.match(question, ref.end()):
             return {}
-        request[kind] = ref[3]
+        request[kind] = ref[3].upper()
     return request
 
 
@@ -61,7 +70,7 @@ def article_gaps(question: str, units: dict[str, list[ContextChunk]]) -> set[int
                       for c in chunks for m in _HEADING.finditer(c.text) if m[anchor_kind])
     gaps = set()
     for i, (start, value) in enumerate(headings):
-        if value != request[anchor_kind]:
+        if value.upper() != request[anchor_kind]:
             continue
         stop = min(start + 48, headings[i + 1][0] if i + 1 < len(headings) else start + 48)
         tail = max(pos for pos in positions if start <= pos <= stop)
@@ -109,7 +118,7 @@ def article_units(question: str, units: dict[str, list[ContextChunk]]) -> set[st
                 kind = "article" if m["article"] else "protocol"
                 if kind == "protocol":
                     active.clear()
-                number = m["a"] or m["p"]
+                number = (m["a"] or m["p"]).upper()
                 seen[kind].add(number)
                 active[kind] = Heading(chunk, m.start(), m.end(), number)
             start = m.start()
@@ -118,7 +127,8 @@ def article_units(question: str, units: dict[str, list[ContextChunk]]) -> set[st
     # If two indexed instruments both have this article and the user did not
     # specify one, let the semantic verifier disambiguate; do not choose by order.
     anchors = {chain[-1].span for regions in spans.values() for _, _, chain in regions}
-    if len(anchors) > 1:
+    roman_article = set(request) == {"article"} and request["article"].isalpha()
+    if len(anchors) > 1 and not roman_article:
         return None
 
     # Two adjacent titles can share one Qdrant source. A contiguous citation
@@ -135,6 +145,8 @@ def article_units(question: str, units: dict[str, list[ContextChunk]]) -> set[st
             if key == article.chunk.chunk_id and left == article.start:
                 left = protocol.start
             regions[pos] = left, right, (joined,)
+    bounded = {chain[-1].span for key, regions in spans.items() for _, end, chain in regions
+               if _HEADING.match(units[key][-1].text, end)}
     eligible = set()
     views = {key: _slice(units[key][-1], regions[0][0], regions[0][1])
              for key, regions in spans.items() if len(regions) == 1}
@@ -171,4 +183,15 @@ def article_units(question: str, units: dict[str, list[ContextChunk]]) -> set[st
                              scope_heading_span=span, scope_label=view.scope_label or label))
         units[key] = parents
         eligible.add(key)
-    return eligible
+    if roman_article:
+        # A collection of treaties can repeat e.g. "Article III". Keep each
+        # short occurrence together across a page break, with original IDs.
+        # The reranker still has to find the applicable instrument.
+        for anchor in bounded:
+            members = [key for key in views if key in eligible
+                       and spans[key][0][2][-1].span == anchor]
+            if 1 < len(members) <= 4 and sum(len(views[key].text) for key in members) <= 1400:
+                parts = {c.chunk_id: c for key in members for c in units[key]}
+                for key in members:
+                    units[key] = [*(c for k, c in parts.items() if k != key), parts[key]]
+    return None if roman_article else eligible
