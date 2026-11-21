@@ -20,7 +20,7 @@ from app.ingestion.pdf_loader import extract_pdf
 def pack_path(name: str) -> Path:
     if name == "qualification":
         return ROOT / "eval" / "qualification"
-    if name in {"original-six", "published-six", "external-six"}:
+    if name in {"contracts-six", "published-six", "external-six"}:
         return ROOT / "eval" / "packs" / name
     raise ValueError(f"unknown B1_EVAL_PACK: {name}")
 
@@ -32,11 +32,11 @@ def source_files(pack: Path = PACK) -> dict[str, Path]:
     manifest = pack / "documents.json"
     if manifest.exists():
         refs = json.loads(manifest.read_text())
-        docs = {k: (ROOT / v).resolve() for k, v in refs.items()}
+        docs = {k: ROOT / v for k, v in refs.items()}
     else:
         docs = {p.stem: p for p in sorted((pack / "fixtures").glob("*.pdf"))}
-    if len(docs) != 6 or len(set(docs.values())) != 6 or any(
-        not p.is_relative_to(ROOT) or p.suffix.lower() != ".pdf" for p in docs.values()
+    if len(docs) != 6 or len({p.resolve() for p in docs.values()}) != 6 or any(
+        not p.resolve().is_relative_to(ROOT) or p.suffix.lower() != ".pdf" for p in docs.values()
     ):
         raise ValueError("expected six distinct PDFs in the repository")
     return docs

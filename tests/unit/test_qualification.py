@@ -58,7 +58,7 @@ def test_frozen_real_packs_are_distinct_and_plan_every_probe(harness):
 
     documents = set()
     questions = set()
-    for name in ("original-six", "published-six", "external-six"):
+    for name in ("contracts-six", "published-six", "external-six"):
         pack = pack_path(name)
         locked = json.loads((pack / "lock.json").read_text())["files"]
         for path, expected in locked.items():

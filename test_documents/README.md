@@ -1,12 +1,26 @@
 # Документы и вопросы
 
-Файлы с номерами 01–15 в этой папке составляют исходный корпус. Для 60 новых вопросов использованы шесть прежних PDF с номерами **02, 04, 05, 07, 11 и 14**. [Вопросы по этим шести документам и эталонные страницы](../eval/packs/original-six/source-review.md)
+В корпусе для оценки ответов 18 реальных PDF и 180 вопросов. Для каждого документа подготовлено десять вопросов. В листе сверки доступны формулировки, ожидаемые ответы и выдержки с номерами страниц.
 
-Ещё 120 вопросов подготовлены по двум новым подборкам реальных PDF. В этой папке `published-six` и `external-six` открывают те же файлы, которые использует оценщик.
-
-| Папка | Какие документы внутри | Вопросы и страницы |
+| Документ | Тема | Вопросы и страницы |
 |---|---|---|
-| [published-six](../eval/packs/published-six/fixtures) | Вестник Банка России, Европейская конвенция о правах человека, договоры ООН по космосу, Марракешский и Найробский договоры, Ниццкое соглашение | [60 вопросов](../eval/packs/published-six/source-review.md) · [Издатели](../eval/packs/published-six/sources.md) |
-| [external-six](../eval/packs/external-six/fixtures) | Оферта карты «Тройка», договор университета Алфёрова, абонемент «Мореона», тарифы музея семьи Рерихов, договор «ГлавСклада», оферта гостиницы в Сочи | [60 вопросов](../eval/packs/external-six/source-review.md) · [Издатели](../eval/packs/external-six/SOURCES.md) |
+| [Абонемент комплекса «Мореон»](<external-six/moreon.pdf>) | Публичные оферты и тарифы | [10 вопросов](../eval/packs/external-six/source-review.md#external-moreon-01) |
+| [Аренда производственного помещения](<04_Аренда_производственного_помещения.pdf>) | Договоры организаций | [10 вопросов](../eval/packs/contracts-six/source-review.md#orig-04-01) |
+| [Вестник Банка России № 25](<published-six/bulletin.pdf>) | Официальные публикации | [10 вопросов](../eval/packs/published-six/source-review.md#bulletin-01) |
+| [Договор аренды ячейки «ГлавСклад»](<external-six/warehouse.pdf>) | Публичные оферты и тарифы | [10 вопросов](../eval/packs/external-six/source-review.md#external-warehouse-01) |
+| [Договор на обучение в университете Алфёрова](<external-six/alferov.pdf>) | Публичные оферты и тарифы | [10 вопросов](../eval/packs/external-six/source-review.md#external-alferov-01) |
+| [Договоры и принципы ООН по космосу](<published-six/space.pdf>) | Официальные публикации | [10 вопросов](../eval/packs/published-six/source-review.md#space-01) |
+| [Европейская конвенция о правах человека](<published-six/echr.pdf>) | Официальные публикации | [10 вопросов](../eval/packs/published-six/source-review.md#echr-01) |
+| [Марракешский договор](<published-six/marrakesh.pdf>) | Официальные публикации | [10 вопросов](../eval/packs/published-six/source-review.md#marrakesh-01) |
+| [Найробский договор](<published-six/nairobi.pdf>) | Официальные публикации | [10 вопросов](../eval/packs/published-six/source-review.md#nairobi-01) |
+| [Ниццкое соглашение](<published-six/nice.pdf>) | Официальные публикации | [10 вопросов](../eval/packs/published-six/source-review.md#nice-01) |
+| [Образовательные услуги СПбГИКиТ](<11_Образовательные_услуги_СПбГИКиТ.pdf>) | Договоры организаций | [10 вопросов](../eval/packs/contracts-six/source-review.md#orig-11-01) |
+| [Оферта гостиницы в Сочи](<external-six/hotel.pdf>) | Публичные оферты и тарифы | [10 вопросов](../eval/packs/external-six/source-review.md#external-hotel-01) |
+| [Оферта транспортной карты «Тройка»](<external-six/troika.pdf>) | Публичные оферты и тарифы | [10 вопросов](../eval/packs/external-six/source-review.md#external-troika-01) |
+| [Строительный подряд «Метафракс»](<07_Строительный_подряд_Метафракс.pdf>) | Договоры организаций | [10 вопросов](../eval/packs/contracts-six/source-review.md#orig-07-01) |
+| [Тарифы музея семьи Рерихов](<external-six/roerich.pdf>) | Публичные оферты и тарифы | [10 вопросов](../eval/packs/external-six/source-review.md#external-roerich-01) |
+| [Транспортная экспедиция Logexim](<02_Транспортная_экспедиция_Logexim.pdf>) | Договоры организаций | [10 вопросов](../eval/packs/contracts-six/source-review.md#orig-02-01) |
+| [«Умный дом», Ростелеком](<14_Умный_дом_Ростелеком.pdf>) | Договоры организаций | [10 вопросов](../eval/packs/contracts-six/source-review.md#orig-14-01) |
+| [Хостинг «Оптибит»](<05_Хостинг_Оптибит.pdf>) | Договоры организаций | [10 вопросов](../eval/packs/contracts-six/source-review.md#orig-05-01) |
 
-В дополнительной папке [synthetic-six](../eval/qualification/fixtures) — шесть синтетических PDF для контролируемых тестов. Для них есть [отдельные 60 вопросов](../eval/qualification/source-review.md).
+Для проверки OCR используется [семистраничный скан договора о виртуальной АТС](06_Лицензия_Виртуальная_АТС.pdf). Для контролируемых тестов правил, таблиц и отказов доступны [синтетические PDF](synthetic-six) и [60 вопросов к ним](../eval/qualification/source-review.md).

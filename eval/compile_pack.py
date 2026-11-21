@@ -63,7 +63,7 @@ def compile_case(raw: dict, source) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("name", choices=["original-six", "published-six", "external-six"])
+    parser.add_argument("name", choices=["contracts-six", "published-six", "external-six"])
     args = parser.parse_args()
     pack = pack_path(args.name)
     docs = source_files(pack)
