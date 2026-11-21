@@ -35,24 +35,28 @@ def test_opposite_limit_does_not_answer_even_if_claim_is_verbatim(direction, wro
 
 
 @pytest.mark.parametrize("reverse", [True, False])
-def test_joint_primary_rule_keeps_its_own_characteristics_and_offsets(reverse):
+def test_appendix_with_explicit_priority_preserves_18_liters_and_its_quote(reverse):
     q = "Какова вместимость резервной цистерны и что входит в обслуживание цистерны?"
     alt = ("Вместимость резервной цистерны составляет 18 л.",
            "2. Вместимость резервной цистерны 18 л.", "Приложение № 8")
     primary = ("В обслуживание входит очистка емкости.",
                "Работы согласованы. Резервная цистерна вмещает 40 л, в обслуживание входит "
-               "очистка цистерны. Работы проводят ежемесячно.", None)
+               "очистка цистерны. При расхождении применяются условия Приложения № 8.", None)
     rows = [alt, primary] if reverse else [primary, alt]
     statements, refs = assess(q, rows)
     i = rows.index(alt)
-    assert "40 л" in statements[i] and "18 л" not in statements[i]
+    assert statements[i] == alt[0]
     quote = refs[i][0]
-    assert quote.quote_raw == statements[i]
-    assert quote.chunk.text[quote.char_start - quote.chunk.char_start:
-                           quote.char_end - quote.chunk.char_start] == quote.quote_raw
-    # An explicit comparison must keep both parties' sources for the verifier.
-    compared, _ = assess("Сравните приложение и договор. " + q, rows)
-    assert compared[i] == alt[0]
+    assert quote.quote_raw == alt[1]
+    assert quote.chunk.scope_label == "Приложение № 8"
+    wrong = ("Резервная цистерна вмещает 40 л.", primary[1], None)
+    with pytest.raises(ProvenanceError, match="явно устанавливает приоритет"):
+        assess(q, [wrong, alt])
+    compared, _ = assess("Сравните приложение и договор. " + q, [wrong, alt])
+    assert compared == [wrong[0], alt[0]]
+    neutral = ("Резервная цистерна вмещает 40 л.",
+               primary[1].split("При расхождении")[0], None)
+    assert assess(q, [neutral, alt])[0] == [neutral[0], alt[0]]
 
 
 @pytest.mark.parametrize("reverse", [True, False])

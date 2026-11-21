@@ -1,10 +1,9 @@
-from types import SimpleNamespace
 
 from app.qa.evidence import issue_evidence
 from app.qa.grounding import qualify_numeric_claims, validate_claims
 from app.qa.schemas import Claim, DraftAnswer
 from app.qa.source_details import complete_source_details
-from app.retrieval.offer_details import matched_tariff, prioritize_source_details
+from app.retrieval.offer_details import attach_source_details, matched_tariff
 from app.retrieval.search import ContextChunk
 from app.retrieval.tables import attach_price_headings
 
@@ -88,10 +87,11 @@ def test_frequency_moves_the_adjacent_matching_clause_into_context_and_answer():
     base = chunk(8, "5.1. Выдача сезонного пропуска приостанавливается на 8 дней.")
     rule = chunk(9, "5.2. Приостановка выдачи сезонного пропуска допускается два раза за сезон.")
     different = chunk(10, "7.1. Приостановка выдачи сезонного пропуска допускается три раза.")
-    ordered = [SimpleNamespace(id=c.chunk_id) for c in (base, different, rule)]
     units = {c.chunk_id: [c] for c in (base, rule, different)}
     q = "На сколько дней и сколько раз возможна приостановка выдачи сезонного пропуска?"
-    assert [p.id for p in prioritize_source_details(q, ordered, units)] == ["8", "9", "10"]
+    attach_source_details(q, units)
+    assert units["8"] == [rule, base]
+    assert units["10"] == [different]
     result, _ = run(
         context([base, rule, different]),
         q,

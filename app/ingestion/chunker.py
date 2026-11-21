@@ -13,6 +13,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from app.ingestion.canonical import CanonicalDocument
 from app.ingestion.errors import ParseFailedError
 from app.ingestion.rules import conditional_rules, parenthesized_items
+from app.ingestion.scopes import scope_ancestors
 from app.ingestion.sections import SectionSpan
 
 APPROX_CHARS_PER_TOKEN = 3
@@ -72,6 +73,7 @@ class Chunk:
     parent_clause_id: int | None = None
     governing_spans: tuple[GoverningSpan, ...] = field(default_factory=tuple)
     governing_complete: bool = True
+    scope_ancestors: tuple[str, ...] = ()
 
 
 class _SourcePiece(str):
@@ -176,6 +178,9 @@ def split_into_chunks(
     )
     chunks: list[Chunk] = []
     by_start = {s.char_start: s for s in sections}
+    scope_parents = scope_ancestors(canonical.text, [
+        (s.scope, s.char_start, s.char_end) for s in sections if s.scope is not None
+    ])
     leads: dict[int, GoverningSpan] = {}
     for seg_start, seg_end in _segment_bounds(canonical, sections):
         section = by_start.get(seg_start)
@@ -206,6 +211,7 @@ def split_into_chunks(
                     scope_id=scope.scope_id if scope else None,
                     scope_label=scope.scope_label if scope else None,
                     scope_label_span=scope.scope_label_span if scope else None,
+                    scope_ancestors=scope_parents[scope.scope_id] if scope else (),
                     parent_clause_id=section.parent_clause_id if section else None,
                     governing_spans=governing,
                     governing_complete=complete and len(governing) == len(ancestors),

@@ -21,12 +21,17 @@ from app.inference.contract import (
     RerankRequest,
 )
 from app.ingestion.chunker import LengthFn
-from app.ingestion.scopes import requested_scope_keys, scope_key
+from app.ingestion.scopes import (
+    belongs_to_request,
+    requested_branches,
+    requested_scope_keys,
+    scope_key,
+)
 from app.reliability.policy import retry_async
 from app.retrieval.articles import article_gaps, article_units
 from app.retrieval.bm25 import Bm25Adapter
-from app.retrieval.day_definition import prioritize_day_definition
-from app.retrieval.offer_details import prioritize_source_details
+from app.retrieval.day_definition import attach_day_definitions
+from app.retrieval.offer_details import attach_source_details
 from app.retrieval.tables import attach_price_headings, price_table_gaps
 from app.storage.qdrant_repo import DENSE_NAME, SPARSE_NAME, FingerprintMismatchError
 from qdrant_client import AsyncQdrantClient, models
@@ -89,6 +94,13 @@ class ContextChunk:
     scope_label: str | None = None
     table_heading_span: tuple[int, int] | None = None
     scope_heading_span: tuple[int, int] | None = None
+    scope_ancestors: tuple[str, ...] = ()
+
+    @property
+    def scope_path(self) -> tuple[str, ...]:
+        if not self.scope_label:
+            return ()
+        return tuple(scope_key(label) for label in (self.scope_label, *self.scope_ancestors))
 
 
 def _context_unit(chunk_id: str, payload: dict[str, Any]) -> list[ContextChunk]:
@@ -105,12 +117,16 @@ def _context_unit(chunk_id: str, payload: dict[str, Any]) -> list[ContextChunk]:
             segments=span.get("segments") or [], rerank_score=0,
             list_heading_id=parts[-1].chunk_id if parts else None,
             scope_id=payload.get("scope_id"), scope_label=payload.get("scope_label"),
+            scope_ancestors=tuple(payload.get("scope_ancestors") or ()),
         ))
     return parts
 
 
 def _scoped_text(chunk: ContextChunk) -> str:
-    return f"{chunk.scope_label}\n{chunk.text}" if chunk.scope_label else chunk.text
+    title = (chunk.section if chunk.section and any(c.isalpha() for c in chunk.section)
+             and not chunk.text.startswith(chunk.section) and chunk.section != chunk.scope_label
+             else None)
+    return "\n".join(filter(None, (*chunk.scope_ancestors, chunk.scope_label, title, chunk.text)))
 
 
 @dataclass
@@ -247,11 +263,31 @@ async def hybrid_search(
         await _bridge_source_gaps(structural, gaps, flt, qdrant, settings, scope, diag)
     eligible = article_units(question, structural)
     attach_price_headings(structural)
-    units = {key: structural[key] for key in units}
-    documents = [
-        RerankDocument(id=key, text="\n".join(_scoped_text(part) for part in unit))
-        for key, unit in units.items()
-    ]
+    labels = {label for unit in structural.values() for part in unit
+              for label in (*part.scope_ancestors, part.scope_label) if label}
+    requested = requested_scope_keys(question, labels)
+    branches = requested_branches(requested, {unit[-1].scope_path for unit in structural.values()
+                                              if unit[-1].scope_path})
+    units = {}
+    for point in candidates:
+        key = str(point.id)
+        unit = structural[key]
+        path = unit[-1].scope_path
+        if ((eligible is not None and key not in eligible)
+                or not belongs_to_request(path, requested, branches)
+                or not (point.payload or {}).get("governing_complete", True)):
+            continue
+        units[key] = unit
+    if not units:
+        return RetrievalResult(context=[], allowed_chunk_ids=[], diagnostics=diag)
+    # Components are fixed before scores exist. Dependencies and their anchor
+    # travel together and consume the same source slots and budget.
+    attach_source_details(question, units)
+    attach_day_definitions(question, units)
+    documents = [RerankDocument(
+        id=key, text="\n".join(_scoped_text(part) for part in
+                               {part.chunk_id: part for part in unit}.values()),
+    ) for key, unit in units.items()]
     try:
         rerank_response = await local_models.rerank(
             RerankRequest(query=question, documents=documents)
@@ -263,14 +299,14 @@ async def hybrid_search(
         ) from exc
     diag.model_ids["reranker"] = rerank_response.model_id
     scores = {entry.id: entry.score for entry in rerank_response.scores}
-    if (len(rerank_response.scores) != len(candidates)
+    if (len(rerank_response.scores) != len(documents)
             or set(scores) != {d.id for d in documents}
             or not all(math.isfinite(score) for score in scores.values())):
         raise RetrievalError(ERROR_RERANKER_UNAVAILABLE, "invalid reranker score list")
     # descending score, tie-break by ascending id (stable, documented)
-    ordered = sorted(candidates, key=lambda p: (-scores[str(p.id)], str(p.id)))
+    ordered = sorted(units, key=lambda key: (-scores[key], key))
     diag.reranked_count = len(ordered)
-    diag.rerank_scores = {str(p.id): scores[str(p.id)] for p in ordered}
+    diag.rerank_scores = {key: scores[key] for key in ordered}
     diag.stage_ms["rerank"] = int((time.monotonic() - timer) * 1000)
 
     # 4) context selection under the LLM budget with reasoning reserve
@@ -280,25 +316,14 @@ async def hybrid_search(
     context: list[ContextChunk] = []
     used_tokens = 0
     included: set[str] = set()
-    labels = {c.scope_label for unit in units.values() for c in unit if c.scope_label}
-    requested = requested_scope_keys(question, labels)
-    ordered = prioritize_day_definition(question, ordered)
-    ordered = prioritize_source_details(question, ordered, units)
-    for point in ordered:
+    for key in ordered:
         if len(context) >= settings.context_top_k:
             break
-        key = str(point.id)
-        if eligible is not None and key not in eligible:
-            continue
         unit = units[key]
-        label = unit[-1].scope_label
-        if requested and label and scope_key(label) not in requested:
-            continue
-        if not (point.payload or {}).get("governing_complete", True):
-            continue
         # Top-k and budget both apply to every distinct source in the unit,
         # including headings outside the fused result. An item never gets in alone.
-        new = [chunk for chunk in unit if chunk.chunk_id not in included]
+        new = list({chunk.chunk_id: chunk for chunk in unit
+                    if chunk.chunk_id not in included}.values())
         if len(context) + len(new) > settings.context_top_k:
             continue
         tokens = sum(length_fn(_scoped_text(chunk)) for chunk in new)

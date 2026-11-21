@@ -56,6 +56,7 @@ class RecordingReranker(FakeLM):
 async def retrieve(chunks: list[Chunk], indices: list[int], question: str, **limits):
     candidates = points(chunks, indices)
     model = RecordingReranker({p.id: -float(i) for i, p in enumerate(candidates)})
+    model.scored = {}
     result = await hybrid_search(
         question=question, scope=SCOPE, settings=make_settings(**limits),
         qdrant=FakeQdrant(candidates), local_models=model, bm25=FakeBm25(), length_fn=len,
@@ -83,7 +84,7 @@ async def test_reordered_offers_with_repeated_clauses_and_global_terms(reverse):
     selected, scored = await retrieve(chunks, [c.index for c in facts], question)
     assert {c.scope_label for c in selected} == {"Ветер плюс", None}
     assert all(c.scope_label + "\n" in scored[point_id("doc", "run", c.index)]
-               for c in facts if c.scope_label)
+               for c in facts if c.scope_label == "Ветер плюс")
     no_value, _ = await retrieve(chunks, [c.index for c in facts if c.scope_label == "Ветер"],
                                  question)
     assert no_value == []  # the only period available belongs to a neighbour
@@ -120,6 +121,37 @@ async def test_nested_rule_scored_and_budgeted_with_exact_ancestors_outside_cand
     assert not chunks[-1].governing_spans
 
 
+@pytest.mark.parametrize("explicit", [False, True])
+async def test_offer_inherits_promotional_period_from_linked_appendix(explicit):
+    doc = pages(
+        "Акция «Полярная»\n3.1. Срок акции указан в Приложении № 1.",
+        "Акция «Рассвет»\n3.1. Срок акции указан в Приложении № 2.",
+        "Приложение № 2\n3.1. Промопериод составляет 28 дней.",
+        "Приложение № 1\n3.1. Промопериод составляет 14 дней с подключения.",
+    )
+    facts = [c for c in split(doc) if "Промопериод" in c.text]
+    assert [c.scope_ancestors for c in facts] == [("Рассвет",), ("Полярная",)]
+    question = "Сколько длится промопериод акции «Полярная»?"
+    if explicit:
+        question = question.replace("?", " по Приложению № 1?")
+    chunks = split(doc)
+    selected, scored = await retrieve(chunks, [c.index for c in facts], question)
+    assert len(selected) == 1 and "14 дней" in selected[0].text
+    assert "Полярная\nПриложение № 1" in next(iter(scored.values()))
+    answer = claim("Промопериод составляет 14 дней с подключения.", selected[0])
+    proofs = validate_claims([answer], {selected[0].chunk_id: selected[0]}, question=question)
+    assert proofs[0][0].page == 4
+    assert doc.text[proofs[0][0].char_start:proofs[0][0].char_end] == proofs[0][0].quote_raw
+
+
+def test_reused_appendix_number_requires_a_named_owner():
+    doc = pages("Акция «Полярная»\nСрок указан в Приложении № 1.",
+                "Приложение № 1 к акции «Рассвет»\nСрок — 28 дней.",
+                "Приложение № 1\nСрок — 14 дней.")
+    candidates = [c for c in split(doc) if "дней" in c.text]
+    assert [c.scope_ancestors for c in candidates] == [(), ("Полярная",)]
+
+
 def test_scope_names_inside_other_names_and_unknown_target():
     names = {"Базовый", "Базовый плюс"}
     assert requested_scope_keys("как действует Базовый плюс?", names) == {"базовый плюс"}
@@ -145,7 +177,7 @@ async def test_14_03_archived_periods_cannot_enter_camera_answer():
         c.char_start < ref["char_end"] and c.char_end > ref["char_start"] for ref in refs
     )]
     selected, scored = await retrieve(chunks, indices, row["question"])
-    assert len(scored) > len(selected)
+    assert len(scored) == len(selected)
     assert {c.scope_label for c in selected} == {"ВИДЕОКАМЕРА УЛИЧНАЯ ПОВОРОТНАЯ 4G"}
     sources = {f"source-{i}": c for i, c in enumerate(selected, 1)}
     spans = issue_evidence(sources)
@@ -183,6 +215,15 @@ async def test_07_07_archive_rejected_and_complete_rule_with_sanction_is_support
 @pytest.mark.parametrize("source,wrong", [
     ("Передача запрещена.", "Передача разрешена."),
     ("Передача разрешена.", "Передача запрещена."),
+    ("Передача не запрещается.", "Передача запрещается."),
+    ("Передача не разрешается.", "Передача разрешается."),
+    ("Передача разрешается только после регистрации и согласования.",
+     "Передача разрешается только после регистрации или согласования."),
+    ("Передача разрешается только после регистрации или согласования.",
+     "Передача разрешается только после регистрации и согласования."),
+    ("Доступ запрещён, кроме ремонта с пропуском и в сопровождении.",
+     "Доступ запрещён, кроме ремонта с пропуском либо в сопровождении."),
+    ("Копирование запрещено. Кроме одной архивной копии.", "Копирование запрещено."),
     ("Передача разрешена только при регистрации.", "Передача разрешена."),
     ("Копирование запрещено, кроме архивной копии.", "Все копии разрешены."),
     ("Доступ запрещён, кроме ремонта по согласованию с владельцем.",

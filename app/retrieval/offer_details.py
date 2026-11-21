@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from app.retrieval.tables import price_heading
 
@@ -111,37 +111,28 @@ def is_count_question(question: str) -> bool:
     return bool(_ASK_COUNT.search(question))
 
 
-def prioritize_source_details(
-    question: str, ordered: list[Any], units: dict[str, list[ContextChunk]]
-) -> list[Any]:
-    if not ordered:
-        return ordered
+def attach_source_details(question: str, units: dict[str, list[ContextChunk]]) -> None:
     chunks = {c.chunk_id: c for unit in units.values() for c in unit}
-    keys = []
     match = matched_tariff(question, list(chunks.values()))
-    if match:
-        keys = [match.chunk.chunk_id]
-        if match.note:
-            keys.append(match.note[0].chunk_id)
+    if match and match.note and match.chunk.chunk_id in units:
+        key = match.chunk.chunk_id
+        note = match.note[0]
+        units[key] = [*units.get(note.chunk_id, [note]), *units[key]]
     elif is_count_question(question):
-        top = units[str(ordered[0].id)][-1]
-        lead = re.match(r"\s*(\d+)\.", top.text)
-        terms = _terms(top.text) & _terms(question)
-        if lead:
+        count_units = [u for u in units.values() if COUNT_RULE.search(u[-1].text)]
+        query = _terms(question)
+        for key, unit in units.items():
+            anchor = unit[-1]
+            lead = re.match(r"\s*(\d+)\.", anchor.text)
+            if not lead or COUNT_RULE.search(anchor.text):
+                continue
+            terms = _terms(anchor.text) & query
             options = [
-                p
-                for p in ordered
-                if (c := units[str(p.id)][-1]).scope_id == top.scope_id
+                parts for parts in count_units
+                if (c := parts[-1]).scope_id == anchor.scope_id
                 and re.match(r"\s*" + lead[1] + r"\.", c.text)
-                and abs(c.chunk_index - top.chunk_index) <= 8
-                and COUNT_RULE.search(c.text)
+                and abs(c.chunk_index - anchor.chunk_index) <= 8
                 and len(_terms(c.text) & terms) >= 2
             ]
             if len(options) == 1:
-                keys = [str(ordered[0].id), str(options[0].id)]
-    by_id = {str(p.id): p for p in ordered}
-    if not keys:
-        return ordered
-    return [by_id[k] for k in dict.fromkeys(keys) if k in by_id] + [
-        p for p in ordered if str(p.id) not in keys
-    ]
+                units[key] = [*options[0], *unit]

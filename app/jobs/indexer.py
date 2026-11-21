@@ -94,6 +94,7 @@ def _chunk_payload(
         "scope_id": chunk.get("scope_id"),
         "scope_label": chunk.get("scope_label"),
         "scope_label_span": chunk.get("scope_label_span"),
+        "scope_ancestors": chunk.get("scope_ancestors", ()),
         "parent_clause_id": chunk.get("parent_clause_id"),
         "governing_complete": chunk.get("governing_complete", True),
         "governing_spans": [
@@ -191,8 +192,9 @@ def run_indexing(
                 )
             batch = chunks[start : start + UPSERT_BATCH]
             texts = [
-                f'{chunk["scope_label"]}\n{chunk["text"]}' if chunk.get("scope_label")
-                else chunk["text"] for chunk in batch
+                "\n".join(filter(None, (
+                    *chunk.get("scope_ancestors", ()), chunk.get("scope_label"), chunk["text"],
+                ))) for chunk in batch
             ]
             try:
                 encoded = embedder.embed(

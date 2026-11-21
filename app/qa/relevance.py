@@ -4,16 +4,14 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from collections.abc import Iterator
 from functools import lru_cache
 
 from py_rust_stemmers import SnowballStemmer
 
-from app.qa.evidence import issue_evidence
 from app.qa.glosses import without_unproven_gloss
-from app.qa.grounding import LocatedQuote, ProvenanceError, quote_at_offsets
+from app.qa.grounding import LocatedQuote, ProvenanceError
 from app.qa.limits import restore_sublimit_punctuation
-from app.qa.schemas import Claim, Evidence
+from app.qa.schemas import Claim
 from app.retrieval.search import ContextChunk
 
 _STEMMER = SnowballStemmer("russian")
@@ -41,7 +39,18 @@ _MEASURE = re.compile(r"(?<![\w.,])(?P<number>\d+(?:[.,]\d+)?)(?:\s*\([^\d()]{1,
                       rf"\s*(?:{_UNIT})(?!\w)", re.I)
 _UNIT_ONLY = re.compile(rf"(?<!\w)(?:{_UNIT})(?!\w)", re.I)
 _SENTENCE = re.compile(r"(?<=[.!?])\s+(?=[А-ЯЁ](?:[а-яё]|\s+[а-яё]))")
-_APPENDIX = re.compile(r"^\s*приложени[ея]\b", re.I)
+_SOURCE = (r"(?P<appendix>приложени[еяиюй]\s*(?:№\s*)?(?P<number>\d+(?:\.\d+)*)(?!\d|\.\d))"
+           r"|(?P<main>основн\w*\s+(?:текст\w*\s+)?договор\w*)")
+_SOURCE_PRIORITY = (
+    re.compile(rf"(?:{_SOURCE})\s+(?:име\w+\s+приоритет\b|"
+               r"име\w+\s+(?:преимущественн\w*|приоритетн\w*)\s+сил\w+|"
+               r"преоблада\w+\s+над\b)", re.I),
+    re.compile(r"\b(?:при|в случае)\s+(?:расхожден\w+|противоречи\w+|несоответстви\w+)"
+               r"[^.!?;]{0,210}?\b(?:применя\w+|руководству\w+)\s+"
+               rf"(?:(?:услови\w*|положени\w*|текст\w*)\s+)?(?:{_SOURCE})", re.I),
+)
+_ASK_BOTH = re.compile(r"\b(?:сравни\w*|сопостав\w*|чем отлича\w*|в чем разниц\w*)\b", re.I)
+_ASK_MAIN = re.compile(r"\b(?:по тексту|что указано в)\s+основн\w*\s+договор\w*", re.I)
 _COMPARE = re.compile(r"\b(?:сравн\w*|сопостав\w*|различ\w*|расхожден\w*|"
                       r"противореч\w*|разниц\w*|отлич\w*|форм[аеуы]|образц\w*|"
                       r"приложени\w*|акт[аеу]?)\b", re.I)
@@ -116,65 +125,52 @@ def _requested_bound(
                               "применимый предел или ответь answerable=false.")
 
 
-def _sentences(quote: LocatedQuote) -> Iterator[tuple[str, int, int]]:
-    start = 0
-    for boundary in [*(_m.start() for _m in _SENTENCE.finditer(quote.quote_raw)),
-                     len(quote.quote_raw)]:
-        s = quote.quote_raw[start:boundary]
-        if s.strip():
-            left = start + len(s) - len(s.lstrip())
-            yield s.strip(), left, start + len(s.rstrip())
-        start = boundary
-
-
-def _prefer_joint_evidence(
+def _validate_source_priority(
     question: str, claims: list[Claim], located: dict[int, list[LocatedQuote]],
     sources: dict[str, ContextChunk],
 ) -> None:
-    """Prefer a primary clause proving both parts to an unattributed appendix value."""
-    if len(claims) < 2 or _COMPARE.search(question):
+    """Reject a conflicting fact when the selected context establishes precedence."""
+    if _ASK_BOTH.search(question) or _ASK_MAIN.search(question):
         return
-    qterms = set(_terms(question))
-    for i, claim in enumerate(claims):
-        own = located[i]
-        if not own or not all(_APPENDIX.match(q.chunk.scope_label or "") for q in own):
-            continue
+    priority = {
+        (match["number"] or "")
+        for chunk in sources.values()
+        for pattern in _SOURCE_PRIORITY
+        for match in pattern.finditer(" ".join(chunk.text.split()))
+    }
+    if len(priority) != 1:
+        return
+    number = priority.pop()
+
+    def source_number(chunk: ContextChunk) -> str | None:
+        if not chunk.scope_id and not chunk.scope_label:
+            return ""
+        match = re.match(r"^приложение\s*(?:№\s*)?(\d+(?:\.\d+)*)\b",
+                         chunk.scope_label or "", re.I)
+        return match[1] if match else None
+
+    authority = [
+        (_terms(sentence), _measures(sentence))
+        for chunk in sources.values() if source_number(chunk) == number
+        for sentence in _SENTENCE.split(chunk.text)
+        if _MEASURE.search(sentence)
+    ]
+    for index, claim in enumerate(claims):
         measured = _measures(claim.text)
-        if len(measured) != 1:
+        if len(measured) != 1 or any(source_number(q.chunk) == number for q in located[index]):
             continue
-        stated, dimension = next(iter(measured))
-        # Only substitute an original sentence; never splice a number into generated prose.
-        # Two independently matching object words protect distinct items of the same unit.
-        subject = (set(_terms(claim.text)) & qterms
-                   & set(_terms(" ".join(q.quote_raw for q in own))))
-        matches: dict[tuple[str, int, int], tuple[str, LocatedQuote]] = {}
-        for j, others in located.items():
-            if i == j:
-                continue
-            for q in others:
-                if q.chunk.scope_id or q.chunk.scope_label:
-                    continue
-                for sentence, left, right in _sentences(q):
-                    tokens = set(_terms(sentence))
-                    amounts = {v for v, d in _measures(sentence) if d == dimension}
-                    if (len(subject & tokens) < 2 or len((qterms & tokens) - subject) < 1
-                            or len(amounts) != 1 or stated in amounts or len(sentence) > 600):
-                        continue
-                    offset = q.char_start - q.chunk.char_start
-                    exact = quote_at_offsets(q.chunk, offset + left, offset + right)
-                    matches[q.chunk.chunk_id, exact.char_start, exact.char_end] = sentence, exact
-        if len(matches) == 1:
-            sentence, exact = next(iter(matches.values()))
-            spans = issue_evidence(sources)
-            evidence_ids: list[str | Evidence] = [
-                key for key, q in spans.items() if q.chunk.chunk_id == exact.chunk.chunk_id
-                and q.char_start <= exact.char_start and q.char_end >= exact.char_end
-            ]
-            if not evidence_ids:
-                continue
-            claim.evidence = evidence_ids
-            claim.text = " ".join(sentence.split())
-            located[i] = [exact]
+        value, dimension = next(iter(measured))
+        subject = (set(_terms(claim.text)) & set(_terms(question))
+                   & set(_terms(" ".join(q.quote_raw for q in located[index]))))
+        alternatives = {
+            amount for terms, facts in authority if len(subject.intersection(terms)) >= 2
+            for amount, unit in facts if unit == dimension
+        }
+        if len(alternatives) == 1 and value not in alternatives:
+            raise ProvenanceError(
+                "Документ явно устанавливает приоритет источника. Приведи значение "
+                "из применимого приоритетного пункта и сошлись на него."
+            )
 
 
 def _different_attribute(question: str, local: str, direct: str) -> bool:
@@ -247,7 +243,7 @@ def refine_answer_scope(question: str, claims: list[Claim], located: dict[int, l
         except ValueError as exc:
             raise ProvenanceError(str(exc)) from exc
     _requested_bound(question, claims, located)
-    _prefer_joint_evidence(question, claims, located, sources)
+    _validate_source_priority(question, claims, located, sources)
     if len(claims) < 2:
         return located
     keep = []

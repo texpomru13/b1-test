@@ -327,4 +327,5 @@ async def test_structural_bridge_is_scoped_and_keeps_atomic_context_budget(k, fo
         bm25=FakeBm25(), length_fn=char_len,  # type: ignore[arg-type]
     )
     assert result.allowed_chunk_ids == expected
-    assert result.diagnostics.reranked_count == result.diagnostics.fused_returned == 2
+    assert result.diagnostics.fused_returned == 2
+    assert result.diagnostics.reranked_count == (1 if foreign else 2)

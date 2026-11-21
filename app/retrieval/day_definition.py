@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.retrieval.search import ContextChunk
 
 # A definition names the term on the left. A deadline that merely uses
 # "рабочие дни" elsewhere in the document is not a definition.
@@ -17,24 +20,22 @@ _EXPLICIT = re.compile(r'\b(?:рабоч|календарн)\w*\s+д(?:н|ень
 _ASKS_PERIOD = re.compile(r'\b(?:срок\w*|когда|дней|дня|времени|период\w*)\b', re.I)
 
 
-def prioritize_day_definition(question: str, ordered: list[Any]) -> list[Any]:
-    if not _ASKS_PERIOD.search(question) or not ordered:
-        return ordered
-    primary = ordered[0].payload or {}
-    text = primary.get("text", "")
-    if not DURATION.search(text) or _EXPLICIT.search(text):
-        return ordered
-    definitions = []
-    for item in ordered:
-        payload = item.payload or {}
-        if payload.get("scope_id") not in (None, primary.get("scope_id")):
+def attach_day_definitions(question: str, units: dict[str, list[ContextChunk]]) -> None:
+    if not _ASKS_PERIOD.search(question):
+        return
+    definitions = [
+        (unit, match["kind"].lower()[:3])
+        for unit in units.values()
+        for match in DAY_DEFINITION.finditer(unit[-1].text)
+    ]
+    for key, unit in units.items():
+        anchor = unit[-1]
+        if not DURATION.search(anchor.text) or _EXPLICIT.search(anchor.text):
             continue
-        match = DAY_DEFINITION.search(payload.get("text", ""))
-        if match:
-            definitions.append((item, match["kind"].lower()[:3]))
-    if not definitions or len({kind for _, kind in definitions}) != 1:
-        return ordered
-    definition = definitions[0][0]
-    if definition in ordered[:2]:
-        return ordered
-    return [ordered[0], definition, *(p for p in ordered[1:] if p.id != definition.id)]
+        local = [(parts, kind) for parts, kind in definitions
+                 if parts[-1].scope_id and parts[-1].scope_id == anchor.scope_id]
+        relevant = local or [(parts, kind) for parts, kind in definitions
+                             if parts[-1].scope_id is None]
+        if len({kind for _, kind in relevant}) == 1:
+            definition, _ = min(relevant, key=lambda item: item[0][-1].chunk_index)
+            units[key] = [*definition, *unit]

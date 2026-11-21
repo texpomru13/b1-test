@@ -13,7 +13,6 @@ from app.inference.client import LocalModelsClient
 from app.ingestion.chunker import LengthFn
 from app.observability.logging import get_logger
 from app.providers.factory import ChatAdapter, ModelOutputInvalid, ProviderUnavailable
-from app.qa.completeness import add_defined_day, preserve_qualifications
 from app.qa.evidence import issue_evidence
 from app.qa.extractive import (
     EXTRACT_VERIFIER,
@@ -30,8 +29,10 @@ from app.qa.grounding import (
     ProvenanceError,
     check_requested_value,
     qualify_numeric_claims,
+    recover_evidence,
     remove_repeated_claims,
-    validate_claims,
+    restore_claim_wording,
+    validate_claim_facts,
 )
 from app.qa.prompts import (
     GENERATION_SYSTEM_V1,
@@ -214,7 +215,10 @@ async def run_qa(
                     max_tokens=output_budget + settings.llm_max_output_tokens,
                 )
                 draft = DraftAnswer.model_validate(raw)
-            draft = complete_source_details(question, draft, spans)
+            completed = complete_source_details(question, draft, spans)
+            if completed == draft:
+                bind_local_clauses(question, completed.claims, spans)
+            draft = completed
             if not draft.answerable:
                 logger.info("draft_not_answerable", repairs=attempt)
                 result.refusal_stage = stage
@@ -226,15 +230,14 @@ async def run_qa(
                         continue
                 return result
             stage = "evidence"
-            bind_local_clauses(question, draft.claims, spans)
-            located = validate_claims(draft.claims, sources, question=question, spans=spans,
-                                      render_conditional_rules=True)
-            preserve_qualifications(draft.claims, located)
-            for i, claim in enumerate(draft.claims):
-                add_defined_day(claim, located[i], sources.values())
+            located = recover_evidence(draft.claims, sources, spans)
+            stage = "facts"
+            restore_claim_wording(draft.claims, located, sources, question,
+                                  extractive=True, complete_qualifications=True)
             qualify_numeric_claims(draft.claims, located)
             located = refine_answer_scope(question, draft.claims, located, sources)
             located = remove_repeated_claims(draft.claims, located)
+            validate_claim_facts(draft.claims, located, sources, question)
             check_requested_value(question, draft.claims)
             if result.llm_calls >= settings.max_llm_calls_per_question:
                 result.refusal_stage = "verification_budget"
@@ -286,7 +289,7 @@ async def run_qa(
             logger.warning("provenance_rejected", error=str(exc)[:200])
             result.refusal_stage = stage
             reason = str(exc)[:500]
-            if attempt == 0 and stage == "evidence" and retry_numeric_reference(question, reason):
+            if attempt == 0 and stage == "facts" and retry_numeric_reference(question, reason):
                 choices = reading_passages(question, spans)
         feedback = (
             f"\n\nПРЕДЫДУЩАЯ ПОПЫТКА ОТКЛОНЕНА СЕРВЕРОМ: {reason}\n"
