@@ -1,0 +1,273 @@
+{
+  "documents": 27,
+  "questions_in_bank": 323,
+  "questions_run": 210,
+  "isolation_probes": 18,
+  "app_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3",
+  "plan_sha256": "ba89233426d8ebbf54f24e621afee42fc9bc967df80e7f513e5c3866cc603b43",
+  "manifests_sha256": {
+    "published-six": "e01dabb8b7582359d0f3780b101c12ad8927dc494ca8895e4b1091041d934b44",
+    "contracts-six": "1cf5cf3c6d9a5cea62a22c11fd1b910cdeef400b1ef5f707c1593a1e17895d5f",
+    "external-six": "d76e3d599eb1ca383e58187cee24da455d72705b62e9e92bd5159d965d9e2443",
+    "numbered": "7d0f179e3736d03a2aa7657e9b0727a05cd1d40ddf930bda4f6b33641d6339df"
+  },
+  "totals": {
+    "positive": 135,
+    "positive_correct_decision": 125,
+    "negative": 75,
+    "negative_correct_decision": 74,
+    "isolation": 18,
+    "isolation_correct_decision": 18,
+    "structured_validity_200_num": 228,
+    "structured_validity_200_den": 228,
+    "citation_span_validity_num": 262,
+    "citation_span_validity_den": 262,
+    "cross_doc_leakage_citations_num": 0,
+    "cross_doc_leakage_citations_den": 262,
+    "complete_positive_answers": 99
+  },
+  "assistant_review_by_series": {
+    "published-six": {
+      "complete": 26,
+      "answerable": 40
+    },
+    "contracts-six": {
+      "complete": 32,
+      "answerable": 40
+    },
+    "external-six": {
+      "complete": 32,
+      "answerable": 40
+    },
+    "numbered": {
+      "complete": 9,
+      "answerable": 15
+    }
+  },
+  "by_document": {
+    "10": {
+      "questions_in_bank": 10,
+      "positive": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "12": {
+      "questions_in_bank": 9,
+      "positive": 1,
+      "positive_correct_decision": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "01": {
+      "questions_in_bank": 9,
+      "positive": 1,
+      "positive_correct_decision": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "03": {
+      "questions_in_bank": 10,
+      "positive": 1,
+      "positive_correct_decision": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "07": {
+      "questions_in_bank": 21,
+      "positive": 8,
+      "positive_correct_decision": 8,
+      "negative": 4,
+      "negative_correct_decision": 4,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "05": {
+      "questions_in_bank": 19,
+      "positive": 8,
+      "positive_correct_decision": 8,
+      "negative": 4,
+      "negative_correct_decision": 4,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "04": {
+      "questions_in_bank": 19,
+      "positive": 8,
+      "positive_correct_decision": 8,
+      "negative": 4,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "15": {
+      "questions_in_bank": 8,
+      "positive": 1,
+      "positive_correct_decision": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "02": {
+      "questions_in_bank": 20,
+      "positive": 8,
+      "positive_correct_decision": 8,
+      "negative": 4,
+      "negative_correct_decision": 4,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "14": {
+      "questions_in_bank": 21,
+      "positive": 7,
+      "positive_correct_decision": 7,
+      "negative": 5,
+      "negative_correct_decision": 5,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "13": {
+      "questions_in_bank": 9,
+      "positive": 1,
+      "positive_correct_decision": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "09": {
+      "questions_in_bank": 9,
+      "positive": 1,
+      "positive_correct_decision": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "06": {
+      "questions_in_bank": 10,
+      "positive": 1,
+      "positive_correct_decision": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "08": {
+      "questions_in_bank": 9,
+      "positive": 1,
+      "positive_correct_decision": 1,
+      "negative": 1,
+      "negative_correct_decision": 1
+    },
+    "11": {
+      "questions_in_bank": 20,
+      "positive": 7,
+      "positive_correct_decision": 7,
+      "negative": 5,
+      "negative_correct_decision": 5,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "bulletin": {
+      "questions_in_bank": 10,
+      "positive": 7,
+      "positive_correct_decision": 7,
+      "negative": 3,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "echr": {
+      "questions_in_bank": 10,
+      "positive": 6,
+      "positive_correct_decision": 3,
+      "negative": 4,
+      "negative_correct_decision": 4,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "marrakesh": {
+      "questions_in_bank": 10,
+      "positive": 7,
+      "positive_correct_decision": 7,
+      "negative": 3,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "nairobi": {
+      "questions_in_bank": 10,
+      "positive": 7,
+      "positive_correct_decision": 6,
+      "negative": 3,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "nice": {
+      "questions_in_bank": 10,
+      "positive": 6,
+      "positive_correct_decision": 5,
+      "negative": 4,
+      "negative_correct_decision": 4,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "space": {
+      "questions_in_bank": 10,
+      "positive": 7,
+      "positive_correct_decision": 5,
+      "negative": 3,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "alferov": {
+      "questions_in_bank": 10,
+      "positive": 7,
+      "positive_correct_decision": 7,
+      "negative": 3,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "troika": {
+      "questions_in_bank": 10,
+      "positive": 7,
+      "positive_correct_decision": 6,
+      "negative": 3,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "moreon": {
+      "questions_in_bank": 10,
+      "positive": 7,
+      "positive_correct_decision": 7,
+      "negative": 3,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "roerich": {
+      "questions_in_bank": 10,
+      "positive": 6,
+      "positive_correct_decision": 5,
+      "negative": 4,
+      "negative_correct_decision": 4,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "warehouse": {
+      "questions_in_bank": 10,
+      "positive": 6,
+      "positive_correct_decision": 6,
+      "negative": 4,
+      "negative_correct_decision": 4,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    },
+    "hotel": {
+      "questions_in_bank": 10,
+      "positive": 7,
+      "positive_correct_decision": 7,
+      "negative": 3,
+      "negative_correct_decision": 3,
+      "isolation": 1,
+      "isolation_correct_decision": 1
+    }
+  }
+}

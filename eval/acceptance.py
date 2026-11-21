@@ -21,6 +21,26 @@ SERIES = {"published-six": "published-final", "contracts-six": "contracts",
           "external-six": "offers", "numbered": "catalog"}
 
 
+def complete_answers(directory: Path, series: str, raw_hash: str) -> tuple[int, int]:
+    if series == "numbered":
+        review = json.loads((directory / "numbered-review.json").read_text())
+        if review["responses_sha256"] != raw_hash:
+            raise ValueError(f"numbered review refers to other responses in {directory}")
+        positive = [row for row in review["cases"] if row["answerable"]]
+        return sum(row["verdict"] == "full" for row in positive), len(positive)
+
+    score_file, claims_file = (("crosscheck.json", "crosscheck-claims.json")
+                               if series == "external-six"
+                               else ("qualification.json", "claim-review.json"))
+    review = json.loads((directory / score_file).read_text())
+    if (review["responses_sha256"] != raw_hash
+            or review["metrics_sha256"] != digest(directory / "metrics-all.json")
+            or review["review_sha256"] != digest(directory / claims_file)):
+        raise ValueError(f"semantic review does not match the recorded responses in {directory}")
+    complete, positive = review["complete_correct_answers"]
+    return complete, positive
+
+
 def aggregate(reports: Path) -> dict:
     docs = documents()
     bank = cases(docs)
@@ -32,6 +52,7 @@ def aggregate(reports: Path) -> dict:
                for fid in docs}
     seen = set()
     manifests = {}
+    reviewed = {}
     build = None
     for key, folder in SERIES.items():
         directory = reports / folder
@@ -89,6 +110,11 @@ def aggregate(reports: Path) -> dict:
                       "cross_doc_leakage_citations"):
             totals[field + "_num"] += metrics[field]["num"]
             totals[field + "_den"] += metrics[field]["den"]
+        complete, positive = complete_answers(directory, key, manifest["responses_sha256"])
+        if not 0 <= complete <= positive or positive != metrics["n_answerable"]:
+            raise ValueError(f"wrong denominator in the semantic review of {key}")
+        reviewed[key] = {"complete": complete, "answerable": positive}
+        totals["complete_positive_answers"] += complete
     if (len(seen) != plan["questions"] + plan["isolation_probes"]
             or len(per_doc) != plan["documents"]
             or any(not counts["positive"] or not counts["negative"] for counts in per_doc.values())
@@ -98,7 +124,7 @@ def aggregate(reports: Path) -> dict:
             "questions_run": totals["positive"] + totals["negative"],
             "isolation_probes": totals["isolation"], "app_sha256": build[0],
             "plan_sha256": digest(GOLD / "acceptance-plan.json"), "manifests_sha256": manifests,
-            "totals": dict(totals), "by_document": per_doc}
+            "totals": dict(totals), "assistant_review_by_series": reviewed, "by_document": per_doc}
 
 
 if __name__ == "__main__":
