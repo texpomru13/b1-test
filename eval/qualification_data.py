@@ -17,10 +17,19 @@ from app.ingestion.canonical import build_canonical
 from app.ingestion.pdf_loader import extract_pdf
 
 
+PACK_SIZES = {
+    "qualification": (6, 10),
+    "contracts-six": (6, 10),
+    "published-six": (6, 10),
+    "external-six": (6, 10),
+    "independent-ten": (10, 8),
+}
+
+
 def pack_path(name: str) -> Path:
     if name == "qualification":
         return ROOT / "eval" / "qualification"
-    if name in {"contracts-six", "published-six", "external-six"}:
+    if name in PACK_SIZES:
         return ROOT / "eval" / "packs" / name
     raise ValueError(f"unknown B1_EVAL_PACK: {name}")
 
@@ -35,10 +44,11 @@ def source_files(pack: Path = PACK) -> dict[str, Path]:
         docs = {k: ROOT / v for k, v in refs.items()}
     else:
         docs = {p.stem: p for p in sorted((pack / "fixtures").glob("*.pdf"))}
-    if len(docs) != 6 or len({p.resolve() for p in docs.values()}) != 6 or any(
+    expected, _ = PACK_SIZES[pack.name]
+    if len(docs) != expected or len({p.resolve() for p in docs.values()}) != expected or any(
         not p.resolve().is_relative_to(ROOT) or p.suffix.lower() != ".pdf" for p in docs.values()
     ):
-        raise ValueError("expected six distinct PDFs in the repository")
+        raise ValueError(f"expected {expected} distinct PDFs in the repository")
     return docs
 
 
@@ -65,10 +75,12 @@ def qualification_cases(pack: Path = PACK) -> list[dict]:
     canonical = {fid: build_canonical(extract_pdf(p, max_pages=100).pages)
                  for fid, p in docs.items()}
     cases = [json.loads(line) for line in (pack / "gold.jsonl").read_text().splitlines()]
-    if (len({c["case_id"] for c in cases}) != len(cases) or len(cases) != 60
+    count, per_file = PACK_SIZES[pack.name]
+    if (len({c["case_id"] for c in cases}) != len(cases) or len(cases) != count * per_file
             or len({(c["doc_fixture_id"], c["question"]) for c in cases}) != len(cases)
             or sum(not c["answerable"] for c in cases) < 20
-            or set(canonical) != {c["doc_fixture_id"] for c in cases}):
+            or set(canonical) != {c["doc_fixture_id"] for c in cases}
+            or any(sum(c["doc_fixture_id"] == fid for c in cases) != per_file for fid in docs)):
         raise ValueError("incomplete or duplicate qualification cases")
     for c in cases:
         source = canonical[c["doc_fixture_id"]]

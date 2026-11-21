@@ -6,6 +6,7 @@ import json
 import os
 
 from qualification_data import (
+    PACK_SIZES,
     build_canonical,
     digest,
     extract_pdf,
@@ -63,7 +64,7 @@ def compile_case(raw: dict, source) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("name", choices=["contracts-six", "published-six", "external-six"])
+    parser.add_argument("name", choices=[n for n in PACK_SIZES if n != "qualification"])
     args = parser.parse_args()
     pack = pack_path(args.name)
     docs = source_files(pack)
@@ -72,11 +73,13 @@ def main() -> None:
     for line in (pack / "drafts.jsonl").read_text().splitlines():
         draft = json.loads(line)
         cases.append(compile_case(draft, sources[draft["doc_fixture_id"]]))
-    if (len(cases) != 60 or len({c["case_id"] for c in cases}) != 60
-            or len({(c["doc_fixture_id"], c["question"]) for c in cases}) != 60
+    count, per_file = PACK_SIZES[pack.name]
+    total = count * per_file
+    if (len(cases) != total or len({c["case_id"] for c in cases}) != total
+            or len({(c["doc_fixture_id"], c["question"]) for c in cases}) != total
             or sum(not c["answerable"] for c in cases) < 20
-            or any(sum(c["doc_fixture_id"] == fid for c in cases) != 10 for fid in docs)):
-        raise ValueError("expected ten unique questions per document, at least 20 unanswerable")
+            or any(sum(c["doc_fixture_id"] == fid for c in cases) != per_file for fid in docs)):
+        raise ValueError(f"expected {per_file} unique questions per document, at least 20 absences")
     gold = "".join(json.dumps(c, ensure_ascii=False) + "\n" for c in cases)
     write_once(pack / "gold.jsonl", gold.encode())
     hashes = {os.path.relpath(p, pack): digest(p) for p in locked_files(pack, docs)}
