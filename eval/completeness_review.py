@@ -6,6 +6,7 @@ import argparse
 import gzip
 import io
 import json
+import math
 import os
 import subprocess
 import sys
@@ -295,6 +296,65 @@ def restore(series: str, folder: Path, work: Path) -> tuple[str, Path]:
     return run, out
 
 
+def retained_population_interval(population: int, sample: int, retained: int) -> tuple[int, int]:
+    """Invert the two equal-tailed hypergeometric tests, without floating-point thresholds."""
+    if not 0 <= retained <= sample <= population or sample == 0:
+        raise ValueError("unexpected control population, sample size or retained number")
+    denominator = math.comb(population, sample)
+    accepted = []
+    for successes in range(population + 1):
+        first = max(0, sample - population + successes)
+        last = min(sample, successes)
+        if not first <= retained <= last:
+            continue
+        left = right = 0
+        for count in range(first, last + 1):
+            mass = math.comb(successes, count) * math.comb(population - successes, sample - count)
+            if count <= retained:
+                left += mass
+            if count >= retained:
+                right += mass
+        # Each tail must have probability >= 0.025 (= 1/40).
+        if min(left, right) * 40 >= denominator:
+            accepted.append(successes)
+    return min(accepted), max(accepted)
+
+
+def paired_and_estimated(strata: dict, population: int) -> dict:
+    incomplete, controls = strata["incomplete"], strata["complete_control"]
+    fixed, retained = incomplete["passed"], controls["passed"]
+    before, after = controls["total"], fixed + retained
+    observed = incomplete["total"] + before
+    original_complete = population - incomplete["total"]
+    estimate = fixed + original_complete * retained / before
+    low, high = retained_population_interval(original_complete, before, retained)
+    return {
+        "observed_answerable_pairs": {
+            "n": observed,
+            "full_before": before,
+            "full_after": after,
+            "delta_percentage_points": 100 * (after - before) / observed,
+            "incomplete_to_full": fixed,
+            "full_to_incomplete": before - retained,
+            "full_to_full": retained,
+            "incomplete_to_incomplete": incomplete["total"] - fixed,
+        },
+        "estimated_population_after": {
+            "n": population,
+            "unmeasured": population - observed,
+            "baseline_full": original_complete,
+            "estimated_full": estimate,
+            "estimated_full_percent": 100 * estimate / population,
+            "retained_in_baseline_full_exact_95_percent_interval": [low, high],
+            "estimated_full_exact_95_percent_interval": [fixed + low, fixed + high],
+            "estimated_full_percent_exact_95_percent_interval": [
+                100 * (fixed + low) / population,
+                100 * (fixed + high) / population,
+            ],
+        },
+    }
+
+
 def summarize(root: Path) -> dict:
     fixed = frozen_selection()
     combined, builds = [], set()
@@ -320,11 +380,13 @@ def summarize(root: Path) -> dict:
         r["req_id"] for r in fixed["requests"]
     }:
         raise ValueError("a group, question or common serving build is missing")
+    aggregate = totals(combined)
     return {
         "plan_sha256": sha(DEST / "plan.json"),
         "app_commit": next(iter(builds))[0],
         "requests": len(combined),
-        **totals(combined),
+        **aggregate,
+        **paired_and_estimated(aggregate["strata"], fixed["expected_answerable_population"]),
     }
 
 
