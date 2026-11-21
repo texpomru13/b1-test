@@ -1,0 +1,160 @@
+{
+  "qa_source_commit": "59bf55e6172d9a737194bb462b5eb455732b0c99",
+  "index_parser_version": "parse-v5-numbered-items-ocr-rus-eng",
+  "ingestion_source_commit": "f89180849615c5a74543b37eb460180380c2e6a4",
+  "project": "b1-delivery1121",
+  "run_type": "live_public_http_with_real_ocr_and_models",
+  "started_at": "2026-11-21T08:32:52.690364+00:00",
+  "api_build": {
+    "instance": "7e3e798bde44",
+    "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
+  },
+  "api_image": "sha256:51ae01264b8f4ac647dfec923277bc1c27c172b41cb0e96a8836fac42c2d95c5",
+  "worker_image": "sha256:c886c2d5fcf328d3ff464ef03d7ba8a18461bb0358e05ca4203fcb6d6b76cde9",
+  "versions": {
+    "tesseract": "tesseract 5.5.0",
+    "poppler": "pdftoppm version 25.03.0",
+    "languages": [
+      "eng",
+      "osd",
+      "rus"
+    ]
+  },
+  "sources": {
+    "original": "test_documents/06_Лицензия_Виртуальная_АТС.pdf",
+    "mixed": {
+      "pages": [
+        {
+          "file": "test_documents/15_Лицензия_Litender.pdf",
+          "physical_page": 1
+        },
+        {
+          "file": "test_documents/06_Лицензия_Виртуальная_АТС.pdf",
+          "physical_page": 3
+        }
+      ],
+      "builder": "pypdf.PdfWriter.add_page in the order above; native page + unchanged image page"
+    }
+  },
+  "documents": {
+    "original": {
+      "filename": "06_Лицензия_Виртуальная_АТС.pdf",
+      "sha256": "1c7539425bcb030d8599718d91690c7f6f443ce402c8dc33a89755b8d26d61fb",
+      "upload_status": 202,
+      "doc_id": "9a0823baf3f945bf86322610a601d016",
+      "job_id": "dc8bf659cf2645aa8141028c43858b08",
+      "status": "succeeded",
+      "attempt": 1,
+      "submitted": "2026-11-21T08:31:22.997584+00:00",
+      "job_finished": "2026-11-21T08:38:40.024868+00:00",
+      "ready": true,
+      "pages": 7,
+      "ocr_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "published_chunks": 102,
+      "canonical_sha256": "8ab68d93a793ab8c92134512382d4f45da4a59e0405d6df04aed86206a2c6a47",
+      "visual_check_span": {
+        "page": 3,
+        "char_start": 10987,
+        "char_end": 11300
+      },
+      "accepted_run_id": "d409827be8bb48abaaccf174c9616715",
+      "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+      "all_document_points": 102,
+      "document_run_count": 1,
+      "lease_present_after_completion": false
+    },
+    "mixed": {
+      "filename": "mixed-litender-ats.pdf",
+      "sha256": "b6c28afe33aa06ac94bcfa9650b10d2bc7b89a7185cb550495944c93bcebcd3e",
+      "upload_status": 202,
+      "doc_id": "05a0e05ddace407a9babb05367c5437d",
+      "job_id": "ecaba94a413c4fa18198fd115f1c4f43",
+      "status": "succeeded",
+      "attempt": 1,
+      "submitted": "2026-11-21T08:32:52.797266+00:00",
+      "job_finished": "2026-11-21T08:46:50.356853+00:00",
+      "ready": true,
+      "pages": 2,
+      "ocr_pages": [
+        2
+      ],
+      "published_chunks": 25,
+      "canonical_sha256": "58a645d6cb2d4f908b18af55d91a47d96af173cd01cee1ab630a03fbf91ae8e6",
+      "visual_check_span": {
+        "page": 2,
+        "char_start": 6414,
+        "char_end": 6727
+      },
+      "accepted_run_id": "1c73f70d3e0c4cc3b2ff430d742924e3",
+      "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+      "all_document_points": 25,
+      "document_run_count": 1,
+      "lease_present_after_completion": false
+    }
+  },
+  "visual_check": {
+    "reviewer": "agent, visual comparison against original raster",
+    "original_physical_page": 3,
+    "mixed_physical_page": 2,
+    "clause": "5.1",
+    "source_sentence_transcription": "В случае отсутствия в течение 5 (пяти) календарных дней со дня акцепта настоящей оферты у Лицензиата к Лицензиару письменных претензий/требований по вопросу предоставления прав использования ПО, права использования ПО по Договору признаются предоставленными надлежащим образом в соответствии с условиями Договора.",
+    "normalization_for_visual_comparison": "whitespace runs collapse to one; every non-whitespace character including digits matched",
+    "original_image_crop": "ats-page-3-clause-5-1.png",
+    "crop_sha256": "ba86d3c3ed135ffbda5a103d1302537dad30775201c15de58716daf56e1efd0f"
+  },
+  "question": {
+    "question": "По пункту 5.1 лицензионного договора «Виртуальная АТС», сколько календарных дней со дня акцепта оферты отводится лицензиату для письменных претензий по предоставлению права использования ПО?",
+    "http_status": 200,
+    "request_id": "675f0cce0c5f436abfe4a673761ce6de",
+    "doc_id": "05a0e05ddace407a9babb05367c5437d",
+    "answer": "В случае отсутствия в течение 5 (пяти) календарных дней со дня акцепта настоящей оферты у Лицензиата к Лицензиару письменных претензий/требований по вопросу предоставления прав использования ПО, права использования ПО по Договору признаются предоставленными надлежащим образом в соответствии с условиями Договора. [1]",
+    "found": true,
+    "citations": [
+      {
+        "id": 1,
+        "text": "В случае отсутствия в течение 5 (пяти) календарных дней со дня акцепта настоящей оферты у\nЛицензиата к Лицензиару письменных претензий/требований по вопросу предоставления прав использования\nПО, права использования ПО по Договору признаются предоставленными надлежащим образом в\nсоответствии с условиями Договора.",
+        "page": 2,
+        "page_to": 2,
+        "section": "5.1",
+        "chunk_id": "aa159360-d299-5a9e-8bae-bdfb9ddd81f6",
+        "char_start": 6414,
+        "char_end": 6727,
+        "ocr_pages": [
+          2
+        ]
+      }
+    ],
+    "token_usage": {
+      "input_tokens": 2590,
+      "output_tokens": 186,
+      "llm_calls": 2
+    },
+    "model_ids": {
+      "embedding": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+      "reranker": "BAAI/bge-reranker-v2-m3",
+      "llm": "qwen3.5:9b-q4_K_M"
+    },
+    "finished_at": "2026-11-21T08:50:19.528116+00:00",
+    "admission_attempts": [
+      {
+        "request_id": "301ffd303cec42bbadfe4f1c5f144b9d",
+        "http_status": 429,
+        "error_code": "RATE_LIMITED",
+        "inference_started": false
+      },
+      {
+        "request_id": "675f0cce0c5f436abfe4a673761ce6de",
+        "http_status": 200,
+        "inference_started": true
+      }
+    ]
+  }
+}

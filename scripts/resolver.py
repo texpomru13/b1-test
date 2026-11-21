@@ -319,7 +319,8 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
         # model-level default reasoning mode for Ollama (env LLM_THINKING wins)
         "llm_thinking": ("auto" if cloud
                          else (LLMS.get(profile["llm"], {}) or {}).get("thinking", "auto")),
-        "ollama_base_url": ("http://host.docker.internal:11434"
+        "host_ollama_port": facts.get("host_ollama_port", 11434),
+        "ollama_base_url": (f"http://host.docker.internal:{facts.get('host_ollama_port', 11434)}"
                             if llm_runtime == "host-ollama"
                             else "http://ollama:11434"),
         "embedding_model": profile["encoder"],
@@ -372,7 +373,7 @@ def shell_environment(result: dict, args: argparse.Namespace) -> str:
         "B1_SAVED_PROVIDER": args.provider, "B1_SAVED_RUNTIME": d["llm_runtime"],
         "B1_SAVED_MODEL": args.model, "B1_SAVED_QUALITY": args.quality,
         "B1_SAVED_RERANKER": args.reranker_model, "B1_SAVED_DEVICE": args.device,
-        "B1_API_PORT": args.port,
+        "B1_API_PORT": args.port, "B1_HOST_OLLAMA_PORT": d["host_ollama_port"],
         "B1_HF_SEED_DIR": args.seed_dir, "B1_OFFLINE": int(args.offline),
         "B1_QUALITY_DEGRADED": int(d["quality_degraded"]),
         "B1_QUALITY_DEGRADED_REASON": d["quality_degraded_reason"] or "",

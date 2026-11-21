@@ -21,7 +21,7 @@ class Evidence(BaseModel):
 class Claim(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     text: str = Field(min_length=1)
-    evidence: list[Evidence] = Field(min_length=1)  # every claim needs evidence
+    evidence: list[str | Evidence] = Field(min_length=1)  # every claim needs evidence
 
     @field_validator("text")
     @classmethod
@@ -63,15 +63,7 @@ DRAFT_JSON_SCHEMA: dict = {
                         "evidence": {
                             "type": "array",
                             "minItems": 1,
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": False,
-                                "required": ["chunk_id", "quote"],
-                                "properties": {
-                                    "chunk_id": {"type": "string"},
-                                    "quote": {"type": "string"},
-                                },
-                            },
+                            "items": {"type": "string"},
                         },
                     },
                 },
@@ -97,12 +89,14 @@ class VerdictEntry(BaseModel):
     model_config = ConfigDict(extra="forbid")
     claim_index: int = Field(ge=0)
     verdict: ClaimVerdict
+    reason: str = ""
 
 
 class Verification(BaseModel):
     model_config = ConfigDict(extra="forbid")
     verdicts: list[VerdictEntry]
     coverage: Coverage
+    coverage_gaps: list[str] = Field(default_factory=list)
 
 
 VERIFY_JSON_SCHEMA: dict = {
@@ -110,16 +104,17 @@ VERIFY_JSON_SCHEMA: dict = {
     "schema": {
         "type": "object",
         "additionalProperties": False,
-        "required": ["verdicts", "coverage"],
+        "required": ["verdicts", "coverage", "coverage_gaps"],
         "properties": {
             "verdicts": {
                 "type": "array",
                 "items": {
                     "type": "object",
                     "additionalProperties": False,
-                    "required": ["claim_index", "verdict"],
+                    "required": ["claim_index", "verdict", "reason"],
                     "properties": {
                         "claim_index": {"type": "integer", "minimum": 0},
+                        "reason": {"type": "string"},
                         "verdict": {
                             "type": "string",
                             "enum": ["supported", "unsupported", "insufficient"],
@@ -128,6 +123,7 @@ VERIFY_JSON_SCHEMA: dict = {
                 },
             },
             "coverage": {"type": "string", "enum": ["full", "partial"]},
+            "coverage_gaps": {"type": "array", "items": {"type": "string"}},
         },
     },
 }

@@ -1,0 +1,42 @@
+{
+  "questions": 60,
+  "isolation_probes": 6,
+  "required_facts_and_conditions": [
+    76,
+    82
+  ],
+  "complete_correct_answers": [
+    36,
+    40
+  ],
+  "correct_refusals": [
+    20,
+    20
+  ],
+  "isolation_refusals": [
+    6,
+    6
+  ],
+  "unjustified_claim_segments": 6,
+  "critical_error_cases": [],
+  "thresholds": {
+    "schema": true,
+    "exact_sources_and_coordinates": true,
+    "critical_errors_zero": true,
+    "required_recall_at_least_90_percent": true,
+    "complete_answers_at_least_85_percent": true,
+    "all_absences_refused": true,
+    "all_isolation_refused": true
+  },
+  "quality_thresholds_met": true,
+  "reviewer": "qwen3.6:27b-q4_K_M@3a40c32f1450b8380412898385b0e00df5d6d2d801dd192ca1acb7e735cd050e",
+  "reviewer_type": "model",
+  "human_gold_review": false,
+  "human_gold_reviewer": null,
+  "source_review_sha256": "cc43c7171f3ecb61d0792092628698cfc04ed6e34981d3d0258b1bdd4e87cd20",
+  "lock_sha256": "5f44c04acc594147a288514d566fd90146f572c9bbbefaf19407b4d5cd2234e2",
+  "responses_sha256": "8feec4363ec65cf96860e241f71195ad1aef02ee619e50ec070580eadee0dcb7",
+  "metrics_sha256": "babf58181bd975158cbcc1d4fa44ba4a65ec1b967eb57990b81cfb2e0f860d17",
+  "review_sha256": "31bc1abaec76468104c0fa5f67237fa3b2c168a0465f9211f7097c667dbe2719",
+  "independent_human_acceptance": false
+}

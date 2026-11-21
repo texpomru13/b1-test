@@ -1,0 +1,158 @@
+{
+  "run": "final",
+  "api": "http://127.0.0.1:65146",
+  "started_at": "2026-11-21T09:42:16.813496+00:00",
+  "initial_split": "all",
+  "doc_ids": {
+    "02": "21fe16a3b6b04de48a83f3daf71dad90",
+    "04": "a32554f727524b19984c39da79706582",
+    "05": "e2b38bd5164c447cba161663783e4935",
+    "07": "2808e90dce1b4e858bae972885b848b1",
+    "11": "3580684a4d98434f93db8be3f4e2a5b1",
+    "14": "a53e45952dd945afb20807d338306e4d"
+  },
+  "ready": {
+    "status": "ready",
+    "components": {
+      "redis": "ok",
+      "qdrant": "ok",
+      "local_models": "ok",
+      "llm": "ok"
+    },
+    "model_ready": true
+  },
+  "inputs": {
+    "api_source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3",
+    "documents": {
+      "02": {
+        "doc_id": "21fe16a3b6b04de48a83f3daf71dad90",
+        "source_sha256": "81ab8a8784c5d03782af65e91fdae03d28df9d98f202b62639366a283c9326c4",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "3dca71e36a254dafb1edd30dc0ce898b",
+        "export_sha256": "41105ebf5b5bc499ab79783779d7b280390144ed5b17e48bbfe3783abb28a9b7"
+      },
+      "04": {
+        "doc_id": "a32554f727524b19984c39da79706582",
+        "source_sha256": "e2bcf18e1d30d8e21674f0ad7f5d4be9de4ed9221bf614cf9488630cb93e06ea",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "5ab2d820acdb405d8a724ed25fff781a",
+        "export_sha256": "319bceea1d4ae4a9eefcddff0749239665e24c2de1ece53e2e0cd0582af4209c"
+      },
+      "05": {
+        "doc_id": "e2b38bd5164c447cba161663783e4935",
+        "source_sha256": "c5e21742ec576e902a730080b76d3795a2eab0245de7e9ebf437e2ddf847a1a5",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "ca059f9f2afc4ff6bd41bc05905cbd08",
+        "export_sha256": "754d1b0be456c7899204fbd91c66b80d1b6a3645708bed01b2cd791eee199e54"
+      },
+      "07": {
+        "doc_id": "2808e90dce1b4e858bae972885b848b1",
+        "source_sha256": "1c1b8237325f4711e8dcb0dab47977f3d267074d62e26a2c27ef4f9f1ee5856c",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "795e099b1e1a4250831ee7c6839e1a87",
+        "export_sha256": "06ae1c6f59644b33345ed94a17cb1ac669f2480f496f7d3779466b2695bce66a"
+      },
+      "11": {
+        "doc_id": "3580684a4d98434f93db8be3f4e2a5b1",
+        "source_sha256": "f16dc4974d66c59d5d22ce60ad43173ef6f0ed179f1484d655d86e17e04df330",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "328a6daa87184b02a7cf31b12749d515",
+        "export_sha256": "bd710d7ce89f66eb0b7be1e77b3fec4f2b4c7f50a806bb14ae02939fb78493f9"
+      },
+      "14": {
+        "doc_id": "a53e45952dd945afb20807d338306e4d",
+        "source_sha256": "31bfe911c6585eec01c914f0c7d0abdb0214d335bbd934140428328c4e6937ca",
+        "index_fingerprint": "77d385f69103319b674390fe7fdcc6222570ab3989d63b53ad952bdf86bc45b8",
+        "accepted_run_id": "0609ca06f9dc4ba093c56570beadf332",
+        "export_sha256": "d0ec5d3c509a71cc2e3d57a54a076ddc2fa655957b4365e5d4cd142795056b54"
+      }
+    },
+    "gold_sha256": "c07beb2ce8071e695cd1851a16bb891907c52432d1dc305eb9b554b0d2aac104",
+    "runtime": {
+      "project": "b1-delivery1121",
+      "images": {
+        "api": {
+          "image_id": "sha256:51ae01264b8f4ac647dfec923277bc1c27c172b41cb0e96a8836fac42c2d95c5",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
+        },
+        "worker": {
+          "image_id": "sha256:c886c2d5fcf328d3ff464ef03d7ba8a18461bb0358e05ca4203fcb6d6b76cde9",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
+        },
+        "dispatcher": {
+          "image_id": "sha256:f4e558b371d4f5add5196ead06cc91e6da73f1185a8303764e9c68664fe40b5c",
+          "source_sha256": "0747818dddb664159bad25245a94388ca86a35c281d663d2ddb4aef0a0c9d2b3"
+        },
+        "local-models": {
+          "image_id": "sha256:390baeaa0b3908ad8898ddbbbfe687d529d2a37cf39ac03ee4c1092b59a6042c",
+          "source_sha256": "fbae39d0ede9b0bab60c6111ed800c37f3fd0070d30cb3fa41be467424833f3e"
+        },
+        "redis": {
+          "image_id": "sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53"
+        },
+        "qdrant": {
+          "image_id": "sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2"
+        }
+      },
+      "settings": {
+        "llm_provider": "ollama",
+        "llm_model": "qwen3.5:9b-q4_K_M",
+        "llm_read_timeout_s": 300,
+        "qa_deadline_s": 900,
+        "local_context_tokens": 16384,
+        "llm_max_output_tokens": 2048,
+        "llm_reasoning_budget_tokens": 4096,
+        "llm_thinking": "off",
+        "llm_temperature": 0.0,
+        "embedding_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+        "embedding_instruction_version": "1",
+        "dense_top_k": 60,
+        "sparse_top_k": 60,
+        "fusion_method": "rrf",
+        "rerank_input_k": 60,
+        "context_top_k": 8,
+        "bm25_language": "russian",
+        "bm25_avg_len": 256,
+        "chunk_tokens": 450,
+        "chunk_overlap_tokens": 64,
+        "context_budget_tokens": 6000,
+        "qdrant_collection": "document_chunks",
+        "max_concurrent_qa": 1,
+        "max_repair_attempts": 1,
+        "max_llm_calls_per_question": 4,
+        "llm_max_attempts": 2
+      },
+      "local_models": {
+        "loaded_model": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+        "revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+        "reranker_model": "BAAI/bge-reranker-v2-m3",
+        "reranker_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+        "reranker_adapter": "cross_encoder",
+        "device": "cpu",
+        "LM_BATCH_SIZE": "4",
+        "LM_RERANKER_BATCH": "2"
+      },
+      "llm_digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+      "ocr": {
+        "engine": "tesseract 5.5.0",
+        "packages": [
+          "poppler-utils\t25.03.0-5+deb13u4",
+          "tesseract-ocr-eng\t1:4.1.0-2",
+          "tesseract-ocr-rus\t1:4.1.0-2"
+        ]
+      }
+    }
+  },
+  "git_commit": "59bf55e6172d9a737194bb462b5eb455732b0c99",
+  "git_dirty": false,
+  "hardware": {
+    "platform": "macOS-26.7.3-arm64-arm-64bit",
+    "arch": "arm64",
+    "cpu": "Apple M4 Max",
+    "memory_bytes": 137438953472
+  },
+  "result_type": "live",
+  "finished_at": "2026-11-21T10:03:57.721540+00:00",
+  "response_count": 66,
+  "responses_sha256": "9d6606dfdbb03181d5e90dd11fa79f5388350615dff6600458b14e32da6c6ba7"
+}

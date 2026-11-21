@@ -115,10 +115,9 @@ async def test_qa_counts_transport_retries_in_llm_budget() -> None:
         make_deps,
     )
 
-    quote = "уплачивает неустойку 0,1% в день, но не более 10% цены договора"
     adapter = ScriptedAdapter([
         ProviderUnavailable("blip", uncertain=True),  # transport attempt 1 (counted)
-        good_draft(quote),                            # attempt 2 -> draft ok
+        good_draft(),                            # attempt 2 -> draft ok
         VERDICT_OK,                                   # verifier
     ])
     deps = make_deps(adapter)

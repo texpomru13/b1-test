@@ -16,14 +16,14 @@ and every citation (if any) must come from the queried document.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import time
 from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
-from paths import ROOT, WORK, gold_path
+from paths import WORK, gold_path
+from provenance import environment, live_inputs, sha256, write_json
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -59,6 +59,8 @@ def main() -> None:
     parser.add_argument("--run", required=True, help="run name, e.g. balanced-9b")
     parser.add_argument("--api", default="http://127.0.0.1:8000")
     parser.add_argument("--split", default="all", choices=["all", "dev", "holdout"])
+    parser.add_argument("--project", help="verify images and models of this Compose project")
+    parser.add_argument("--case", nargs="+", help="run only these request IDs (includes iso- IDs)")
     parser.add_argument("--no-isolation", action="store_true")
     parser.add_argument("--timeout-s", type=float, default=960.0)
     args = parser.parse_args()
@@ -71,6 +73,11 @@ def main() -> None:
     if args.no_isolation:
         reqs = [r for r in reqs if r["kind"] == "gold"]
 
+    if args.case:
+        unknown = set(args.case) - {r["req_id"] for r in reqs}
+        if unknown:
+            parser.error(f"unknown request IDs: {sorted(unknown)}")
+        reqs = [r for r in reqs if r["req_id"] in args.case]
     run_dir = WORK / "runs" / args.run
     run_dir.mkdir(parents=True, exist_ok=True)
     out_path = run_dir / "responses.jsonl"
@@ -85,29 +92,30 @@ def main() -> None:
     client = httpx.Client(base_url=args.api, timeout=args.timeout_s)
 
     meta_path = run_dir / "meta.json"
-    source_hash = hashlib.sha256()
-    for directory in (ROOT / "app", ROOT / "services" / "local-models" / "app_lm"):
-        for path in sorted(directory.rglob("*.py")):
-            source_hash.update(path.relative_to(ROOT).as_posix().encode() + b"\0")
-            source_hash.update(hashlib.sha256(path.read_bytes()).digest())
-    source_digest = source_hash.hexdigest()
+    manifest_path = run_dir / "manifest.json"
+    inputs = live_inputs(client, args.project, doc_ids)
+    ready = client.get("/health/ready")
+    ready.raise_for_status()
     if meta_path.exists():
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        if (meta["api"] != args.api or meta.get("doc_ids") != doc_ids
-                or meta.get("app_source_sha256") != source_digest):
-            parser.error("this run has a different API, code revision or index; use a new --run")
+        if meta["api"] != args.api or meta.get("inputs") != inputs:
+            parser.error("the API, build, settings, documents or gold changed; use a new --run")
     else:
-        ready = client.get("/health/ready")
-        ready.raise_for_status()
-        meta_path.write_text(json.dumps({
-            "run": args.run, "api": args.api, "started_at": datetime.now(UTC).isoformat(),
-            "app_source_sha256": source_digest,
-            "initial_split": args.split, "doc_ids": doc_ids,
-            "ready": ready.json(),
-        }, ensure_ascii=False, indent=1))
+        if previous or manifest_path.exists():
+            parser.error("saved responses are missing their provenance; use a new --run")
+        meta = {"run": args.run, "api": args.api, "started_at": datetime.now(UTC).isoformat(),
+                "initial_split": args.split, "doc_ids": doc_ids, "ready": ready.json(),
+                "inputs": inputs, **environment()}
+        write_json(meta_path, meta)
+    if manifest_path.exists():
+        saved_manifest = json.loads(manifest_path.read_text())
+        if saved_manifest.get("responses_sha256") != sha256(out_path):
+            parser.error("saved responses differ from their manifest; use a new --run")
 
     todo = [r for r in reqs if r["req_id"] not in done]
     print(f"{len(reqs)} requests, {len(done)} already done, {len(todo)} to run")
+    if todo:
+        manifest_path.unlink(missing_ok=True)  # interrupted runs keep their metadata and raw rows
     with out_path.open("a", encoding="utf-8") as fh:
         for n, req in enumerate(todo, 1):
             doc_id = doc_ids[req["target_fixture"]]
@@ -132,6 +140,14 @@ def main() -> None:
             body = record["body"] if isinstance(record["body"], dict) else {}
             print(f"[{n}/{len(todo)}] {req['req_id']}: {record['http_status']} "
                   f"found={body.get('found')} {record['wall_ms']} ms", flush=True)
+
+    if live_inputs(client, args.project, doc_ids) != inputs:
+        parser.error("the running build or inputs changed during this run; discard this result")
+    write_json(manifest_path, {
+        **meta, "result_type": "live", "finished_at": datetime.now(UTC).isoformat(),
+        "response_count": len(done) + len(todo), "responses_sha256": sha256(out_path),
+    })
+    client.close()
 
 
 if __name__ == "__main__":

@@ -13,10 +13,23 @@ from app.inference.client import LocalModelsClient
 from app.ingestion.chunker import LengthFn
 from app.observability.logging import get_logger
 from app.providers.factory import ChatAdapter, ModelOutputInvalid, ProviderUnavailable
+from app.qa.completeness import add_defined_day, preserve_qualifications
+from app.qa.evidence import issue_evidence
+from app.qa.extractive import (
+    EXTRACT_VERIFIER,
+    SELECTION_SYSTEM,
+    from_selection,
+    reading_passages,
+    retry_numeric_reference,
+    selection_prompt,
+    selection_schema,
+)
 from app.qa.grounding import (
     LocatedQuote,
     ProvenanceError,
     check_requested_value,
+    qualify_numeric_claims,
+    remove_repeated_claims,
     validate_claims,
 )
 from app.qa.prompts import (
@@ -26,6 +39,7 @@ from app.qa.prompts import (
     render_sources,
     verifier_user_prompt,
 )
+from app.qa.relevance import refine_answer_scope
 from app.qa.schemas import (
     DRAFT_JSON_SCHEMA,
     VERIFY_JSON_SCHEMA,
@@ -38,7 +52,12 @@ from app.reliability.breaker import CircuitOpenError, get_breaker
 from app.reliability.deadline import Deadline
 from app.reliability.policy import backoff_delay
 from app.retrieval.bm25 import Bm25Adapter
-from app.retrieval.search import RetrievalResult, RetrievalScope, hybrid_search
+from app.retrieval.search import (
+    RetrievalResult,
+    RetrievalScope,
+    effective_context_budget,
+    hybrid_search,
+)
 
 logger = get_logger("qa.workflow")
 OUTCOME_ANSWERED = "answered"
@@ -66,6 +85,7 @@ class QaResult:
     llm_calls: int = 0
     usage_in: int = 0
     usage_out: int = 0
+    refusal_stage: str | None = None
 
 
 async def _call_json(
@@ -123,10 +143,31 @@ def _verdict_feedback(draft: DraftAnswer, verification: Verification) -> str:
     verdicts = {v.claim_index: v.verdict for v in verification.verdicts}
     if set(verdicts) != expected or len(verification.verdicts) != len(expected):
         raise ModelOutputInvalid("verifier must return one verdict per claim")
-    issues = [f"claim {i}: {v}" for i, v in verdicts.items() if v != ClaimVerdict.SUPPORTED]
+    issues = [
+        f"claim {v.claim_index} «{draft.claims[v.claim_index].text[:180]}»: "
+        f"{v.verdict} {v.reason[:120]}".strip()
+        for v in verification.verdicts if v.verdict != ClaimVerdict.SUPPORTED
+    ]
     if verification.coverage != Coverage.FULL:
-        issues.append("покрытие вопроса неполное (partial)")
+        issues.append("покрытие вопроса неполное: " + ", ".join(verification.coverage_gaps)[:460])
     return "; ".join(issues)
+
+
+def _coverage_sources(spans: dict[str, LocatedQuote], located: dict[int, list[LocatedQuote]],
+                      budget: int, length_fn: LengthFn) -> str:
+    used = {(q.char_start, q.char_end) for group in located.values() for q in group}
+    lines = []
+    for key, span in spans.items():
+        ref = (span.char_start, span.char_end)
+        if ref in used:
+            continue
+        line = f"[{key}] {span.quote_raw}"
+        size = length_fn(line)
+        if size <= budget:
+            lines.append(line)
+            budget -= size
+            used.add(ref)
+    return "\n".join(lines)
 
 
 async def run_qa(
@@ -142,37 +183,75 @@ async def run_qa(
         )
     result = QaResult(retrieval)
     if not retrieval.context:
+        result.refusal_stage = "no_context"
         return result
     sources = {f"source-{i}": c for i, c in enumerate(retrieval.context, 1)}
-    prompt = generation_user_prompt(question, render_sources(sources))
+    spans = issue_evidence(sources)
+    prompt = generation_user_prompt(question, render_sources(sources, spans))
     feedback = ""
+    choices: dict[str, LocatedQuote] = {}
     for attempt in range(1 + settings.max_repair_attempts):
         if result.llm_calls >= settings.max_llm_calls_per_question:
             break
         result.repair_count = attempt
+        stage = "generation"
         try:
-            raw = await _call_json(
-                deps, result, deadline, system=GENERATION_SYSTEM_V1, user=prompt + feedback,
-                schema=DRAFT_JSON_SCHEMA,
-                max_tokens=settings.llm_reasoning_budget_tokens + settings.llm_max_output_tokens,
-            )
-            draft = DraftAnswer.model_validate(raw)
+            output_budget = settings.llm_reasoning_budget_tokens
+            if choices:
+                raw = await _call_json(
+                    deps, result, deadline, system=SELECTION_SYSTEM,
+                    user=selection_prompt(question, choices), schema=selection_schema(question),
+                    max_tokens=output_budget + 384,
+                )
+                draft = from_selection(raw, choices, question)
+            else:
+                raw = await _call_json(
+                    deps, result, deadline, system=GENERATION_SYSTEM_V1, user=prompt + feedback,
+                    schema=DRAFT_JSON_SCHEMA,
+                    max_tokens=output_budget + settings.llm_max_output_tokens,
+                )
+                draft = DraftAnswer.model_validate(raw)
             if not draft.answerable:
                 logger.info("draft_not_answerable", repairs=attempt)
+                result.refusal_stage = stage
                 result.outcome = OUTCOME_NOT_FOUND
+                if (attempt == 0 and settings.max_repair_attempts
+                        and settings.max_llm_calls_per_question - result.llm_calls >= 2):
+                    choices = reading_passages(question, spans)
+                    if choices:
+                        continue
                 return result
-            located = validate_claims(draft.claims, sources, question=question)
+            stage = "evidence"
+            located = validate_claims(draft.claims, sources, question=question, spans=spans,
+                                      render_conditional_rules=True)
+            preserve_qualifications(draft.claims, located)
+            for i, claim in enumerate(draft.claims):
+                add_defined_day(claim, located[i], sources.values())
+            qualify_numeric_claims(draft.claims, located)
+            located = refine_answer_scope(question, draft.claims, located, sources)
+            located = remove_repeated_claims(draft.claims, located)
             check_requested_value(question, draft.claims)
             if result.llm_calls >= settings.max_llm_calls_per_question:
+                result.refusal_stage = "verification_budget"
                 result.outcome = OUTCOME_NOT_FOUND
                 return result
+            stage = "verification"
             blocks = []
             for index, claim in enumerate(draft.claims):
-                quotes = "\n".join(f'  ЦИТАТА: "{q.quote_raw}"' for q in located[index])
+                quotes = "\n".join(
+                    f'  ЦИТАТА ({q.chunk.scope_label or "раздел не указан"}): "{q.quote_raw}"'
+                    for q in located[index]
+                )
                 blocks.append(f"CLAIM {index}: {claim.text}\n{quotes}")
+            claims_block = "\n\n".join(blocks)
+            budget = effective_context_budget(settings, deps.length_fn(question))
+            remaining = min(1600, budget - deps.length_fn(claims_block))
+            supplement = "" if choices else _coverage_sources(spans, located, remaining,
+                                                               deps.length_fn)
+            verifier = EXTRACT_VERIFIER if choices else VERIFIER_SYSTEM_V1
             raw = await _call_json(
-                deps, result, deadline, system=VERIFIER_SYSTEM_V1,
-                user=verifier_user_prompt(question, "\n\n".join(blocks)),
+                deps, result, deadline, system=verifier,
+                user=verifier_user_prompt(question, claims_block, supplement),
                 schema=VERIFY_JSON_SCHEMA, max_tokens=settings.llm_reasoning_budget_tokens + 512,
             )
             verification = Verification.model_validate(raw)
@@ -183,18 +262,23 @@ async def run_qa(
                 raise ProvenanceError(issues)
             result.draft, result.located = draft, located
             result.outcome = OUTCOME_ANSWERED
+            result.refusal_stage = None
             return result
         except (ModelOutputInvalid, ValidationError) as exc:
             result.outcome = OUTCOME_INVALID_OUTPUT
             logger.warning("draft_invalid", kind=type(exc).__name__)
+            result.refusal_stage = stage
             reason = "Выдай валидный JSON по схеме со всеми обязательными полями."
         except ProvenanceError as exc:
             result.outcome = OUTCOME_NOT_FOUND
             logger.warning("provenance_rejected", error=str(exc)[:200])
-            reason = str(exc)[:300]
+            result.refusal_stage = stage
+            reason = str(exc)[:500]
+            if attempt == 0 and stage == "evidence" and retry_numeric_reference(question, reason):
+                choices = reading_passages(question, spans)
         feedback = (
             f"\n\nПРЕДЫДУЩАЯ ПОПЫТКА ОТКЛОНЕНА СЕРВЕРОМ: {reason}\n"
-            "Исправь ошибку. Используй только дословные цитаты из источников; "
+            "Исправь указанный факт или выбери ID подтверждающих фрагментов. "
             "если подтверждения нет — answerable=false."
         )
     return result

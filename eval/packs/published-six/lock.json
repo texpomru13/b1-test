@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "files": {
+    "gold.jsonl": "2de34068b885807093d40cbe9a87c38f5f75f523ab439f5009faa87b23d0b0e9",
+    "fixtures/bulletin.pdf": "7abddd3d710bf29d30bbba53b4461179749e161c164208a6669462afc6100204",
+    "fixtures/echr.pdf": "296057360f96327bf4f6f62f54b1721737b495a2b99346e45cbc96e941f7b22e",
+    "fixtures/marrakesh.pdf": "00b8a6dfae17775340554043521551ffaf62b0b744b3489b14841542384de47d",
+    "fixtures/nairobi.pdf": "0326b8ff8a126837a92041ad607ab7da26a57442df385e6d76e5d6bf213cea58",
+    "fixtures/nice.pdf": "e2f836130307907a6809e4c9355645a08e24befddeebc7d2aa5531b5c6162c48",
+    "fixtures/space.pdf": "a1834f4caa6ce60c49aa7a4fbe26731a70f7ad788b1ed6308c3afebf57efb1d8",
+    "documents.json": "c989f6a4ffab1a213c6a4522194130dd33132015b45b4cedfba048583a5c44fa"
+  }
+}

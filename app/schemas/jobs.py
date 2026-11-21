@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.domain.job import JobStatus
 
@@ -93,3 +93,7 @@ class DocumentDetail(BaseModel):
     updated_at: str
     page_count: int | None = None
     chunk_count: int | None = None
+    source_sha256: str | None = None
+    accepted_run_id: str | None = None
+    index_fingerprint: str | None = None
+    ocr_pages: list[int] = Field(default_factory=list)

@@ -35,7 +35,7 @@ elif [ -r /proc/meminfo ]; then
 fi
 
 ollama_reachable=false
-if command -v ollama >/dev/null 2>&1 && curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
+if command -v ollama >/dev/null 2>&1 && curl -fsS --max-time 2 "http://127.0.0.1:${B1_HOST_OLLAMA_PORT:-11434}/api/version" >/dev/null 2>&1; then
     ollama_reachable=true
 fi
 
@@ -68,6 +68,7 @@ cat <<EOF
   "host_total_ram_gib": $(awk "BEGIN {printf \"%.2f\", $host_total_bytes/1073741824}"),
   "host_free_ram_gib": $(awk "BEGIN {printf \"%.2f\", $host_free_bytes/1073741824}"),
   "host_ollama_reachable": $ollama_reachable,
+  "host_ollama_port": ${B1_HOST_OLLAMA_PORT:-11434},
   "dmr_running": $dmr_running,
   "dmr_gate_passed": false,
   "nvidia_smi_present": $nvidia_present,

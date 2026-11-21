@@ -168,7 +168,14 @@ case "$(setting OFFLINE)" in 1|true|True|TRUE|yes) CLI_OFFLINE=1 ;; esac
 case "$OV_PORT" in *[!0-9]*|'') fail "invalid --port" 2 ;; esac
 [ "$OV_PORT" -ge 1 ] && [ "$OV_PORT" -le 65535 ] || fail "--port must be 1..65535" 2
 SEED_DIR="$RUNTIME_DIR/empty-seed"
-[ ! -d "$HOME/.cache/huggingface/hub" ] || SEED_DIR="$HOME/.cache/huggingface"
+host_hf_cache=${HF_HOME:-"$HOME/.cache/huggingface"}
+[ ! -d "$host_hf_cache/hub" ] || SEED_DIR="$host_hf_cache"
+B1_HOST_OLLAMA_PORT=${B1_HOST_OLLAMA_PORT:-$(saved_value B1_HOST_OLLAMA_PORT)}
+B1_HOST_OLLAMA_PORT=${B1_HOST_OLLAMA_PORT:-11434}
+case "$B1_HOST_OLLAMA_PORT" in *[!0-9]*|'') fail "invalid B1_HOST_OLLAMA_PORT" 2 ;; esac
+[ "$B1_HOST_OLLAMA_PORT" -ge 1 ] && [ "$B1_HOST_OLLAMA_PORT" -le 65535 ] || fail "invalid B1_HOST_OLLAMA_PORT" 2
+export B1_HOST_OLLAMA_PORT
+host_ollama_url="http://127.0.0.1:$B1_HOST_OLLAMA_PORT"
 
 case "$OV_PROVIDER" in
     openai) [ "$(setting HAS_OPENAI_KEY)" = 1 ] || fail "LLM_PROVIDER=openai requires OPENAI_API_KEY" 3 ;;
@@ -203,16 +210,16 @@ mv "$RUNTIME_DIR/resolved-config.json.tmp" "$RUNTIME_DIR/resolved-config.json"
 if [ "$B1_SAVED_RUNTIME" = host-ollama ]; then
     stage download "ensuring host Ollama has $B1_LLM_MODEL (resumable pull)"
     if [ "$B1_OFFLINE" = 1 ]; then
-        OLLAMA_HOST=http://127.0.0.1:11434 ollama show "$B1_LLM_MODEL" >/dev/null || fail "Missing local Ollama model $B1_LLM_MODEL" 4
+        OLLAMA_HOST="$host_ollama_url" ollama show "$B1_LLM_MODEL" >/dev/null || fail "Missing local Ollama model $B1_LLM_MODEL" 4
     else
-        OLLAMA_HOST=http://127.0.0.1:11434 ollama pull "$B1_LLM_MODEL" || fail "host ollama pull failed" 4
+        OLLAMA_HOST="$host_ollama_url" ollama pull "$B1_LLM_MODEL" || fail "host ollama pull failed" 4
     fi
     # The QA graph needs JSON-schema structured output. Some host artifacts (e.g.
     # MLX builds picked by Ollama on Apple Silicon for bare tags) reject it, which
     # would otherwise surface only as 503s on every question.
     if command -v curl >/dev/null 2>&1; then
         stage warmup "checking structured output of $B1_LLM_MODEL on host Ollama"
-        probe=$(curl -s --max-time 300 http://127.0.0.1:11434/api/chat -d "{\"model\":\"$B1_LLM_MODEL\",\"stream\":false,\"think\":false,\"messages\":[{\"role\":\"user\",\"content\":\"Return {\\\"ok\\\": true}\"}],\"format\":{\"type\":\"object\",\"properties\":{\"ok\":{\"type\":\"boolean\"}},\"required\":[\"ok\"]},\"options\":{\"num_predict\":16,\"num_ctx\":2048}}" || true)
+        probe=$(curl -s --max-time 300 "$host_ollama_url/api/chat" -d "{\"model\":\"$B1_LLM_MODEL\",\"stream\":false,\"think\":false,\"messages\":[{\"role\":\"user\",\"content\":\"Return {\\\"ok\\\": true}\"}],\"format\":{\"type\":\"object\",\"properties\":{\"ok\":{\"type\":\"boolean\"}},\"required\":[\"ok\"]},\"options\":{\"num_predict\":16,\"num_ctx\":2048}}" || true)
         case "$probe" in
         *'"error"'*) fail "host Ollama model $B1_LLM_MODEL cannot produce structured output: $probe
   Use a GGUF quantization tag (e.g. qwen3.5:9b-q4_K_M) via --model." 4 ;;

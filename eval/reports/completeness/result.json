@@ -1,0 +1,79 @@
+{
+  "plan_sha256": "2388706bb136cf0eb3bfdbeaaf8c5493ed9bfefa9f55ceb0991b7e9d748cce2d",
+  "app_commit": "7ac18db946e50558b5470d9832f4fee19e7a26be",
+  "requests": 67,
+  "strata": {
+    "incomplete": {
+      "passed": 21,
+      "total": 36,
+      "failed_ids": [
+        "10-01",
+        "marrakesh-02",
+        "nairobi-06",
+        "nice-03",
+        "space-01",
+        "space-02",
+        "contract-07-04",
+        "contract-07-05",
+        "contract-11-06",
+        "external-roerich-02",
+        "external-roerich-03",
+        "external-roerich-06",
+        "external-troika-01",
+        "external-troika-02",
+        "external-troika-03"
+      ]
+    },
+    "complete_control": {
+      "passed": 30,
+      "total": 30,
+      "failed_ids": []
+    },
+    "false_positive": {
+      "passed": 1,
+      "total": 1,
+      "failed_ids": []
+    }
+  },
+  "critical_ids": [
+    "10-01",
+    "contract-07-04"
+  ],
+  "coverage": [
+    125,
+    140
+  ],
+  "invalid_schema_ids": [
+    "space-02"
+  ],
+  "invalid_citation_ids": [],
+  "observed_answerable_pairs": {
+    "n": 66,
+    "full_before": 30,
+    "full_after": 51,
+    "delta_percentage_points": 31.818181818181817,
+    "incomplete_to_full": 21,
+    "full_to_incomplete": 0,
+    "full_to_full": 30,
+    "incomplete_to_incomplete": 15
+  },
+  "estimated_population_after": {
+    "n": 135,
+    "unmeasured": 69,
+    "baseline_full": 99,
+    "estimated_full": 120.0,
+    "estimated_full_percent": 88.88888888888889,
+    "retained_in_baseline_full_exact_95_percent_interval": [
+      90,
+      99
+    ],
+    "estimated_full_exact_95_percent_interval": [
+      111,
+      120
+    ],
+    "estimated_full_percent_exact_95_percent_interval": [
+      82.22222222222223,
+      88.88888888888889
+    ]
+  }
+}

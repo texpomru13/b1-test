@@ -1,15 +1,5 @@
 import pytest
-from app.qa.counts import enforce_count_evidence
-from app.schemas.qa import AnswerResponse, Citation
-
-
-def answer(claim: str, *quotes: str) -> AnswerResponse:
-    citations = [Citation(
-        id=i, text=text, page=1, page_to=1, section=None, chunk_id=f"c{i}",
-        char_start=0, char_end=len(text),
-    ) for i, text in enumerate(quotes, 1)]
-    markers = "".join(f"[{c.id}]" for c in citations)
-    return AnswerResponse(answer=f"{claim}. {markers}", found=True, citations=citations)
+from app.qa.counts import unsupported_object_count
 
 
 @pytest.mark.parametrize(("question", "claim", "quote"), [
@@ -22,8 +12,7 @@ def answer(claim: str, *quotes: str) -> AnswerResponse:
 def test_frequency_time_or_denominator_cannot_support_an_object_count(
     question: str, claim: str, quote: str
 ) -> None:
-    filtered = enforce_count_evidence(question, answer(claim, quote))
-    assert filtered.found is False and not filtered.citations
+    assert unsupported_object_count(question, claim, [quote])
 
 
 @pytest.mark.parametrize(("question", "claim", "quotes"), [
@@ -42,5 +31,16 @@ def test_frequency_time_or_denominator_cannot_support_an_object_count(
 def test_supported_ambiguous_or_different_measure_is_left_to_the_verifier(
     question: str, claim: str, quotes: list[str]
 ) -> None:
-    original = answer(claim, *quotes)
-    assert enforce_count_evidence(question, original) is original
+    assert not unsupported_object_count(question, claim, quotes)
+
+
+def test_per_unit_and_neutral_citations_cannot_establish_the_quantity_allocated() -> None:
+    question = "Сколько жетонов может получить посетитель?"
+    claim = "Посетитель может получить только один жетон."
+    quotes = ["Зарегистрироваться можно единовременно.", "Повторная регистрация запрещена.",
+              "Оплата обслуживания производится в расчете на один жетон."]
+    assert unsupported_object_count(question, claim, quotes)
+    assert unsupported_object_count(question, claim, ["Выдача осуществляется по заявке."])
+    assert not unsupported_object_count(question, claim, [*quotes, "Положен один жетон."])
+    assert not unsupported_object_count(question, claim, [
+        *quotes, "Посетитель имеет право на один электронный пропуск."])

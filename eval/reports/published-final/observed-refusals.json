@@ -1,0 +1,212 @@
+{
+  "responses_sha256": "1ab2cf85aa0063a49518ed478734093e3aa2c0daea07f2b5f917bfb52c25d774",
+  "refusals": [
+    {
+      "case_id": "echr-02",
+      "request_id": "21f1839a12df49e481f66e01226e78a4",
+      "question": "Какое возрастное ограничение статья 21 устанавливает для кандидатов в судьи ЕСПЧ и на какой день проверяется возраст?",
+      "required": [
+        "Кандидату должно быть менее 65 лет",
+        "Возраст определяется на дату, к которой список трёх кандидатов должен быть представлен Парламентской ассамблее"
+      ],
+      "refusal_stage": "generation",
+      "context_has_all_gold_spans": true,
+      "llm_calls": 1,
+      "events": [
+        {
+          "event": "draft_not_answerable",
+          "repairs": 0
+        },
+        {
+          "event": "question_answered",
+          "repairs": 0,
+          "found": false,
+          "llm_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "echr-04",
+      "request_id": "2ea228dd20aa44dcade8977669949dc3",
+      "question": "Может ли определённый государством высший суд запросить по Протоколу № 16 консультативное заключение по отвлечённому правовому вопросу?",
+      "required": [
+        "Нет, запрос должен относиться к конкретному делу, находящемуся на рассмотрении этого суда"
+      ],
+      "refusal_stage": "generation",
+      "context_has_all_gold_spans": true,
+      "llm_calls": 1,
+      "events": [
+        {
+          "event": "draft_not_answerable",
+          "repairs": 0
+        },
+        {
+          "event": "question_answered",
+          "repairs": 0,
+          "found": false,
+          "llm_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "echr-05",
+      "request_id": "9f914d910abe4c8d870a1da6ed1e4a4a",
+      "question": "Кому направляют консультативное заключение по Протоколу № 16 и подлежит ли оно опубликованию?",
+      "required": [
+        "Запрашивающему суду или трибуналу и государству-участнику, к которому он относится",
+        "Заключение подлежит опубликованию"
+      ],
+      "refusal_stage": "evidence",
+      "context_has_all_gold_spans": true,
+      "llm_calls": 2,
+      "events": [
+        {
+          "event": "provenance_rejected",
+          "error": "Значение или его роль не подтверждены: 16 (число). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах доку"
+        },
+        {
+          "event": "provenance_rejected",
+          "error": "Значение или его роль не подтверждены: 16 (число). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах доку"
+        },
+        {
+          "event": "question_answered",
+          "repairs": 1,
+          "found": false,
+          "llm_calls": 2
+        }
+      ]
+    },
+    {
+      "case_id": "nairobi-06",
+      "request_id": "6fae65d0516244e6902000b0229f91f3",
+      "question": "Может ли государство, которое не входит в группы из статьи 5(1) и (2), получить заверенные копии и сколько?",
+      "required": [
+        "Генеральный директор направляет две заверенные им копии",
+        "Другому государству копии предоставляются по запросу"
+      ],
+      "refusal_stage": "verification",
+      "context_has_all_gold_spans": true,
+      "llm_calls": 4,
+      "events": [
+        {
+          "event": "verifier_verdict",
+          "coverage": "partial",
+          "verdicts": [
+            "unsupported"
+          ],
+          "repairs": 0
+        },
+        {
+          "event": "provenance_rejected",
+          "error": "claim 0 «Генеральный директор направляет две копии настоящего Договора, заверенные им, всем государствам, упомянутым в статье 5 (1) и (2), и, по запросу, любому другому государству.»: unsupported ЦИТА"
+        },
+        {
+          "event": "verifier_verdict",
+          "coverage": "partial",
+          "verdicts": [
+            "unsupported"
+          ],
+          "repairs": 1
+        },
+        {
+          "event": "provenance_rejected",
+          "error": "claim 0 «Генеральный директор направляет две копии настоящего Договора, заверенные им, всем государствам, упомянутым в статье 5 (1) и (2), и, по запросу, любому другому государству.»: unsupported ЦИТА"
+        },
+        {
+          "event": "question_answered",
+          "repairs": 1,
+          "found": false,
+          "llm_calls": 4
+        }
+      ]
+    },
+    {
+      "case_id": "nice-05",
+      "request_id": "c7f502f866e648549c7769c44115c21a",
+      "question": "Может ли страна воспользоваться правом денонсации уже через год после вступления в Специальный союз и когда вступает в силу направленное уведомление о денонсации?",
+      "required": [
+        "Воспользоваться этим правом можно лишь по истечении пяти лет с даты вступления страны в союз",
+        "Денонсация вступает в силу через год с получения уведомления Генеральным директором"
+      ],
+      "refusal_stage": "generation",
+      "context_has_all_gold_spans": true,
+      "llm_calls": 1,
+      "events": [
+        {
+          "event": "draft_not_answerable",
+          "repairs": 0
+        },
+        {
+          "event": "question_answered",
+          "repairs": 0,
+          "found": false,
+          "llm_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "space-01",
+      "request_id": "fe6c483d15944d17a593c556d995a380",
+      "question": "Какие четыре параметра орбиты перечисляет статья IV Конвенции о регистрации космических объектов?",
+      "required": [
+        "Период обращения",
+        "Наклонение",
+        "Апогей",
+        "Перигей"
+      ],
+      "refusal_stage": "generation",
+      "context_has_all_gold_spans": true,
+      "llm_calls": 1,
+      "events": [
+        {
+          "event": "draft_not_answerable",
+          "repairs": 0
+        },
+        {
+          "event": "question_answered",
+          "repairs": 0,
+          "found": false,
+          "llm_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "space-02",
+      "request_id": "8b16cda000f24c7187ed70acd0faddb2",
+      "question": "Кто ведет центральный Реестр ООН по статье III Конвенции о регистрации объектов и каков режим доступа к его сведениям?",
+      "required": [
+        "Реестр ведёт Генеральный секретарь ООН",
+        "Доступ к информации полный и открытый"
+      ],
+      "refusal_stage": "generation",
+      "context_has_all_gold_spans": false,
+      "llm_calls": 3,
+      "events": [
+        {
+          "event": "verifier_verdict",
+          "coverage": "partial",
+          "verdicts": [
+            "supported",
+            "supported",
+            "supported"
+          ],
+          "repairs": 0
+        },
+        {
+          "event": "provenance_rejected",
+          "error": "покрытие вопроса неполное (partial)"
+        },
+        {
+          "event": "draft_not_answerable",
+          "repairs": 1
+        },
+        {
+          "event": "question_answered",
+          "repairs": 1,
+          "found": false,
+          "llm_calls": 3
+        }
+      ]
+    }
+  ]
+}

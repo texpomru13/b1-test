@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from app.config.settings import FusionMethod, Settings
@@ -21,9 +21,12 @@ from app.inference.contract import (
     RerankRequest,
 )
 from app.ingestion.chunker import LengthFn
+from app.ingestion.scopes import requested_scope_keys, scope_key
 from app.reliability.policy import retry_async
+from app.retrieval.articles import article_gaps, article_units
 from app.retrieval.bm25 import Bm25Adapter
-from app.retrieval.clauses import list_rerank_documents
+from app.retrieval.day_definition import prioritize_day_definition
+from app.retrieval.tables import attach_price_headings, price_table_gaps
 from app.storage.qdrant_repo import DENSE_NAME, SPARSE_NAME, FingerprintMismatchError
 from qdrant_client import AsyncQdrantClient, models
 
@@ -81,6 +84,32 @@ class ContextChunk:
     # Per-page spans for chunks crossing page boundaries: [{page, char_start, char_end}]
     segments: list[dict[str, int]] = field(default_factory=list)
     list_heading_id: str | None = None
+    scope_id: str | None = None
+    scope_label: str | None = None
+    table_heading_span: tuple[int, int] | None = None
+    scope_heading_span: tuple[int, int] | None = None
+
+
+def _context_unit(chunk_id: str, payload: dict[str, Any]) -> list[ContextChunk]:
+    """Exact sources evaluated together, ordered from the outermost rule to the item."""
+    parts: list[ContextChunk] = []
+    for key, span in [
+        *((span["chunk_id"], span) for span in payload.get("governing_spans", ())),
+        (chunk_id, payload),
+    ]:
+        parts.append(ContextChunk(
+            chunk_id=key, chunk_index=int(span["chunk_index"]), text=span["text"],
+            section=span.get("section"), page_from=span["page_from"], page_to=span["page_to"],
+            char_start=span["char_start"], char_end=span["char_end"],
+            segments=span.get("segments") or [], rerank_score=0,
+            list_heading_id=parts[-1].chunk_id if parts else None,
+            scope_id=payload.get("scope_id"), scope_label=payload.get("scope_label"),
+        ))
+    return parts
+
+
+def _scoped_text(chunk: ContextChunk) -> str:
+    return f"{chunk.scope_label}\n{chunk.text}" if chunk.scope_label else chunk.text
 
 
 @dataclass
@@ -210,13 +239,18 @@ async def hybrid_search(
 
     # 3) mandatory rerank (fail closed)
     timer = time.monotonic()
+    units = {str(p.id): _context_unit(str(p.id), p.payload or {}) for p in candidates}
+    structural = dict(units)
+    gaps = article_gaps(question, units) | price_table_gaps(question, units)
+    if gaps:
+        await _bridge_source_gaps(structural, gaps, flt, qdrant, settings, scope, diag)
+    eligible = article_units(question, structural)
+    attach_price_headings(structural)
+    units = {key: structural[key] for key in units}
     documents = [
-        RerankDocument(id=str(point.id), text=str((point.payload or {})["text"]))
-        for point in candidates
+        RerankDocument(id=key, text="\n".join(_scoped_text(part) for part in unit))
+        for key, unit in units.items()
     ]
-    documents, list_headings = list_rerank_documents(
-        documents, {str(p.id): int((p.payload or {})["chunk_index"]) for p in candidates},
-    )
     try:
         rerank_response = await local_models.rerank(
             RerankRequest(query=question, documents=documents)
@@ -244,30 +278,34 @@ async def hybrid_search(
     budget = effective_context_budget(settings, question_tokens)
     context: list[ContextChunk] = []
     used_tokens = 0
+    included: set[str] = set()
+    labels = {c.scope_label for unit in units.values() for c in unit if c.scope_label}
+    requested = requested_scope_keys(question, labels)
+    ordered = prioritize_day_definition(question, ordered)
     for point in ordered:
         if len(context) >= settings.context_top_k:
             break
-        payload = point.payload or {}
-        chunk_tokens = length_fn(str(payload["text"]))
-        if used_tokens + chunk_tokens > budget:
-            diag.dropped_by_budget_chunk_ids.append(str(point.id))
-            continue  # whole-chunk selection only; no partial truncation
-        used_tokens += chunk_tokens
-        context.append(
-            ContextChunk(
-                chunk_id=str(point.id),
-                chunk_index=int(payload["chunk_index"]),
-                text=str(payload["text"]),
-                section=payload.get("section"),
-                page_from=int(payload["page_from"]),
-                page_to=int(payload["page_to"]),
-                char_start=int(payload["char_start"]),
-                char_end=int(payload["char_end"]),
-                rerank_score=scores[str(point.id)],
-                segments=list(payload.get("segments") or []),
-                list_heading_id=list_headings.get(str(point.id)),
-            )
-        )
+        key = str(point.id)
+        if eligible is not None and key not in eligible:
+            continue
+        unit = units[key]
+        label = unit[-1].scope_label
+        if requested and label and scope_key(label) not in requested:
+            continue
+        if not (point.payload or {}).get("governing_complete", True):
+            continue
+        # Top-k and budget both apply to every distinct source in the unit,
+        # including headings outside the fused result. An item never gets in alone.
+        new = [chunk for chunk in unit if chunk.chunk_id not in included]
+        if len(context) + len(new) > settings.context_top_k:
+            continue
+        tokens = sum(length_fn(_scoped_text(chunk)) for chunk in new)
+        if used_tokens + tokens > budget:
+            diag.dropped_by_budget_chunk_ids.append(key)
+            continue
+        used_tokens += tokens
+        context.extend(replace(chunk, rerank_score=scores[key]) for chunk in new)
+        included.update(chunk.chunk_id for chunk in new)
     diag.context_count = len(context)
     diag.context_chunk_ids = [chunk.chunk_id for chunk in context]
     diag.stage_ms["context"] = int((time.monotonic() - timer) * 1000)
@@ -277,6 +315,32 @@ async def hybrid_search(
         allowed_chunk_ids=diag.context_chunk_ids,
         diagnostics=diag,
     )
+
+
+async def _bridge_source_gaps(
+    structural: dict[str, list[ContextChunk]], gaps: set[int], flt: models.Filter,
+    qdrant: AsyncQdrantClient, settings: Settings, scope: RetrievalScope, diag: Diagnostics,
+) -> None:
+    # One bounded metadata read. The bridge rows establish continuity; they are not
+    # added to the fused/reranked candidates. Missing rows cannot confer a heading.
+    positions = sorted(gaps)[:48]
+    scoped = models.Filter(must=[flt, models.FieldCondition(
+        key="chunk_index", match=models.MatchAny(any=positions),
+    )])
+    try:
+        points, _ = await qdrant.scroll(collection_name=settings.qdrant_collection,
+                                        scroll_filter=scoped, limit=len(positions),
+                                        with_payload=True, with_vectors=False)
+    except Exception as exc:
+        diag.diagnostic_warnings.append(f"structure lookup failed: {type(exc).__name__}")
+        return
+    for p in points:
+        data = p.payload or {}
+        if (data.get("doc_id") == scope.doc_id
+                and data.get("ingestion_run_id") == scope.accepted_run_id
+                and data.get("index_fingerprint") == scope.index_fingerprint
+                and data.get("chunk_index") in gaps):
+            structural[str(p.id)] = _context_unit(str(p.id), data)
 
 
 async def _replay_branch_counts(

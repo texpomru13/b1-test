@@ -27,6 +27,7 @@ from app.storage.qdrant_repo import (
     FingerprintMismatchError,
     QdrantIndexRepository,
     SchemaMismatchError,
+    point_id,
 )
 from app.storage.redis_repo import utc_now_iso
 
@@ -69,6 +70,7 @@ def _chunk_payload(
     page_count: int,
     chunk_count: int,
     created_at: str,
+    chunks: list[dict[str, Any]],
 ) -> dict[str, Any]:
     return {
         "doc_id": job["doc_id"],
@@ -89,6 +91,18 @@ def _chunk_payload(
         "is_document_head": chunk["index"] == 0,  # the REAL first text chunk
         "run_complete": False,  # flipped on the head after full verification
         "segments": chunk.get("segments", []),
+        "scope_id": chunk.get("scope_id"),
+        "scope_label": chunk.get("scope_label"),
+        "scope_label_span": chunk.get("scope_label_span"),
+        "parent_clause_id": chunk.get("parent_clause_id"),
+        "governing_complete": chunk.get("governing_complete", True),
+        "governing_spans": [
+            {**{k: chunks[span["chunk_index"]][k] for k in
+                ("text", "page_from", "page_to", "section", "segments", "char_start", "char_end")},
+             "chunk_index": span["chunk_index"],
+             "chunk_id": point_id(job["doc_id"], run_id, span["chunk_index"])}
+            for span in chunk.get("governing_spans", [])
+        ],
     }
 
 
@@ -176,7 +190,10 @@ def run_indexing(
                     retryable=True,
                 )
             batch = chunks[start : start + UPSERT_BATCH]
-            texts = [chunk["text"] for chunk in batch]
+            texts = [
+                f'{chunk["scope_label"]}\n{chunk["text"]}' if chunk.get("scope_label")
+                else chunk["text"] for chunk in batch
+            ]
             try:
                 encoded = embedder.embed(
                     EmbedRequest(texts=texts, input_type=InputType.DOCUMENT)
@@ -203,6 +220,7 @@ def run_indexing(
                 _chunk_payload(
                     chunk, job=job, run_id=run_id, fingerprint=fingerprint,
                     page_count=page_count, chunk_count=chunk_count, created_at=created_at,
+                    chunks=chunks,
                 )
                 for chunk in batch
             ]

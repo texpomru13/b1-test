@@ -18,6 +18,7 @@ from app.ingestion.errors import (
     ParseFailedError,
     PasswordProtectedError,
 )
+from app.ingestion.ocr import recognize_page
 
 # Ignore short decorations on an image-only page.
 MIN_TEXT_CHARS_PER_PAGE = 20
@@ -30,6 +31,7 @@ class ExtractedPage:
     page: int  # 1-based physical page of THIS pdf
     text: str
     has_text: bool
+    ocr: bool = False
 
 
 @dataclass(frozen=True)
@@ -73,7 +75,12 @@ def extract_pdf(path: Path, *, max_pages: int) -> PdfExtraction:
         # A short text-only page may consist of a date, name or amount. For an
         # image page, a footer/page number alone is not a usable text layer.
         has_text = meaningful >= MIN_TEXT_CHARS_PER_PAGE or (meaningful > 0 and not page.images)
-        pages.append(ExtractedPage(page=number, text=text, has_text=has_text))
+        ocr = False
+        if not has_text and page.images:
+            text = recognize_page(path, number)
+            # A scanned divider or illustration can legitimately have no words.
+            has_text = ocr = any(char.isalnum() for char in text)
+        pages.append(ExtractedPage(page=number, text=text, has_text=has_text, ocr=ocr))
 
     _check_text_layer(pages)
     return PdfExtraction(pages=pages, page_count=page_count)
@@ -84,8 +91,7 @@ def _check_text_layer(pages: list[ExtractedPage]) -> None:
     empty = sum(1 for page in pages if not page.has_text)
     if total == 0 or empty == total:
         raise OcrRequiredError(
-            "document has no usable text layer (scan?); OCR is not part of the "
-            "mandatory scope",
+            "document has no readable text on any page",
             detail=f"pages_with_text=0/{total}",
         )
     if empty >= 2 and empty / total > MIXED_EMPTY_RATIO:

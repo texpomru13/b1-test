@@ -1,0 +1,48 @@
+{
+  "01-02": [
+    "2026-11-21 13:42:09 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
+  ],
+  "01-03": [
+    "2026-11-21 13:42:19 [info     ] verifier_verdict               coverage=partial repairs=0 verdicts=[<ClaimVerdict.INSUFFICIENT: 'insufficient'>]",
+    "2026-11-21 13:42:19 [warning  ] provenance_rejected            error='claim 0 «Если товар имеет срок годности 18 месяцев и более, то Поставщик обязан поставить товар с таким сроком годности, чтобы в момент приемки товара до его окончания оставалось не менее о»: insuffic'",
+    "2026-11-21 13:42:28 [info     ] verifier_verdict               coverage=partial repairs=1 verdicts=[<ClaimVerdict.INSUFFICIENT: 'insufficient'>]",
+    "2026-11-21 13:42:28 [warning  ] provenance_rejected            error='claim 0 «Если товар имеет срок годности 18 месяцев и более, то Поставщик обязан поставить товар с таким сроком годности, чтобы в момент приемки товара до его окончания оставалось не менее о»: insuffic'"
+  ],
+  "03-05": [
+    "2026-11-21 13:42:38 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
+  ],
+  "05-03": [
+    "2026-11-21 13:42:46 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
+  ],
+  "10-01": [
+    "2026-11-21 13:42:56 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 5.1.1 (пункт). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах д'",
+    "2026-11-21 13:43:01 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 5.1.1 (пункт). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах д'"
+  ],
+  "10-04": [
+    "2026-11-21 13:43:09 [warning  ] provenance_rejected            error='перенеси целиком правило с условиями и исключениями в отдельный claim: 11.2. При наступлении события, имеющего признаки страхового случая, Страхователь (Застрахованное лицо) обязан: а) предпринять все'",
+    "2026-11-21 13:43:13 [warning  ] provenance_rejected            error='перенеси целиком правило с условиями и исключениями в отдельный claim: 11.2. При наступлении события, имеющего признаки страхового случая, Страхователь (Застрахованное лицо) обязан: а) предпринять все'"
+  ],
+  "11-06": [
+    "2026-11-21 13:43:21 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>]"
+  ],
+  "13-03": [
+    "2026-11-21 13:43:26 [info     ] draft_not_answerable           repairs=0"
+  ],
+  "13-05": [
+    "2026-11-21 13:43:36 [info     ] verifier_verdict               coverage=full repairs=0 verdicts=[<ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>, <ClaimVerdict.SUPPORTED: 'supported'>]"
+  ],
+  "14-01": [
+    "2026-11-21 13:44:14 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 79 (рубль). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах доку'",
+    "2026-11-21 13:44:21 [warning  ] provenance_rejected            error='Значение или его роль не подтверждены: 79 (рубль). Выбери фрагмент с названием, номером пункта или величиной с её единицей. Условие из вопроса можно опустить, указав применимое правило в единицах доку'"
+  ],
+  "14-02": [
+    "2026-11-21 13:44:34 [info     ] draft_not_answerable           repairs=0"
+  ],
+  "14-04": [
+    "2026-11-21 13:44:42 [info     ] draft_not_answerable           repairs=0"
+  ],
+  "14-08": [
+    "2026-11-21 13:44:57 [warning  ] provenance_rejected            error='цитаты указывают другую величину вместо количества объектов'",
+    "2026-11-21 13:45:05 [warning  ] provenance_rejected            error='цитаты указывают другую величину вместо количества объектов'"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "questions": 60,
+  "isolation_probes": 6,
+  "required_facts_and_conditions": [
+    76,
+    81
+  ],
+  "complete_correct_answers": [
+    32,
+    40
+  ],
+  "correct_refusals": [
+    19,
+    20
+  ],
+  "isolation_refusals": [
+    6,
+    6
+  ],
+  "unjustified_claim_segments": 5,
+  "critical_error_cases": [
+    "contract-04-02",
+    "contract-05-07",
+    "contract-07-04"
+  ],
+  "thresholds": {
+    "schema": true,
+    "exact_sources_and_coordinates": true,
+    "critical_errors_zero": false,
+    "required_recall_at_least_90_percent": true,
+    "complete_answers_at_least_85_percent": false,
+    "all_absences_refused": false,
+    "all_isolation_refused": true
+  },
+  "quality_thresholds_met": false,
+  "reviewer": "OpenAI Codex, текстовая сверка ответов по договорам организаций",
+  "reviewer_type": "model",
+  "human_gold_review": false,
+  "human_gold_reviewer": null,
+  "source_review_sha256": "67b703bc69dae1688a7abd342aa9efe526d5f62551c6a1c4e4891319da16c075",
+  "lock_sha256": "7d7521304cc3bf2da9c878487d8a3d1981def87fb2d5339d0cd852232e95bdd4",
+  "responses_sha256": "9d6606dfdbb03181d5e90dd11fa79f5388350615dff6600458b14e32da6c6ba7",
+  "metrics_sha256": "16ccb5374b7136457293da79d1b1bbd9b585893cbcc16c6b4255ba321bf073c1",
+  "review_sha256": "1d4b0447528d05316f08e99b340ed9c0f739435abf15f605036dad4dca34c1f4",
+  "independent_human_acceptance": false
+}

@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable, Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from itertools import pairwise
 from pathlib import Path
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.ingestion.canonical import CanonicalDocument
 from app.ingestion.errors import ParseFailedError
-from app.ingestion.sections import SectionSpan, section_at
+from app.ingestion.rules import conditional_rules, parenthesized_items
+from app.ingestion.sections import SectionSpan
 
 APPROX_CHARS_PER_TOKEN = 3
 
@@ -44,6 +46,14 @@ class ChunkSegment:
     page: int
     char_start: int
     char_end: int
+    ocr: bool = False
+
+
+@dataclass(frozen=True)
+class GoverningSpan:
+    chunk_index: int
+    char_start: int
+    char_end: int
 
 
 @dataclass(frozen=True)
@@ -56,6 +66,12 @@ class Chunk:
     page_to: int
     section: str | None
     segments: list[ChunkSegment]
+    scope_id: str | None = None
+    scope_label: str | None = None
+    scope_label_span: tuple[int, int] | None = None
+    parent_clause_id: int | None = None
+    governing_spans: tuple[GoverningSpan, ...] = field(default_factory=tuple)
+    governing_complete: bool = True
 
 
 class _SourcePiece(str):
@@ -100,6 +116,37 @@ class _OffsetSplitter(RecursiveCharacterTextSplitter):
                 yield start + len(raw) - len(raw.lstrip()), trimmed
 
 
+def _split_rule_segment(
+    splitter: _OffsetSplitter, text: str, length: LengthFn, limit: int,
+) -> Iterator[tuple[int, str, bool]]:
+    if length(text) <= limit:
+        for local, chunk in splitter.spans(text):
+            yield local, chunk, True
+        return
+    pos = 0
+    for start, end in conditional_rules(text):
+        for local, chunk in splitter.spans(text[pos:start]):
+            yield pos + local, chunk, True
+        rule = text[start:end]
+        if length(rule) <= limit:
+            yield start, rule, True
+        else:
+            for local, chunk in splitter.spans(rule):
+                yield start + local, chunk, False
+        pos = end
+    for local, chunk in splitter.spans(text[pos:]):
+        yield pos + local, chunk, True
+
+
+def _split_rules(
+    splitter: _OffsetSplitter, text: str, length: LengthFn, limit: int,
+) -> Iterator[tuple[int, str, bool]]:
+    boundaries = sorted({0, len(text), *parenthesized_items(text)})
+    for begin, end in pairwise(boundaries):
+        for start, chunk, complete in _split_rule_segment(splitter, text[begin:end], length, limit):
+            yield begin + start, chunk, complete
+
+
 def _segment_bounds(
     canonical: CanonicalDocument, sections: list[SectionSpan]
 ) -> list[tuple[int, int]]:
@@ -128,11 +175,20 @@ def split_into_chunks(
         strip_whitespace=False,
     )
     chunks: list[Chunk] = []
+    by_start = {s.char_start: s for s in sections}
+    leads: dict[int, GoverningSpan] = {}
     for seg_start, seg_end in _segment_bounds(canonical, sections):
+        section = by_start.get(seg_start)
+        scope = section.scope if section else None
+        ancestors = section.governing_clause_ids if section else ()
+        governing = tuple(leads[pos] for pos in ancestors if pos in leads)
+        first = len(chunks)
         segment_text = canonical.text[seg_start:seg_end]
         if not segment_text.strip():
             continue
-        for local_start, chunk_text in splitter.spans(segment_text):
+        for local_start, chunk_text, complete in _split_rules(
+            splitter, segment_text, length_fn, chunk_tokens,
+        ):
             start = seg_start + local_start
             end = start + len(chunk_text)
             pages = canonical.pages_overlapping(start, end)
@@ -146,10 +202,16 @@ def split_into_chunks(
                     char_end=end,
                     page_from=pages[0].page,
                     page_to=pages[-1].page,
-                    section=section_at(sections, start),
+                    section=section.label if section else None,
+                    scope_id=scope.scope_id if scope else None,
+                    scope_label=scope.scope_label if scope else None,
+                    scope_label_span=scope.scope_label_span if scope else None,
+                    parent_clause_id=section.parent_clause_id if section else None,
+                    governing_spans=governing,
+                    governing_complete=complete and len(governing) == len(ancestors),
                     segments=[
                         ChunkSegment(
-                            page=span.page,
+                            page=span.page, ocr=span.ocr,
                             char_start=max(start, span.char_start),
                             char_end=min(end, span.char_end),
                         )
@@ -157,4 +219,9 @@ def split_into_chunks(
                     ],
                 )
             )
+        # Store a complete introductory clause as a citable component. Never
+        # truncate a long/split condition and then present it as authoritative.
+        if len(chunks) == first + 1 and len(segment_text.strip()) <= 600:
+            chunk = chunks[first]
+            leads[seg_start] = GoverningSpan(first, chunk.char_start, chunk.char_end)
     return chunks

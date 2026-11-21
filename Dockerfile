@@ -20,11 +20,18 @@ RUN apt-get update \
         fonts-dejavu-core \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# OCR can be updated without rebuilding the LibreOffice layer used by DOCX.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        poppler-utils tesseract-ocr tesseract-ocr-rus tesseract-ocr-eng \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 RUN groupadd -r appuser && useradd -r -g appuser -m appuser \
     && mkdir -p /data/documents /home/appuser/.cache \
     && chown -R appuser:appuser /data/documents /home/appuser
 
 WORKDIR /app
+COPY Dockerfile pyproject.toml uv.lock ./
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --chown=appuser:appuser app /app/app
 

@@ -19,7 +19,19 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from app.ingestion.rules import COMMITMENT, conditional_rules
+from app.ingestion.scopes import requested_scope_keys, scope_key
+from app.qa.completeness import add_defined_day
+from app.qa.counts import unsupported_object_count
+from app.qa.numbers import (
+    clause_reference_heading,
+    numeric_evidence_texts,
+    qualify_numeric_text,
+    unsupported_numbers,
+)
+from app.qa.roles import reversed_list_actor
 from app.qa.schemas import Claim
+from app.qa.template_fields import clarify_unfilled_duration
 from app.retrieval.clauses import local_list_lead
 from app.retrieval.search import ContextChunk
 
@@ -36,6 +48,10 @@ class LocatedQuote:
 
 class ProvenanceError(Exception):
     """A fabricated/foreign chunk, unlocatable quote, or inconsistent facts."""
+
+
+class ConditionalWordingError(ProvenanceError):
+    """A selected rule could be rendered directly without losing its conditions."""
 
 
 def _ws_normalize(text: str) -> str:
@@ -78,11 +94,17 @@ def locate_quote(chunk: ContextChunk, quote: str) -> LocatedQuote:
             f"quote is not a substring of chunk {chunk.chunk_id} "
             "(after whitespace normalization)"
         )
-    start = chunk.char_start + match.start()
-    end = chunk.char_start + match.end()
+
+    return quote_at_offsets(chunk, match.start(), match.end())
+
+
+def quote_at_offsets(chunk: ContextChunk, local_start: int, local_end: int) -> LocatedQuote:
+    """Keep the selected occurrence even if identical text appears twice in one chunk."""
+    start = chunk.char_start + local_start
+    end = chunk.char_start + local_end
     page, page_to = _pages_for_span(chunk, start, end)
     return LocatedQuote(
-        chunk=chunk, quote_raw=match.group(0),
+        chunk=chunk, quote_raw=chunk.text[local_start:local_end],
         char_start=start, char_end=end, page=page, page_to=page_to,
     )
 
@@ -97,23 +119,6 @@ def _pages_for_span(chunk: ContextChunk, start: int, end: int) -> tuple[int, int
                 page_to = int(segment["page"])
         return page, max(page, page_to)
     return chunk.page_from, chunk.page_to
-
-
-_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
-_PERCENT_UNIT = r"\s*".join("процент")  # PDF text layers can split this word
-_PERCENT_AMOUNT = re.compile(
-    rf"(\d+(?:[.,]\d+)?)\s*(?:\([^()\d]{{1,100}}\)\s*)?(?:%|{_PERCENT_UNIT})", re.I
-)
-_SPACED_AMOUNT = re.compile(r"(?<!\d)\d{1,3}(?:[^\S\r\n]+\d{3})+(?!\d)")
-
-
-def _numeric_tokens(text: str) -> set[str]:
-    cleaned = _SPACED_AMOUNT.sub(lambda m: "".join(m.group().split()), text)
-    tokens = {m.group().replace(",", ".") for m in _NUMBER.finditer(cleaned)}
-    # A quoted number of days cannot support the same number stated as a rate.
-    for match in _PERCENT_AMOUNT.finditer(cleaned):
-        tokens.add(match[1].replace(",", ".") + "%")
-    return tokens
 
 
 # Narrow fallback for an explicit request for a number answered by a cross-reference.
@@ -142,17 +147,17 @@ def check_requested_value(question: str, claims: list[Claim]) -> None:
             raise ProvenanceError("вместо запрошенной величины приведён порядок её определения")
 
 
-def check_claim_consistency(claim: Claim, quotes: list[str]) -> None:
-    """Rule checks: every number/percent/amount in the claim must occur in its
-    evidence; working/calendar day kinds must not be swapped."""
+def check_claim_consistency(
+    claim: Claim, quotes: list[str], question: str = "", names: tuple[str, ...] = (),
+) -> None:
+    """Check the role and unit of numeric facts before semantic verification."""
     joined = " ".join(quotes)
-    quote_numbers = _numeric_tokens(joined)
-    missing = [
-        token for token in _numeric_tokens(claim.text) if token not in quote_numbers
-    ]
+    missing = unsupported_numbers(claim.text, quotes, question, names)
     if missing:
         raise ProvenanceError(
-            f"claim states numbers {missing} that are absent from its evidence"
+            f"Значение или его роль не подтверждены: {', '.join(missing)}. "
+            "Выбери фрагмент с названием, номером пункта или величиной с её единицей. "
+            "Условие из вопроса можно опустить, указав применимое правило в единицах документа."
         )
     for kind in ("рабоч", "календарн"):
         if kind in claim.text.lower() and kind not in joined.lower():
@@ -166,6 +171,7 @@ _PERMISSION = re.compile(r"\b(?:вправе|име\w*\s+прав[оа]|разр
 _ASKS_PERMISSION = re.compile(r"\b(?:вправе ли|разреш\w* ли|запрещ\w* ли|допускается ли|"
                               r"мож(?:но|ет) ли|могут ли|име\w* ли.{0,80}\bправ[оа]\b)", re.I)
 _NUMBERED_ACTION = re.compile(r"^\s*\d+(?:\.\d+)+[.)]?\s+[а-яё]+(?:ть|ти|чь)(?:ся|сь)?\b", re.I)
+_INCLUSIVE_QUESTION = re.compile(r"\b(?:в том числе|включая|в частности)\b", re.I)
 
 
 def _check_item_permission(question: str, claim: Claim, quotes: list[LocatedQuote]) -> None:
@@ -177,10 +183,77 @@ def _check_item_permission(question: str, claim: Claim, quotes: list[LocatedQuot
         raise ProvenanceError("перечисление действий без вводной фразы не устанавливает право")
 
 
+_NEGATIVE = re.compile(r"\b(?:запрещ\w*|запрет(?:а|ом)?|нельзя|не\s+(?:вправе|"
+                       r"допуска\w+|имеет права|может|разреш\w*))", re.I)
+_AFFIRMATIVE = re.compile(r"\b(?:вправе|разреш\w*|допуска\w*|можно|имеет право)", re.I)
+
+
+def _rule_text(value: str) -> str:
+    # A PDF may split a word across lines; keep negation, conjunctions and order.
+    return re.sub(r"\s+", "", value.casefold().replace("ё", "е")).strip(".«» ")
+
+
+def _check_rule_meaning(question: str, claim: Claim, quotes: list[LocatedQuote]) -> None:
+    text = claim.text
+    evidence = " ".join(q.quote_raw for q in quotes)
+    if "письменн" in text.lower() and "письменн" not in evidence.lower():
+        raise ProvenanceError("источник не устанавливает письменную форму для этого действия")
+    regulatory = _PERMISSION.search(text) or _ASKS_PERMISSION.search(question)
+    for q in quotes:
+        for left, right in conditional_rules(q.chunk.text):
+            # A clipped excerpt can omit an exception at either end. Find the
+            # complete rule containing it before validating a regulatory claim.
+            if (q.char_end <= q.chunk.char_start + left
+                    or q.char_start >= q.chunk.char_start + right):
+                continue
+            rule = q.chunk.text[left:right]
+            if not regulatory and not COMMITMENT.search(rule):
+                continue
+            # A leading consent proviso can move intact to the end of a claim.
+            # An exception to a prohibition needs the entire rule: repeating
+            # its words under a wider permission changes their logical scope.
+            consent = re.match(r"^(с (?:письменного )?согласия [^,.:;]{1,100}?)"
+                               r"(?:,|\s+(?:допуска|разреш|вправе))", rule, re.I)
+            required = consent[1] if consent and not _NEGATIVE.search(rule) else rule
+            if COMMITMENT.search(rule):
+                # For a conditional guarantee the answer may paraphrase the
+                # promised outcome, but must preserve the attached proviso.
+                tail = re.search(r",\s*((?:если|при условии(?:,? что)?)\b.+)", rule, re.I | re.S)
+                if tail:
+                    required = tail[1]
+            if _rule_text(required) not in _rule_text(text):
+                raise ConditionalWordingError(
+                    "перенеси целиком правило с условиями и исключениями в отдельный claim: "
+                    + " ".join(rule.split())
+                )
+    if not _PERMISSION.search(text):
+        return
+    positive_evidence = _AFFIRMATIVE.search(_NEGATIVE.sub("", evidence))
+    if (_NEGATIVE.search(evidence) and not positive_evidence
+            and not _NEGATIVE.search(text) and _AFFIRMATIVE.search(text)):
+        raise ProvenanceError("источник запрещает указанное действие")
+    if positive_evidence and not _NEGATIVE.search(evidence) and _NEGATIVE.search(text):
+        raise ProvenanceError("цитата не устанавливает заявленный запрет")
+
+
+def _check_scoped_claim(
+    claim: Claim, quotes: list[LocatedQuote], requested: set[str], labels: set[str],
+) -> set[str]:
+    cited = {scope_key(q.chunk.scope_label) for q in quotes if q.chunk.scope_label}
+    if requested and cited - requested:
+        raise ProvenanceError("выбранная цитата относится к другой акции или приложению")
+    if len(requested) > 1 and cited:
+        named = requested_scope_keys(claim.text, labels)
+        if len(cited) != 1 or named != cited:
+            raise ProvenanceError("при сравнении укажи название и значение каждой области отдельно")
+    return cited
+
+
 def validate_claims(
     claims: list[Claim],
     context_by_id: dict[str, ContextChunk],
-    *, question: str = "",
+    *, question: str = "", spans: dict[str, LocatedQuote] | None = None,
+    render_conditional_rules: bool = False,
 ) -> dict[int, list[LocatedQuote]]:
     """Deterministic §7.2 checks for every claim; returns located quotes per claim.
 
@@ -190,19 +263,27 @@ def validate_claims(
     """
     located: dict[int, list[LocatedQuote]] = {}
     chunks = {chunk.chunk_id: chunk for chunk in context_by_id.values()}
+    labels = {chunk.scope_label for chunk in chunks.values() if chunk.scope_label}
+    requested = requested_scope_keys(question, labels)
+    covered: set[str] = set()
     for index, claim in enumerate(claims):
         quotes: list[LocatedQuote] = []
         for evidence in claim.evidence:
-            # Canonicalize the server-issued id: prompts render it as [source-N],
-            # so a bracketed echo is faithful, not fabricated.
-            key = evidence.chunk_id.strip().strip("[]").strip()
-            chunk = context_by_id.get(key)
-            if chunk is None:
-                raise ProvenanceError(
-                    "evidence references a source which is not in the "
-                    "allowed context (fabricated or truncated away)"
-                )
-            quote = locate_quote(chunk, evidence.quote)
+            if isinstance(evidence, str):
+                selected = (spans or {}).get(evidence.strip().strip("[]"))
+                if selected is None or selected.chunk.chunk_id not in chunks:
+                    raise ProvenanceError("неизвестный ID доказательства в доступных источниках")
+                quote, chunk = selected, selected.chunk
+            else:
+                if spans is not None:
+                    raise ProvenanceError("выбери ID фрагмента, отмеченный в источниках")
+                # Previously saved drafts can still be checked against their original context.
+                key = evidence.chunk_id.strip().strip("[]").strip()
+                legacy_chunk = context_by_id.get(key)
+                if legacy_chunk is None:
+                    raise ProvenanceError("evidence source is not in the allowed context")
+                chunk = legacy_chunk
+                quote = locate_quote(chunk, evidence.quote)
             # Give the verifier and the reader the same governing sentence. The
             # item alone can name an action with no indication whether it is allowed.
             ancestor = chunk
@@ -210,17 +291,102 @@ def validate_claims(
                 parent = chunks.get(ancestor.list_heading_id)
                 if parent is None:
                     raise ProvenanceError("в контексте отсутствует вводная фраза перечня")
-                quotes.append(locate_quote(parent, parent.text))
+                heading_span = ancestor.table_heading_span or ancestor.scope_heading_span
+                if heading_span:
+                    left, right = heading_span
+                    if not parent.char_start <= left < right <= parent.char_end:
+                        raise ProvenanceError("заголовок вне границ родительского источника")
+                    quotes.append(quote_at_offsets(parent, left-parent.char_start,
+                                                   right-parent.char_start))
+                else:
+                    quotes.append(locate_quote(parent, parent.text))
                 ancestor = parent
             if not chunk.list_heading_id:
+                if chunk.scope_heading_span:
+                    left, right = chunk.scope_heading_span
+                    if (chunk.char_start <= left < right <= chunk.char_end
+                            and quote.char_start >= left):
+                        quotes.append(quote_at_offsets(chunk, left-chunk.char_start,
+                                                       right-chunk.char_start))
                 lead = local_list_lead(chunk.text, quote.char_start - chunk.char_start)
                 if lead:
                     quotes.append(locate_quote(chunk, lead))
+            lead_span = clause_reference_heading(claim.text, chunk.text,
+                                                 quote.char_start - chunk.char_start)
+            if lead_span:
+                quotes.append(quote_at_offsets(chunk, *lead_span))
             quotes.append(quote)
         # A model can also explicitly cite the heading, or cite several of its
         # children. Use the authoritative span just once per claim.
         quotes = list({(q.chunk.chunk_id, q.char_start, q.char_end): q for q in quotes}.values())
+        covered.update(_check_scoped_claim(claim, quotes, requested, labels))
         _check_item_permission(question, claim, quotes)
-        check_claim_consistency(claim, [q.quote_raw for q in quotes])
+        extractive = (render_conditional_rules and spans is not None
+                      and sum(len(q.quote_raw) for q in quotes) <= 1600)
+        if extractive and len(requested) < 2 and _INCLUSIVE_QUESTION.search(question):
+            # A general activity and its named special case may be separate list
+            # items. Preserve both when the model cited them under one lead.
+            parents = {q.chunk.list_heading_id for q in quotes if q.chunk.list_heading_id}
+            if len(parents) == 1:
+                heading = next(iter(parents))
+                children = {q.chunk.chunk_id for q in quotes if q.chunk.list_heading_id == heading}
+                if len(children) > 1 and {q.chunk.chunk_id for q in quotes} == children | {heading}:
+                    claim.text = "\n".join(_ws_normalize(q.quote_raw) for q in
+                                           sorted(quotes, key=lambda q: q.char_start))
+        try:
+            _check_rule_meaning(question, claim, quotes)
+        except ConditionalWordingError:
+            # Only server-issued, already selected excerpts may supply the wording.
+            # Keep separate selected consequences as well as the complete proviso.
+            # Re-run the same check: a clipped excerpt still cannot supply the rule.
+            if not extractive:
+                raise
+            rendered = "\n".join(_ws_normalize(q.quote_raw) for q in
+                                 sorted(quotes, key=lambda q: q.char_start))
+            if len(requested) > 1 and quotes[0].chunk.scope_label:
+                rendered = f"«{quotes[0].chunk.scope_label}». {rendered}"
+            claim.text = rendered
+            _check_scoped_claim(claim, quotes, requested, labels)
+            _check_rule_meaning(question, claim, quotes)
+        if render_conditional_rules and spans is not None:
+            add_defined_day(claim, quotes, chunks.values())
+        evidence_texts = [q.quote_raw for q in quotes]
+        names = tuple(q.chunk.scope_label for q in quotes if q.chunk.scope_label)
+        claim.text = clarify_unfilled_duration(claim.text, evidence_texts)
+        governing_lead = reversed_list_actor(claim.text, evidence_texts)
+        if governing_lead:
+            raise ProvenanceError(
+                f"Адресат действия назван исполнителем. Вводная фраза перечня: "
+                f"«{governing_lead}». Исправь роли или убери лишнее утверждение."
+            )
+        check_claim_consistency(claim, numeric_evidence_texts(quotes), question, names)
+        if unsupported_object_count(question, claim.text, evidence_texts):
+            raise ProvenanceError("цитаты указывают другую величину вместо количества объектов")
         located[index] = quotes
+    if len(requested) > 1 and covered != requested:
+        raise ProvenanceError("сравнение не охватывает все названные области")
     return located
+
+
+def remove_repeated_claims(
+    claims: list[Claim], located: dict[int, list[LocatedQuote]],
+) -> dict[int, list[LocatedQuote]]:
+    """Skip a whole statement already made with the same authoritative evidence."""
+    texts = [_ws_normalize(claim.text) for claim in claims]
+    refs = [{(q.chunk.chunk_id, q.char_start, q.char_end) for q in located[i]}
+            for i in range(len(claims))]
+    whole = [re.compile(r"(?:^|(?<=[.!?])\s+)" + re.escape(t) + r"(?=\s|$)") for t in texts]
+    kept = [
+        i for i in range(len(claims))
+        if not any(refs[i] <= refs[j] and whole[i].search(texts[j])
+                   and (len(texts[j]) > len(texts[i]) or j < i) for j in range(len(claims)))
+    ]
+    claims[:] = [claims[i] for i in kept]
+    return {index: located[i] for index, i in enumerate(kept)}
+
+def qualify_numeric_claims(claims: list[Claim], located: dict[int, list[LocatedQuote]]) -> None:
+    for index, claim in enumerate(claims):
+        try:
+            claim.text = qualify_numeric_text(claim.text, numeric_evidence_texts(located[index]))
+        except ValueError as exc:
+            raise ProvenanceError(str(exc)) from exc

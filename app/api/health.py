@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import socket
 from collections.abc import Awaitable
 from typing import Any
 from urllib.parse import quote
@@ -13,6 +14,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from app.config.settings import LLMProvider, Settings
+from app.domain.build import api_digest
 
 router = APIRouter(tags=["health"])
 logger = structlog.get_logger("api.health")
@@ -101,3 +103,8 @@ async def ready(request: Request) -> JSONResponse:
             "model_ready": components["local_models"] == components["llm"] == "ok",
         },
     )
+
+@router.get("/health/build")
+def build_info() -> dict[str, str]:
+    """Identify the process accepting requests, including uncommitted source changes."""
+    return {"instance": socket.gethostname(), "source_sha256": api_digest()}

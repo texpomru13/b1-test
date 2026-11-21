@@ -2,6 +2,7 @@ from dataclasses import replace
 
 import pytest
 from app.inference.contract import RerankDocument
+from app.qa.evidence import issue_evidence
 from app.qa.grounding import ProvenanceError, validate_claims
 from app.qa.schemas import Claim, Evidence
 from app.retrieval.clauses import list_rerank_documents, local_list_lead
@@ -79,3 +80,17 @@ def test_complete_rule_with_its_own_permission_can_stand_alone() -> None:
     cited = validate_claims([claim], {"item": source("child", item, 2, 161)},
                             question="Можно ли передавать отчёт?")
     assert len(cited[0]) == 1
+
+
+def test_general_and_specific_activities_remain_visible_in_inclusive_answer() -> None:
+    heading = source("heading", "3.4. Заказчику запрещено:", 1, 0)
+    first = replace(source("a", "3.4.1. Передавать материалы третьим лицам.", 1, 60),
+                    list_heading_id="heading")
+    second = replace(source("b", "3.4.3. Передавать фотографии через сеть.", 2, 220),
+                     list_heading_id="heading")
+    sources = {"lead": heading, "first": first, "second": second}
+    claim = Claim(text="Передача фотографий через сеть запрещена.",
+                  evidence=["second.1", "first.1"])
+    validate_claims([claim], sources, spans=issue_evidence(sources), render_conditional_rules=True,
+                    question="Можно ли передавать материалы, в том числе фотографии через сеть?")
+    assert claim.text.splitlines() == [heading.text, first.text, second.text]

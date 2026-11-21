@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "files": {
+    "gold.jsonl": "076d86c2f38e92a1c30dcac2f11a3824108728b6dc3a8fe8b62822c793aa73b6",
+    "fixtures/atlas.pdf": "3dfbc84c4dce168647de7cdc02b8af66a2d1da69809630c44f4fe71dfe9e8ae5",
+    "fixtures/birch.pdf": "0d41b3e24b384e0bc6d77784af00850f53c8cc222088694244c5fc3d5643df37",
+    "fixtures/fir.pdf": "764dd217a3a5d7cdea58af879f1671fccd12e15de703f7f9bea74b717acc33c7",
+    "fixtures/marina.pdf": "ea2b7b012f8262a2f2e725e3fb012fa61721e4c2cc2684f3324129d9881ddec2",
+    "fixtures/prism.pdf": "432c16359eb7ec835a0e77228f3507c35cebe94b7f786983b0f87302f9727a2e",
+    "fixtures/relay.pdf": "20e7738308e8f88d37d63323b35693003fbda0a0f46084ed530cff25a6e8a33e"
+  }
+}

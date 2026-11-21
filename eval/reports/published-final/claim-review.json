@@ -1,0 +1,904 @@
+{
+  "reviewer": "OpenAI Codex (ассистент, сверка ответов по утверждениям и зафиксированным данным)",
+  "reviewer_type": "model",
+  "rows": [
+    {
+      "req_id": "bulletin-01",
+      "input_sha256": "55f09ceb386f1e5c79050da192b7e085e013d6b64c6963b97a6625498c44b27d",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Банк России 5 июля 2024 года выпустил в обращение памятные серебряные монеты серии 'Российский спорт': 'Спартак' и 'Трудовые резервы'. [1][2][3][4][5]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "bulletin-02",
+      "input_sha256": "0fbd829284de52f676ead19f6064b4fff909942210741206227d7ab9c1407430",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Проба сплава: 925. [1][2][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Масса драгоценного металла в чистоте: 7,78 г. [1][2][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "bulletin-03",
+      "input_sha256": "7d750611fdafec95f43c00a966fe13d83f7389bc146b9fd1eeb72368708fafca",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Тираж монет «Спартак» и «Трудовые резервы» составляет 10,0 тыс. штук каждая. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Монеты «Спартак» и «Трудовые резервы» изготовлены качеством «пруф». [1][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Цитата [1] подтверждает качество обеих монет. Дополнительная ссылка [3] относится к другой монете."
+        }
+      ]
+    },
+    {
+      "req_id": "bulletin-04",
+      "input_sha256": "06f7e1d5d8eef7dc6618867ace2d95d4b5e557024b07d4cb22fa09a29316c8a6",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Каталожный номер монеты «Спартак» — 5109-0138. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Каталожный номер монеты «Трудовые резервы» — 5109-0139. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "bulletin-05",
+      "input_sha256": "39503ae7e7b70a6cebc2224ec1c5a61c6d843dc88107f19e8f18c9fd6cfcd1fa",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Показатель для второй декады июня составил 16,00%. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Показатель для третьей декады июня составил 16,09%. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "bulletin-06",
+      "input_sha256": "dd5e019cdfb4d6715481b4954dcdee990ac6c67f2da4be7771542ecbd60038b1",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Максимальная ставка, действующая при соблюдении определенных условий (в том числе регулярный оборот по банковской карте), не учитывается при определении максимальной процентной ставки для мониторинга. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "В июньский мониторинг максимальная ставка, привязанная к условию регулярного оборота по карте, не войдёт, так как она не является доступной любому клиенту без ограничений и предварительных условий. [3][1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "bulletin-07",
+      "input_sha256": "8b353ee49065154ccbe8155ca4af5e0549fe6364a0953a76a3b8dd73ce093fe1",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Для срока от 91 до 180 дней справочный показатель средней максимальной ставки по вкладам составляет 15,15%. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Для срока свыше 1 года справочный показатель средней максимальной ставки по вкладам составляет 15,05%. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "bulletin-08",
+      "input_sha256": "5efe5b3e30d57d5f7bde7193579827bf0a68e57bde7eaaf0011856e9120dd31b",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "bulletin-09",
+      "input_sha256": "60e43130ba926dfa4c16ec48ca78fab4937987e775890935a5d2fae95e958d98",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "bulletin-10",
+      "input_sha256": "6bfee508d0e6961943bb06570dfec3dd3e57ca51dbde639cf28101b7912a7c91",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "echr-01",
+      "input_sha256": "3fbc12621b5aa0d5ac6f27fd73c707447d3d51bb85b1eaf468259578bb6843d7",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Согласно статье 20 Конвенции, число судей, входящих в состав Суда, равно числу Высоких Договаривающихся Сторон. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "echr-02",
+      "input_sha256": "c739a0d8c06b3c99e3bda20865d0848c6a9decbdd186479e76b6131e54897bcb",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "echr-03",
+      "input_sha256": "cbae36f3b985b206d6a44a0cd57f56d82128b913c132f85a0b089fda9bafd5cf",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Судья избирается сроком на девять лет. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Судья не может быть переизбран. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "echr-04",
+      "input_sha256": "872de97a69ea24950851f3a4fb18b37b71f3c1d022af762d92d08e3eadbd04e7",
+      "required_covered": [
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "echr-05",
+      "input_sha256": "26a1c4213fa99baa6fc195cc90b5c67b7b2836cf5383fb1ea8a4792c789ec4ef",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "echr-06",
+      "input_sha256": "9e36bbe965f43131fe48756477f989aec3954c30a06b08627bf5ecf6edb71c28",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Коллегия в составе пяти судей Большой Палаты принимает решение о том, удовлетворять ли запрос о вынесении консультативного заключения. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Коллегия должна мотивировать решение об отказе в удовлетворении запроса. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "echr-07",
+      "input_sha256": "38af4a282f9dc26407d53ebbc3c9e0143b6ad86fbbe0a662db3dbdc41ae1c27a",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "echr-08",
+      "input_sha256": "d756099af99bf575e8ea99591daf74411915b91a81968296a85e3c3131339099",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "echr-09",
+      "input_sha256": "cf895dadf8f96b0bf97a803a61ee4c7a4de00853b2cc7942d5414d8369740ea0",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "echr-10",
+      "input_sha256": "ab678483593ba116a4b3808df8a473bb2fe09ac5950c59e932ad22d6288a409e",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "marrakesh-01",
+      "input_sha256": "88c96f3df8b5f22fb6309406f1b13575d9f657769925ae04549ce26165b97cab",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Международное бюро ВОИС создаёт пункт доступа к информации. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Пункт доступа к информации создаётся для содействия трансграничному обмену экземплярами в доступном формате. [2]",
+          "verdict": "unsupported",
+          "critical": false,
+          "reason": "В собственной цитате [2] сформулирована цель деятельности сторон. Связь цели именно с пунктом доступа содержится в соседней цитате [1], приложенной к первому утверждению."
+        },
+        {
+          "text": "Пункт доступа к информации создаётся для поощрения добровольного обмена информацией в целях оказания помощи уполномоченным органам в идентификации друг друга. [2]",
+          "verdict": "unsupported",
+          "critical": false,
+          "reason": "Цитата [2] говорит о содействии идентификации органов и обмену информацией, но не называет пункт доступа. Для утверждения нужны [1] и [2] вместе."
+        }
+      ]
+    },
+    {
+      "req_id": "marrakesh-02",
+      "input_sha256": "3a9f5b9ea9c2831c6650d08c13dac73bfceebd561305b4fa8e472dc79b06d32d",
+      "required_covered": [
+        false,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Определение произведения в статье 2(a) распространяется на аудиокниги. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Ответ подтверждает прямо заданный частный случай. В составном эталонном факте также указаны произведения в аудиоформе в целом, эта часть в тексте ответа отсутствует."
+        },
+        {
+          "text": "Это разъяснение содержится в Согласованном заявлении в отношении статьи 2(a). [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "marrakesh-03",
+      "input_sha256": "2ce37bf1600a1a701ab44c651a946adb8d98881eb07ce5a26380c8d8f6d59b6e",
+      "required_covered": [
+        true,
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Межправительственная организация должна заявить, что она имеет компетенцию и собственную обязательную для всех государств-членов такой организации нормативную базу по вопросам, регулируемым настоящим Договором. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Межправительственная организация должна заявить, что она должным образом уполномочена в соответствии с ее внутренними процедурами стать участницей настоящего Договора. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "marrakesh-04",
+      "input_sha256": "503904645744a06cfad94a09dae172af9c4b07b5631de3c1c5f5359f244ec3d1",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "При применении ограничений и исключений, предусмотренных Договором, Договаривающиеся стороны прилагают усилия для защиты неприкосновенности частной жизни бенефициаров на равной основе с другими. [1][2][3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Цитата [1] прямо подтверждает принцип. Дополнительная [2] содержит заголовки других статей."
+        }
+      ]
+    },
+    {
+      "req_id": "marrakesh-05",
+      "input_sha256": "badbf0bf48d2d8f3c8c8d05861379fef5e6141d0dfda95b5c5ecb76edc23477f",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Порогом запуска отсчёта до вступления договора в силу является сдача на хранение 20 правомочными сторонами документов о ратификации или присоединении. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Цитата [1] подтверждает число и вид документов. Дополнительная [2] перечисляет заголовки."
+        },
+        {
+          "text": "Период ожидания (время до вступления договора в силу) составляет три месяца после сдачи документов на хранение. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Три месяца указаны в [1]. Дополнительная [2] не нужна для этого факта."
+        }
+      ]
+    },
+    {
+      "req_id": "marrakesh-06",
+      "input_sha256": "5c822b584bab780df5766c56adbde0386d46e1d747e4a075c6b2de854fad9040",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Договор мог быть подписан любой правомочной стороной на Дипломатической конференции в Марракеше после его принятия. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "После подписания на конференции у стороны было один год для подписания договора в штаб-квартире ВОИС. [1]",
+          "verdict": "unsupported",
+          "critical": true,
+          "reason": "Правило открывает подписание после принятия на конференции, затем на год в штаб-квартире. Цитата не ставит годичный срок в зависимость от подписания договора на конференции."
+        }
+      ]
+    },
+    {
+      "req_id": "marrakesh-07",
+      "input_sha256": "5c62cf901b1c874edeeca97a32192c700c4851838cd5c7c714f834aac22f63dc",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Депозитарием Марракешского договора является Генеральный директор ВОИС. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "marrakesh-08",
+      "input_sha256": "04f5fcef6088b335fd62b50b6aa04b799e9fa9ceda5880ade14f008b6a2ab25e",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "marrakesh-09",
+      "input_sha256": "e85e6fa8ee3f21585232149a022c1668b60db974ecf026176c716c666fee2a29",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "marrakesh-10",
+      "input_sha256": "e6b9fa04bb3a15c12336492ae7077dfeb94953c8e930b2b032a007154c0afdc1",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "nairobi-01",
+      "input_sha256": "15db63e3703bfcfbec36e344d2bce40afe85627eb5a4800f9c94bb4558bd92e4",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "(4) Ни одно государство-участник настоящего Договора не обязано запрещать использование олимпийского символа, если он используется средствами массовой информации в целях информации об олимпийском движении или о деятельности, осуществляемой в рамках этого движения. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nairobi-02",
+      "input_sha256": "64f54fd63be897936aabccb5d4073bd792499f325aa2c9e58b1568301d3b48f8",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Договор был открыт для подписания в Найроби до 31 декабря 1982 года. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Договор был открыт для подписания в Женеве до 30 июня 1983 года. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nairobi-03",
+      "input_sha256": "15db514a32f915d7aaf1dd89f4502396e9501061584a56a7a1d2d6210bdab48d",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Договор вступает в силу через месяц после даты сдачи на хранение третьей ратификационной грамоты, документа о принятии или одобрении или акта о присоединении. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Это правило применяется в отношении первых трех государств, сдавших на хранение свои ратификационные грамоты, документы о принятии или одобрении или акты о присоединении. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nairobi-04",
+      "input_sha256": "767d85bbbf464430c8d046da73ea8378acb3682591a68d5ca979575fa01a4565",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Уведомление о выходе (денонсации) направляется Генеральному директору. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Денонсация вступает в силу через год после даты получения уведомления Генеральным директором. [3]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nairobi-05",
+      "input_sha256": "7eaae2d059ea1a681300470259d0a1e128866eab6708daef884b1d8a52fc2f52",
+      "required_covered": [
+        false,
+        true
+      ],
+      "claims": [
+        {
+          "text": "В олимпийском символе пять колец. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Число колец правильно. Эталонный факт включает также их переплетение, которое названо только в цитате."
+        },
+        {
+          "text": "Цвета колец слева направо: голубого, желтого, черного, зеленого и красного. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nairobi-06",
+      "input_sha256": "8d9d5eb7c19cf2ea610015f635a76b273e4ccf3b61d8c661925e8198c3622fed",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "nairobi-07",
+      "input_sha256": "a137b1fb12b30f0911b0c9cf8da0fbf72969818d43b2c935eb2c66f8907af7f6",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Подлинный экземпляр Договора имеет тексты на английском, испанском, русском и французском языках. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Все тексты подлинного экземпляра Договора равно аутентичны. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nairobi-08",
+      "input_sha256": "984054342ca3f7a27c4d074340c93a4f46c621be1d51e4b816d94dacbb124cbc",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "nairobi-09",
+      "input_sha256": "f556c3d9c7607e3fe94b87644de5cf283d8077062f6a49cb4ad7e47d45ca64b6",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "nairobi-10",
+      "input_sha256": "be4e3a01103a2e9eeb08145964aba4443466e8b79f002bbca8f2a2ff42220395",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "nice-01",
+      "input_sha256": "ff0d2c4b9f1aa36a730ec9c72a6ffbc1ae13e5f29c14e3a8225b2db3ed6f2eab",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Компетентные ведомства стран Специального союза включают в официальные документы и публикации о регистрации знаков номера классов Классификации, к которым относятся товары или услуги, для которых регистрируется знак. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nice-02",
+      "input_sha256": "decf01172823c6df7b82d6739ac865fa11c2b767d92f83038d616d077f577f17",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Страна Специального союза не обязана применять Классификацию именно как основную систему, так как оставляет за собой право использовать её в качестве основной или вспомогательной системы. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nice-03",
+      "input_sha256": "e1c295c6917c32fdea9ecb30b086b99d5ac115c00c60c2d1547c42eb438be026",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Для принятия решений Комитетом экспертов по поправкам к Классификации требуется большинство в четыре пятых присутствующих и участвующих в голосовании стран Специального союза. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "В расчет не принимаются голоса воздержавшихся. [1]",
+          "verdict": "unsupported",
+          "critical": false,
+          "reason": "Прикреплённая [1] даёт формулу четырёх пятых, но прямо не определяет учёт воздержавшихся. Это предусмотрено отдельным пунктом (8) в цитате [2], приложенной к другой части ответа."
+        }
+      ]
+    },
+    {
+      "req_id": "nice-04",
+      "input_sha256": "80bf974fbf78d44b4d2c48b8cd11ea1ecd9ec8a86de1a856e15edfb491f8d0c0",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Периодические издания, где публикуются сообщения об изменениях Классификации, определяются Ассамблеей Специального союза. [1][2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "nice-05",
+      "input_sha256": "36ff2f60bfef5253765094ab8c2dbe0745224ad9ab16b5ec230af535294b282f",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "nice-06",
+      "input_sha256": "a67c25781cb6b5bc7bcfa121a304c1990b4d18f92e5eafaa9eaeb0be29fc8fcf",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Решение о созыве конференций по пересмотру принимается Ассамблеей. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Ассамблея дает Международному бюро указания относительно подготовки конференций по пересмотру. [2]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Подготовительная роль уточняет распределение полномочий. Субъект указания, Ассамблея, и адресат, Международное бюро, правильно подтверждены цитатой [2]."
+        },
+        {
+          "text": "Международное бюро подготавливает конференции по пересмотру положений Соглашения, за исключением статей 5-8. [3][4]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Дополнительная подробность о подготовке конференции и статьях 5–8 подтверждена, для названия органа достаточно первого утверждения."
+        }
+      ]
+    },
+    {
+      "req_id": "nice-07",
+      "input_sha256": "553ddca73d257ff0b0e0c5f0f74194e585ae32e60c950bc2f82cb4915c756a40",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "nice-08",
+      "input_sha256": "624308da0fdf706e4a6fc6b940030805868c5c75b3b4bee04d0b37016e66cfec",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "nice-09",
+      "input_sha256": "a851d16723bb8451db1b8564ca13cacf2cbae3d093871f63b36845fa61f51850",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "nice-10",
+      "input_sha256": "48bcece49f41a0a48ce64bb202bc4debd1ac039db878d11adb807ae3f0b41fa7",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "space-01",
+      "input_sha256": "ceac249144dff336c1103959ebb7e0e710a7c29137f9ca4b6ad6d2132120600e",
+      "required_covered": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "space-02",
+      "input_sha256": "86d4534582dbb40bdf6bb8e4a269bce62a5cbf0fffa1303c4a27b0577f16771e",
+      "required_covered": [
+        false,
+        false
+      ],
+      "claims": []
+    },
+    {
+      "req_id": "space-03",
+      "input_sha256": "3a821721e8b2d3ccf1d4335c8a823c96802ac7dafd0eb92d2df3c7dfdd6c0c51",
+      "required_covered": [
+        true
+      ],
+      "claims": [
+        {
+          "text": "Если в отношении космического объекта имеются два или более запускающих государств, они совместно определяют, какое из них зарегистрирует этот объект. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "При совместном определении регистрирующего государства учитываются положения статьи VIII Договора о принципах деятельности государств по исследованию и использованию космического пространства, включая Луну и другие небесные тела. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "При совместном определении регистрирующего государства учитываются соответствующие соглашения, заключенные или могущие быть заключенными между запускающими государствами по вопросу о юрисдикции и контроле над космическим объектом и любым его экипажем. [1]",
+          "verdict": "unsupported",
+          "critical": true,
+          "reason": "Цитата требует определять государство регистрации без ущерба для существующих или будущих соглашений о юрисдикции. Простое требование учитывать соглашения меняет правовой смысл этой оговорки. Обязанность учитывать в цитате относится к положениям статьи VIII."
+        }
+      ]
+    },
+    {
+      "req_id": "space-04",
+      "input_sha256": "7c5477056e654023b97fd891076f438388356fcb314d00ae7eb83760aba16143",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Комиссия выносит свое решение или определение не позднее, чем через год с даты ее создания. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Комиссия может продлить срок вынесения решения, если сочтет это необходимым. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "space-05",
+      "input_sha256": "0c2be50840eec96b6f719ca2f999a92ed7ec95042919aca6fb7c84044fc392f7",
+      "required_covered": [
+        true,
+        false
+      ],
+      "claims": [
+        {
+          "text": "Если стороны не достигли договоренности о том, что решение Комиссии является окончательным и обязательным, Комиссия выносит окончательное определение рекомендательного характера. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Рекомендательный характер указан верно. В обязательных условиях рубрики также предусмотрено рассмотрение в духе доброй воли, оно осталось только в доказательстве."
+        }
+      ]
+    },
+    {
+      "req_id": "space-06",
+      "input_sha256": "a04e90d7c82480f74df7e4bb5d39835b0d544629954fe268426234ccb4a47cc3",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Расходы, связанные с работой Комиссии по рассмотрению претензий, распределяются поровну между сторонами, если Комиссия не выносит иного решения. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        },
+        {
+          "text": "Комиссия может вынести иное решение относительно распределения расходов. [1]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "req_id": "space-07",
+      "input_sha256": "1a205bfb4ec837f10b5cd67c63422eb7790084c2f8eca4819028339f19eb0194",
+      "required_covered": [
+        true,
+        true
+      ],
+      "claims": [
+        {
+          "text": "Договаривающаяся Сторона должна информировать власти, осуществившие запуск, а также Генерального секретаря Организации Объединенных Наций о принимаемых ею мерах и о достигаемых результатах. [1][2][3][4]",
+          "verdict": "supported",
+          "critical": false,
+          "reason": "Состав получателей и предмет сообщения подтверждаются [1]. Дополнительные [3] и [4] описывают возврат космического объекта и опасные явления, а не отчёт о мерах спасения."
+        }
+      ]
+    },
+    {
+      "req_id": "space-08",
+      "input_sha256": "0f50695e185530cd7fd47ebdfde49b51126210d51be0e1b7541ac47f08bd9f1d",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "space-09",
+      "input_sha256": "48cfc96426ee13b9621846ba42e215d8fcaa335c9c0019662653f9c27898db12",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "space-10",
+      "input_sha256": "e53881cc021d1000fb85c11df779856b1dbbd60e2ce8703014f151214673a5e0",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-bulletin-01->echr",
+      "input_sha256": "85e945b5518b752fb541b4be430e9f0e76f4eaba675778f171b05eb99908ef1a",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-echr-01->marrakesh",
+      "input_sha256": "ea23c308ee0230d246fae13c710b00885bfdc03ef67bcd7713bcc4c315462279",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-marrakesh-01->nairobi",
+      "input_sha256": "865e5c9b34f1ddfd9484b6671dfbab3999e5b4df8afb00baa8a69931c54075be",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-nairobi-01->nice",
+      "input_sha256": "b1ef4b677bfa0cfd4c2bef659d8bd7f8704a8ec8fd42af612657a44306ce142e",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-nice-01->space",
+      "input_sha256": "57b5abe16425a80b1bbd54256588d2d2b213e47e013abf605ee7858c68bf7920",
+      "required_covered": [],
+      "claims": []
+    },
+    {
+      "req_id": "iso-space-01->bulletin",
+      "input_sha256": "d217082eb14708232d6651c05c2b5d3ab28ea6d4de2ba4eb49bcfcf44844c0a5",
+      "required_covered": [],
+      "claims": []
+    }
+  ]
+}

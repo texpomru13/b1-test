@@ -18,7 +18,6 @@ from app.providers.factory import (
     build_chat_adapter,
 )
 from app.qa.assemble import assemble_answer
-from app.qa.counts import enforce_count_evidence
 from app.qa.workflow import (
     OUTCOME_ANSWERED,
     OUTCOME_NOT_FOUND,
@@ -140,9 +139,7 @@ async def ask_question(
 
     outcome = state.outcome
     if outcome == OUTCOME_ANSWERED:
-        response = enforce_count_evidence(body.question, assemble_answer(state))
-        if not response.found:
-            outcome = OUTCOME_NOT_FOUND
+        response = assemble_answer(state)
     elif outcome == OUTCOME_NOT_FOUND:
         response = AnswerResponse(answer=NO_ANSWER_MESSAGE, found=False, citations=[])
     else:  # OUTCOME_INVALID_OUTPUT
@@ -187,4 +184,5 @@ def _build_diagnostics(
         },
         branch_counts_source=diag.branch_counts_source,
         diagnostic_warnings=list(diag.diagnostic_warnings),
+        refusal_stage=state.refusal_stage,
     )
