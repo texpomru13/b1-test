@@ -286,3 +286,19 @@ async def test_second_read_fails_closed_for_an_uncorroborated_answer() -> None:
     result = await run_qa(make_deps(adapter, [rule]), scope=SCOPE, debug=False,
                           question="Можно ли по временному пропуску посетителя войти в ангар?")
     assert result.outcome == OUTCOME_NOT_FOUND and result.draft is None
+
+
+async def test_invalid_draft_can_be_repaired_with_a_verified_source_selection() -> None:
+    rule = "Дежурный регистратор ведёт журнал заявок. Доступ к сведениям журнала открыт."
+    invalid = {"answerable": False, "claims": [{"text": rule, "evidence": ["source-1.1"]}],
+               "missing_information": ["условия доступа"]}
+    adapter = ScriptedAdapter([
+        invalid, {"passages": ["source-1.1", "source-1.2"], "polarity": "rule"},
+        {"coverage": "full", "verdicts": [{"claim_index": 0, "verdict": "supported"},
+                                          {"claim_index": 1, "verdict": "supported"}]},
+    ])
+    result = await run_qa(make_deps(adapter, [rule]), scope=SCOPE, debug=False,
+                          question="Кто ведёт журнал заявок и каков доступ к сведениям журнала?")
+    assert result.outcome == OUTCOME_ANSWERED and result.llm_calls == 3
+    assert "регистратор" in assemble_answer(result).answer
+    assert "открыт" in assemble_answer(result).answer

@@ -8,6 +8,7 @@ import io
 import json
 import math
 import os
+import random
 import subprocess
 import sys
 import tarfile
@@ -27,25 +28,62 @@ def raw_rows(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text().splitlines() if line]
 
 
-def frozen_selection() -> dict:
-    fixed = load(DEST / "plan.json")
+def frozen_selection(study: Path = DEST) -> dict:
+    fixed = load(study / "plan.json")
+    if study.name == "resolution":
+        previous = load(DEST / "plan.json")
+        original = unique(previous["requests"], "req_id")
+        reviewed = {}
+        files = [DEST / "plan.json", DEST / "result.json"]
+        for series in SERIES:
+            score_file = DEST / "series" / series / "result.json"
+            group = load(score_file)
+            if fixed["baseline_app_commit"] != group["app_commit"]:
+                raise ValueError("previous answers came from a different application build")
+            files.append(score_file)
+            for r in group["requests"]:
+                if r["expected_found"]:
+                    reviewed[r["req_id"]] = r
+        hashes = {str(f.relative_to(ROOT)): sha(f) for f in files}
+        passed = sorted(key for key, row in reviewed.items() if row["passed"])
+        failed = sorted(set(reviewed) - set(passed))
+        controls = random.Random(int(fixed["seed_hex"], 16)).sample(
+            passed, math.ceil(0.30 * len(passed))
+        )
+        rows = [
+            dict(original[key], stratum=stratum, baseline_verdict=verdict,
+                 baseline_found=reviewed[key]["found"])
+            for keys, stratum, verdict in ((failed, "incomplete", "incomplete"),
+                                          (controls, "complete_control", "complete"))
+            for key in keys
+        ]
+        if (fixed["baseline_files_sha256"] != hashes or fixed["sorted_complete_ids"] != passed
+                or fixed["requests"] != rows
+                or fixed["expected_answerable_population"] != len(reviewed)):
+            raise ValueError("resolution sample differs from its baseline or frozen draw")
+        return fixed
     if plan((DEST / "seed.txt").read_text().strip()) != fixed:
         raise ValueError("selection or baseline differs from the committed plan")
     return fixed
 
 
-def packet(series: str, work: Path, run: str) -> tuple[dict, list[dict], list[str]]:
-    selected = [r for r in frozen_selection()["requests"] if r["series"] == series]
+def packet(series: str, work: Path, run: str,
+           study: Path = DEST) -> tuple[dict, list[dict], list[str]]:
+    selected = [r for r in frozen_selection(study)["requests"] if r["series"] == series]
     saved = work / "runs" / run
     manifest = load(saved / "manifest.json")
     records = unique(raw_rows(saved / "responses.jsonl"), "req_id")
     baseline_folder = ROOT / "eval/reports" / SERIES[series][0]
-    previous = load(baseline_folder / "manifest.json")
-    previous_review = load(baseline_folder / SERIES[series][1])
-    if series == "numbered":
-        old_labels = unique(previous_review["cases"], "case_id")
+    if study.name == "resolution":
+        baseline_folder = DEST / "series" / series
+        old_labels = unique(load(baseline_folder / "result.json")["requests"], "req_id")
     else:
-        old_labels = unique(previous_review["rows"], "req_id")
+        previous_review = load(baseline_folder / SERIES[series][1])
+        if series == "numbered":
+            old_labels = unique(previous_review["cases"], "case_id")
+        else:
+            old_labels = unique(previous_review["rows"], "req_id")
+    previous = load(baseline_folder / "manifest.json")
     manifest_hash = sha(saved / "manifest.json")
     gold = unique(raw_rows(work / "gold.jsonl"), "case_id")
     docs = load(work / "corpus.json")["docs"]
@@ -226,14 +264,15 @@ def archive_inputs(work: Path, names: list[str]) -> bytes:
     return compressed.getvalue()
 
 
-def score(series: str, work: Path, run: str, out: Path, archive: Path | None) -> dict:
-    manifest, rows, names = packet(series, work, run)
+def score(series: str, work: Path, run: str, out: Path, archive: Path | None,
+          study: Path = DEST) -> dict:
+    manifest, rows, names = packet(series, work, run, study)
     labels = load(out / "claim-review.json")
     results = assess(rows, labels)
     saved = work / "runs" / run
     result = {
         "series": series,
-        "plan_sha256": sha(DEST / "plan.json"),
+        "plan_sha256": sha(study / "plan.json"),
         "app_commit": manifest["git_commit"],
         "app_source_sha256": manifest["inputs"]["api_source_sha256"],
         "manifest_sha256": sha(saved / "manifest.json"),
@@ -354,15 +393,15 @@ def paired_and_estimated(strata: dict, population: int) -> dict:
     }
 
 
-def summarize(root: Path) -> dict:
-    fixed = frozen_selection()
+def summarize(root: Path, study: Path = DEST) -> dict:
+    fixed = frozen_selection(study)
     combined, builds = [], set()
     for series in SERIES:
         directory = root / series
         with tempfile.TemporaryDirectory() as tmp:
             work = Path(tmp).resolve()
             run, out = restore(series, directory, work)
-            result = score(series, work, run, out, None)
+            result = score(series, work, run, out, None, study)
             if (out / "result.json").read_bytes() != (directory / "result.json").read_bytes():
                 raise ValueError(f"{series}: scores differ on offline replay")
         combined.extend(result["requests"])
@@ -381,7 +420,7 @@ def summarize(root: Path) -> dict:
         raise ValueError("a group, question or common serving build is missing")
     aggregate = totals(combined)
     return {
-        "plan_sha256": sha(DEST / "plan.json"),
+        "plan_sha256": sha(study / "plan.json"),
         "app_commit": next(iter(builds))[0],
         "requests": len(combined),
         **aggregate,
@@ -391,6 +430,7 @@ def summarize(root: Path) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--study", choices=["completeness", "resolution"], default="completeness")
     sub = parser.add_subparsers(dest="action", required=True)
     for name in ("prepare", "score"):
         command = sub.add_parser(name)
@@ -401,11 +441,12 @@ def main() -> None:
         if name == "score":
             command.add_argument("--archive", type=Path)
     summary = sub.add_parser("summarize")
-    summary.add_argument("--root", type=Path, default=DEST / "series")
+    summary.add_argument("--root", type=Path)
     summary.add_argument("--output", type=Path)
     args = parser.parse_args()
+    study = DEST.parent / args.study
     if args.action == "summarize":
-        result = summarize(args.root)
+        result = summarize(args.root or study / "series", study)
         if args.output:
             write_once(args.output, encoded(result))
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -413,7 +454,7 @@ def main() -> None:
     work, out = args.work.resolve(), args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
     if args.action == "prepare":
-        _, rows, _ = packet(args.series, work, args.run)
+        _, rows, _ = packet(args.series, work, args.run, study)
         write_once(out / "review-input.json", encoded(rows))
         target = out / "claim-review.json"
         if not target.exists():
@@ -433,7 +474,7 @@ def main() -> None:
             raise ValueError("an existing review belongs to different inputs")
         print(len(rows), "requests prepared")
     else:
-        result = score(args.series, work, args.run, out, args.archive)
+        result = score(args.series, work, args.run, out, args.archive, study)
         print(json.dumps(result["strata"], ensure_ascii=False))
 
 

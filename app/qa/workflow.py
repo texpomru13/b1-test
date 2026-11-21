@@ -266,9 +266,15 @@ async def run_qa(
             return result
         except (ModelOutputInvalid, ValidationError) as exc:
             result.outcome = OUTCOME_INVALID_OUTPUT
-            logger.warning("draft_invalid", kind=type(exc).__name__)
+            fields = ([{"path": list(issue["loc"]), "type": issue["type"]}
+                       for issue in exc.errors(include_input=False, include_context=False)[:8]]
+                      if isinstance(exc, ValidationError) else [])
+            logger.warning("draft_invalid", kind=type(exc).__name__, stage=stage, fields=fields)
             result.refusal_stage = stage
             reason = "Выдай валидный JSON по схеме со всеми обязательными полями."
+            if (attempt == 0 and stage == "generation" and settings.max_repair_attempts
+                    and settings.max_llm_calls_per_question - result.llm_calls >= 2):
+                choices = reading_passages(question, spans)
         except ProvenanceError as exc:
             result.outcome = OUTCOME_NOT_FOUND
             logger.warning("provenance_rejected", error=str(exc)[:200])
