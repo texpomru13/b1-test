@@ -20,8 +20,8 @@ import re
 from dataclasses import dataclass
 
 from app.ingestion.rules import COMMITMENT, conditional_rules
-from app.ingestion.scopes import requested_scope_keys, scope_key
-from app.qa.completeness import add_defined_day
+from app.ingestion.scopes import belongs_to_request, requested_branches, requested_scope_keys
+from app.qa.completeness import add_defined_day, preserve_qualifications
 from app.qa.counts import unsupported_object_count
 from app.qa.numbers import (
     clause_reference_heading,
@@ -183,9 +183,16 @@ def _check_item_permission(question: str, claim: Claim, quotes: list[LocatedQuot
         raise ProvenanceError("перечисление действий без вводной фразы не устанавливает право")
 
 
-_NEGATIVE = re.compile(r"\b(?:запрещ\w*|запрет(?:а|ом)?|нельзя|не\s+(?:вправе|"
-                       r"допуска\w+|имеет права|может|разреш\w*))", re.I)
-_AFFIRMATIVE = re.compile(r"\b(?:вправе|разреш\w*|допуска\w*|можно|имеет право)", re.I)
+_BAN = r"запрещ\w*|запрет(?:а|ом)?|нельзя"
+_ALLOW = r"вправе|разреш\w*|допуска\w*|можно|может|могут|име(?:ет|ют) прав[оа]"
+_MODALITY = re.compile(
+    rf"\b(?:(?P<allow>не\s+(?:{_BAN}))|(?P<deny>не\s+(?:{_ALLOW})|{_BAN})"
+    rf"|(?P<permit>{_ALLOW}))\b", re.I,
+)
+
+
+def _polarities(text: str) -> set[bool]:
+    return {m.lastgroup != "deny" for m in _MODALITY.finditer(text)}
 
 
 def _rule_text(value: str) -> str:
@@ -214,7 +221,13 @@ def _check_rule_meaning(question: str, claim: Claim, quotes: list[LocatedQuote])
             # its words under a wider permission changes their logical scope.
             consent = re.match(r"^(с (?:письменного )?согласия [^,.:;]{1,100}?)"
                                r"(?:,|\s+(?:допуска|разреш|вправе))", rule, re.I)
-            required = consent[1] if consent and not _NEGATIVE.search(rule) else rule
+            # Consent alone is a complete condition only if no other limit follows.
+            required = consent[1] if (consent and False not in _polarities(rule)
+                                     and not re.search(
+                                         r"\b(?:только|кроме|если|при условии|при наличии|"
+                                         r"исключительно|за исключением)\b",
+                                         rule[consent.end():], re.I,
+                                     )) else rule
             if COMMITMENT.search(rule):
                 # For a conditional guarantee the answer may paraphrase the
                 # promised outcome, but must preserve the attached proviso.
@@ -226,46 +239,35 @@ def _check_rule_meaning(question: str, claim: Claim, quotes: list[LocatedQuote])
                     "перенеси целиком правило с условиями и исключениями в отдельный claim: "
                     + " ".join(rule.split())
                 )
-    if not _PERMISSION.search(text):
-        return
-    positive_evidence = _AFFIRMATIVE.search(_NEGATIVE.sub("", evidence))
-    if (_NEGATIVE.search(evidence) and not positive_evidence
-            and not _NEGATIVE.search(text) and _AFFIRMATIVE.search(text)):
+    asserted, supported = _polarities(text), _polarities(evidence)
+    if supported == {False} and asserted == {True}:
         raise ProvenanceError("источник запрещает указанное действие")
-    if positive_evidence and not _NEGATIVE.search(evidence) and _NEGATIVE.search(text):
+    if supported == {True} and asserted == {False}:
         raise ProvenanceError("цитата не устанавливает заявленный запрет")
 
 
 def _check_scoped_claim(
-    claim: Claim, quotes: list[LocatedQuote], requested: set[str], labels: set[str],
+    claim: Claim, quotes: list[LocatedQuote], requested: set[str], branches: set[str],
+    labels: set[str],
 ) -> set[str]:
-    cited = {scope_key(q.chunk.scope_label) for q in quotes if q.chunk.scope_label}
-    if requested and cited - requested:
+    paths = {q.chunk.scope_path for q in quotes if q.chunk.scope_path}
+    if any(not belongs_to_request(path, requested, branches) for path in paths):
         raise ProvenanceError("выбранная цитата относится к другой акции или приложению")
-    if len(requested) > 1 and cited:
-        named = requested_scope_keys(claim.text, labels)
+    cited = branches.intersection(key for path in paths for key in path)
+    if len(branches) > 1 and cited:
+        named = requested_scope_keys(claim.text, labels) & branches
         if len(cited) != 1 or named != cited:
             raise ProvenanceError("при сравнении укажи название и значение каждой области отдельно")
     return cited
 
 
-def validate_claims(
-    claims: list[Claim],
-    context_by_id: dict[str, ContextChunk],
-    *, question: str = "", spans: dict[str, LocatedQuote] | None = None,
-    render_conditional_rules: bool = False,
+def recover_evidence(
+    claims: list[Claim], context_by_id: dict[str, ContextChunk],
+    spans: dict[str, LocatedQuote] | None,
 ) -> dict[int, list[LocatedQuote]]:
-    """Deterministic §7.2 checks for every claim; returns located quotes per claim.
-
-    Raises ProvenanceError on ANY fabricated chunk id, unlocatable quote or
-    numeric/day-kind inconsistency — the caller decides between refusal and the
-    single allowed correction.
-    """
+    """Resolve issued evidence IDs and their governing citations in the final context."""
     located: dict[int, list[LocatedQuote]] = {}
     chunks = {chunk.chunk_id: chunk for chunk in context_by_id.values()}
-    labels = {chunk.scope_label for chunk in chunks.values() if chunk.scope_label}
-    requested = requested_scope_keys(question, labels)
-    covered: set[str] = set()
     for index, claim in enumerate(claims):
         quotes: list[LocatedQuote] = []
         for evidence in claim.evidence:
@@ -316,43 +318,74 @@ def validate_claims(
             if lead_span:
                 quotes.append(quote_at_offsets(chunk, *lead_span))
             quotes.append(quote)
-        # A model can also explicitly cite the heading, or cite several of its
-        # children. Use the authoritative span just once per claim.
-        quotes = list({(q.chunk.chunk_id, q.char_start, q.char_end): q for q in quotes}.values())
-        covered.update(_check_scoped_claim(claim, quotes, requested, labels))
+        # A heading automatically recovered above may also have been cited by ID.
+        located[index] = list({
+            (q.chunk.chunk_id, q.char_start, q.char_end): q for q in quotes
+        }.values())
+    return located
+
+
+def restore_claim_wording(
+    claims: list[Claim], located: dict[int, list[LocatedQuote]],
+    sources: dict[str, ContextChunk], question: str, *, extractive: bool,
+    complete_qualifications: bool = False,
+) -> None:
+    """Restore quoted wording at most once and attach the applicable glossary citation."""
+    labels = {label for chunk in sources.values()
+              for label in (*chunk.scope_ancestors, chunk.scope_label) if label}
+    requested = requested_scope_keys(question, labels)
+    branches = requested_branches(requested, {c.scope_path for c in sources.values()
+                                              if c.scope_path})
+    for index, claim in enumerate(claims):
+        quotes = located[index]
+        _check_scoped_claim(claim, quotes, requested, branches, labels)
+        repaired = False
+        if extractive and sum(len(q.quote_raw) for q in quotes) <= 1600:
+            inclusive = False
+            if len(branches) < 2 and _INCLUSIVE_QUESTION.search(question):
+                parents = {q.chunk.list_heading_id for q in quotes if q.chunk.list_heading_id}
+                if len(parents) == 1:
+                    heading = next(iter(parents))
+                    children = {q.chunk.chunk_id for q in quotes if q.chunk.list_heading_id}
+                    inclusive = (len(children) > 1
+                                 and {q.chunk.chunk_id for q in quotes} == children | {heading})
+            try:
+                _check_rule_meaning(question, claim, quotes)
+            except ConditionalWordingError:
+                repaired = True
+            if repaired or inclusive:
+                rendered = "\n".join(_ws_normalize(q.quote_raw) for q in
+                                     sorted(quotes, key=lambda q: q.char_start))
+                if len(branches) > 1 and quotes[0].chunk.scope_label:
+                    rendered = f"«{quotes[0].chunk.scope_label}». {rendered}"
+                claim.text = rendered
+                repaired = True
+        if complete_qualifications and not repaired:
+            preserve_qualifications([claim], {0: quotes})
+        claim.text = clarify_unfilled_duration(claim.text, [q.quote_raw for q in quotes])
+        if extractive:
+            add_defined_day(claim, quotes, sources.values())
+
+
+def validate_claim_facts(
+    claims: list[Claim], located: dict[int, list[LocatedQuote]],
+    sources: dict[str, ContextChunk], question: str,
+) -> None:
+    """Check the final text and its citations without changing either."""
+    labels = {label for chunk in sources.values()
+              for label in (*chunk.scope_ancestors, chunk.scope_label) if label}
+    requested = requested_scope_keys(question, labels)
+    branches = requested_branches(requested, {c.scope_path for c in sources.values()
+                                              if c.scope_path})
+    covered: set[str] = set()
+    for index, claim in enumerate(claims):
+        quotes = located[index]
+        covered.update(_check_scoped_claim(claim, quotes, requested, branches, labels))
         _check_item_permission(question, claim, quotes)
-        extractive = (render_conditional_rules and spans is not None
-                      and sum(len(q.quote_raw) for q in quotes) <= 1600)
-        if extractive and len(requested) < 2 and _INCLUSIVE_QUESTION.search(question):
-            # A general activity and its named special case may be separate list
-            # items. Preserve both when the model cited them under one lead.
-            parents = {q.chunk.list_heading_id for q in quotes if q.chunk.list_heading_id}
-            if len(parents) == 1:
-                heading = next(iter(parents))
-                children = {q.chunk.chunk_id for q in quotes if q.chunk.list_heading_id == heading}
-                if len(children) > 1 and {q.chunk.chunk_id for q in quotes} == children | {heading}:
-                    claim.text = "\n".join(_ws_normalize(q.quote_raw) for q in
-                                           sorted(quotes, key=lambda q: q.char_start))
-        try:
-            _check_rule_meaning(question, claim, quotes)
-        except ConditionalWordingError:
-            # Only server-issued, already selected excerpts may supply the wording.
-            # Keep separate selected consequences as well as the complete proviso.
-            # Re-run the same check: a clipped excerpt still cannot supply the rule.
-            if not extractive:
-                raise
-            rendered = "\n".join(_ws_normalize(q.quote_raw) for q in
-                                 sorted(quotes, key=lambda q: q.char_start))
-            if len(requested) > 1 and quotes[0].chunk.scope_label:
-                rendered = f"«{quotes[0].chunk.scope_label}». {rendered}"
-            claim.text = rendered
-            _check_scoped_claim(claim, quotes, requested, labels)
-            _check_rule_meaning(question, claim, quotes)
-        if render_conditional_rules and spans is not None:
-            add_defined_day(claim, quotes, chunks.values())
+        _check_rule_meaning(question, claim, quotes)
         evidence_texts = [q.quote_raw for q in quotes]
-        names = tuple(q.chunk.scope_label for q in quotes if q.chunk.scope_label)
-        claim.text = clarify_unfilled_duration(claim.text, evidence_texts)
+        names = tuple(label for q in quotes
+                      for label in (*q.chunk.scope_ancestors, q.chunk.scope_label) if label)
         governing_lead = reversed_list_actor(claim.text, evidence_texts)
         if governing_lead:
             raise ProvenanceError(
@@ -362,9 +395,21 @@ def validate_claims(
         check_claim_consistency(claim, numeric_evidence_texts(quotes), question, names)
         if unsupported_object_count(question, claim.text, evidence_texts):
             raise ProvenanceError("цитаты указывают другую величину вместо количества объектов")
-        located[index] = quotes
-    if len(requested) > 1 and covered != requested:
+    if len(branches) > 1 and covered != branches:
         raise ProvenanceError("сравнение не охватывает все названные области")
+
+
+def validate_claims(
+    claims: list[Claim],
+    context_by_id: dict[str, ContextChunk],
+    *, question: str = "", spans: dict[str, LocatedQuote] | None = None,
+    render_conditional_rules: bool = False,
+) -> dict[int, list[LocatedQuote]]:
+    """Validate a saved draft or a draft using server-issued evidence."""
+    located = recover_evidence(claims, context_by_id, spans)
+    restore_claim_wording(claims, located, context_by_id, question,
+                          extractive=render_conditional_rules and spans is not None)
+    validate_claim_facts(claims, located, context_by_id, question)
     return located
 
 

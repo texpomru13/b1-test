@@ -1,12 +1,11 @@
 """Regressions for qualifications, legal definitions and grounded rereading."""
 
-from types import SimpleNamespace
 
 from app.qa.completeness import add_defined_day, preserve_qualifications
 from app.qa.extractive import from_selection, reading_passages
 from app.qa.grounding import quote_at_offsets
 from app.qa.schemas import Claim
-from app.retrieval.day_definition import prioritize_day_definition
+from app.retrieval.day_definition import attach_day_definitions
 from app.retrieval.search import ContextChunk
 
 
@@ -51,11 +50,14 @@ def test_link_day_definition_to_bare_period_only_in_its_scope() -> None:
 
 
 def test_rank_formal_definition_alongside_direct_deadline_without_picking_other_usage() -> None:
-    points = [SimpleNamespace(id=str(i), payload={"text": t}) for i, t in enumerate(
-        ["Поставка занимает 7 дней.", "Отдел работает в рабочие дни.", "День, дни — рабочие дни."])]
-    assert prioritize_day_definition("В какой срок поставят товар?", points) == [
-        points[0], points[2], points[1]]
-    assert prioritize_day_definition("Какой цвет товара?", points) == points
+    deadline = chunk("Поставка занимает 7 дней.", "a")
+    usage = chunk("Отдел работает в рабочие дни.", "b")
+    definition = chunk("День, дни — рабочие дни.", "c")
+    units = {c.chunk_id: [c] for c in (deadline, usage, definition)}
+    attach_day_definitions("Какой цвет товара?", units)
+    assert units["a"] == [deadline]
+    attach_day_definitions("В какой срок поставят товар?", units)
+    assert units == {"a": [definition, deadline], "b": [usage], "c": [definition]}
 
 
 def test_second_read_is_anchored_to_evidence_or_skipped() -> None:

@@ -4,9 +4,9 @@
 
 Every request uses debug=true, so diagnostics (fused candidates with rerank
 scores, context ids, cited ids, stage timings, model ids) are recorded together
-with the raw HTTP status/body and the client-side wall time. Sequential on
-purpose: the API admits one question at a time (MAX_CONCURRENT_QA) and latency
-percentiles must not include queueing. Resumable: finished case ids are skipped.
+with the raw HTTP status/body and the client-side wall time. Sequential by
+default, with optional concurrency for correctness runs on a configured API.
+Resumable: finished case ids are skipped.
 
 Isolation probes: each entity-specific answerable case is ALSO asked against a
 different document (deterministic rotation); the expected outcome is found=false
@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -62,8 +63,14 @@ def main() -> None:
     parser.add_argument("--project", help="verify images and models of this Compose project")
     parser.add_argument("--case", nargs="+", help="run only these request IDs (includes iso- IDs)")
     parser.add_argument("--no-isolation", action="store_true")
+    parser.add_argument("--workers", type=int, default=1,
+                        help="simultaneous requests for correctness runs")
+    parser.add_argument("--admission-timeout-s", type=float, default=0,
+                        help="retry HTTP 429 admission responses for this long")
     parser.add_argument("--timeout-s", type=float, default=960.0)
     args = parser.parse_args()
+    if args.workers < 1 or args.admission_timeout_s < 0:
+        parser.error("--workers must be positive and --admission-timeout-s nonnegative")
 
     gold = load_jsonl(gold_path())
     fixtures = sorted({c["doc_fixture_id"] for c in gold})
@@ -94,18 +101,24 @@ def main() -> None:
     meta_path = run_dir / "meta.json"
     manifest_path = run_dir / "manifest.json"
     inputs = live_inputs(client, args.project, doc_ids)
+    service_concurrency = inputs["runtime"].get("settings", {}).get("max_concurrent_qa")
+    if service_concurrency is not None and args.workers > service_concurrency:
+        parser.error("--workers exceeds the service QA concurrency limit")
     ready = client.get("/health/ready")
     ready.raise_for_status()
     if meta_path.exists():
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        if meta["api"] != args.api or meta.get("inputs") != inputs:
+        if (meta["api"] != args.api or meta.get("inputs") != inputs
+                or meta.get("workers", 1) != args.workers
+                or meta.get("admission_timeout_s", 0) != args.admission_timeout_s):
             parser.error("the API, build, settings, documents or gold changed; use a new --run")
     else:
         if previous or manifest_path.exists():
             parser.error("saved responses are missing their provenance; use a new --run")
         meta = {"run": args.run, "api": args.api, "started_at": datetime.now(UTC).isoformat(),
                 "initial_split": args.split, "doc_ids": doc_ids, "ready": ready.json(),
-                "inputs": inputs, **environment()}
+                "inputs": inputs, "workers": args.workers,
+                "admission_timeout_s": args.admission_timeout_s, **environment()}
         write_json(meta_path, meta)
     if manifest_path.exists():
         saved_manifest = json.loads(manifest_path.read_text())
@@ -116,30 +129,48 @@ def main() -> None:
     print(f"{len(reqs)} requests, {len(done)} already done, {len(todo)} to run")
     if todo:
         manifest_path.unlink(missing_ok=True)  # interrupted runs keep their metadata and raw rows
-    with out_path.open("a", encoding="utf-8") as fh:
-        for n, req in enumerate(todo, 1):
-            doc_id = doc_ids[req["target_fixture"]]
-            started = time.monotonic()
-            record = dict(req, doc_id=doc_id,
-                          asked_at=datetime.now(UTC).isoformat(timespec="seconds"))
-            try:
+    def ask(req: dict) -> dict:
+        doc_id = doc_ids[req["target_fixture"]]
+        started = time.monotonic()
+        record = dict(req, doc_id=doc_id,
+                      asked_at=datetime.now(UTC).isoformat(timespec="seconds"))
+        rejections = []
+        try:
+            while True:
                 resp = client.post(f"/api/v1/documents/{doc_id}/questions",
                                    json={"question": req["question"], "debug": True})
-                record["http_status"] = resp.status_code
-                record["request_id"] = resp.headers.get("X-Request-ID")
-                try:
-                    record["body"] = resp.json()
-                except ValueError:
-                    record["body"] = {"_raw": resp.text[:2000]}
-            except httpx.HTTPError as exc:
-                record["http_status"] = None
-                record["body"] = {"_client_error": f"{type(exc).__name__}: {exc}"}
-            record["wall_ms"] = int((time.monotonic() - started) * 1000)
-            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-            fh.flush()
-            body = record["body"] if isinstance(record["body"], dict) else {}
-            print(f"[{n}/{len(todo)}] {req['req_id']}: {record['http_status']} "
-                  f"found={body.get('found')} {record['wall_ms']} ms", flush=True)
+                wait = started + args.admission_timeout_s - time.monotonic()
+                if resp.status_code != 429 or wait <= 0:
+                    break
+                rejections.append(resp.headers.get("X-Request-ID"))
+                time.sleep(min(5, wait))
+            record["http_status"] = resp.status_code
+            record["request_id"] = resp.headers.get("X-Request-ID")
+            try:
+                record["body"] = resp.json()
+            except ValueError:
+                record["body"] = {"_raw": resp.text[:2000]}
+        except httpx.HTTPError as exc:
+            record["http_status"] = None
+            record["body"] = {"_client_error": f"{type(exc).__name__}: {exc}"}
+        record["wall_ms"] = int((time.monotonic() - started) * 1000)
+        if rejections:
+            record["admission_rejection_request_ids"] = rejections
+        return record
+
+    with out_path.open("a", encoding="utf-8") as fh, ThreadPoolExecutor(args.workers) as pool:
+        pending = [pool.submit(ask, req) for req in todo]
+        try:
+            for n, future in enumerate(as_completed(pending), 1):
+                record = future.result()
+                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+                fh.flush()
+                body = record["body"] if isinstance(record["body"], dict) else {}
+                print(f"[{n}/{len(todo)}] {record['req_id']}: {record['http_status']} "
+                      f"found={body.get('found')} {record['wall_ms']} ms", flush=True)
+        finally:
+            for future in pending:
+                future.cancel()
 
     if live_inputs(client, args.project, doc_ids) != inputs:
         parser.error("the running build or inputs changed during this run; discard this result")

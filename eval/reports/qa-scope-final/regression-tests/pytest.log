@@ -1,0 +1,13 @@
+........................................................................ [ 19%]
+........................................................................ [ 38%]
+........................................................................ [ 57%]
+........................................................................ [ 76%]
+........................................................................ [ 96%]
+...............                                                          [100%]
+=============================== warnings summary ===============================
+tests/integration/test_lifecycle_redis.py::test_dispatcher_crash_window_no_second_logical_job
+  /Users/but/Projects/B1/.venv/lib/python3.12/site-packages/qdrant_client/qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+375 passed, 1 warning in 264.92s (0:04:24)

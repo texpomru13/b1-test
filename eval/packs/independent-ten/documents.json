@@ -1,0 +1,12 @@
+{
+  "climate-paris": "test_documents/independent-ten/climate-paris.pdf",
+  "corruption-un": "test_documents/independent-ten/corruption-un.pdf",
+  "environment-cbd": "test_documents/independent-ten/environment-cbd.pdf",
+  "global-agenda": "test_documents/independent-ten/global-agenda.pdf",
+  "marks-singapore": "test_documents/independent-ten/marks-singapore.pdf",
+  "marks-tlt": "test_documents/independent-ten/marks-tlt.pdf",
+  "rights-disability": "test_documents/independent-ten/rights-disability.pdf",
+  "trade-cisg": "test_documents/independent-ten/trade-cisg.pdf",
+  "trade-electronic": "test_documents/independent-ten/trade-electronic.pdf",
+  "trade-mediation": "test_documents/independent-ten/trade-mediation.pdf"
+}

@@ -1,0 +1,1123 @@
+{
+  "historic_false_refusals": {
+    "01-02": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "01-03": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "01-04": [
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "01-05": [
+      "eval/reports/runs/balanced-9b/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "01-06": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "02-03": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "02-05": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl"
+    ],
+    "02-06": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "02-07": [
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "03-05": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "03-06": [
+      "eval/reports/runs/audit-balanced/responses.jsonl"
+    ],
+    "04-05": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "05-02": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "05-03": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "05-05": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl"
+    ],
+    "05-06": [
+      "eval/reports/runs/balanced-9b/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "07-02": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "07-03": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "07-04": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "07-06": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "07-07": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "07-08": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "08-01": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "08-02": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "08-05": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "08-06": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl"
+    ],
+    "09-04": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "09-05": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl"
+    ],
+    "09-06": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "10-01": [
+      "eval/reports/catalog/responses.jsonl",
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "10-02": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "10-03": [
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "10-04": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "10-07": [
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "11-06": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "11-07": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "12-06": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl"
+    ],
+    "13-02": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "13-03": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "13-05": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "13-06": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "14-01": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "14-02": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "14-03": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "14-04": [
+      "eval/reports/runs/audit-balanced/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "14-05": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "14-06": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "14-07": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "14-08": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl",
+      "eval/reports/runs/balanced-9b-t0/responses.jsonl",
+      "eval/reports/runs/low-4b-off/responses.jsonl",
+      "eval/reports/submission/responses.jsonl"
+    ],
+    "14-09": [
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "15-02": [
+      "eval/reports/runs/balanced-9b-nothink/responses.jsonl",
+      "eval/reports/runs/balanced-9b-nothink-qm2/responses.jsonl"
+    ],
+    "15-05": [
+      "eval/reports/runs/low-4b-off/responses.jsonl"
+    ],
+    "echr-02": [
+      "eval/reports/published-final/responses.jsonl"
+    ],
+    "echr-04": [
+      "eval/reports/published-final/responses.jsonl"
+    ],
+    "echr-05": [
+      "eval/reports/published-final/responses.jsonl"
+    ],
+    "external-roerich-02": [
+      "eval/reports/completeness/series/external-six/responses.jsonl",
+      "eval/reports/offers/responses.jsonl"
+    ],
+    "external-troika-01": [
+      "eval/reports/offers/responses.jsonl"
+    ],
+    "nairobi-06": [
+      "eval/reports/completeness/series/published-six/responses.jsonl",
+      "eval/reports/published-final/responses.jsonl"
+    ],
+    "nice-05": [
+      "eval/reports/published-final/responses.jsonl"
+    ],
+    "space-01": [
+      "eval/reports/published-final/responses.jsonl"
+    ],
+    "space-02": [
+      "eval/reports/published-final/responses.jsonl"
+    ]
+  },
+  "answer_content_controls": [
+    "01-01",
+    "02-01",
+    "03-06",
+    "04-01",
+    "05-03",
+    "07-07",
+    "10-01",
+    "12-01",
+    "14-03",
+    "bulletin-01",
+    "contract-02-04",
+    "contract-04-04",
+    "contract-05-04",
+    "contract-07-04",
+    "contract-07-05",
+    "contract-11-06",
+    "echr-01",
+    "echr-04",
+    "external-moreon-07",
+    "external-roerich-02",
+    "external-roerich-03",
+    "external-roerich-06",
+    "external-troika-01",
+    "external-troika-02",
+    "external-troika-03",
+    "marrakesh-02",
+    "marrakesh-06",
+    "nairobi-03",
+    "nairobi-06",
+    "nairobi-07",
+    "nice-03",
+    "nice-06",
+    "space-01",
+    "space-02",
+    "space-05"
+  ],
+  "first_requests": [
+    "01-01",
+    "01-02",
+    "01-03",
+    "01-04",
+    "01-05",
+    "01-06",
+    "02-01",
+    "02-03",
+    "02-05",
+    "02-06",
+    "02-07",
+    "03-05",
+    "03-06",
+    "04-01",
+    "04-05",
+    "05-02",
+    "05-03",
+    "05-05",
+    "05-06",
+    "07-02",
+    "07-03",
+    "07-04",
+    "07-06",
+    "07-07",
+    "07-08",
+    "08-01",
+    "08-02",
+    "08-05",
+    "08-06",
+    "09-04",
+    "09-05",
+    "09-06",
+    "10-01",
+    "10-02",
+    "10-03",
+    "10-04",
+    "10-07",
+    "11-06",
+    "11-07",
+    "12-01",
+    "12-06",
+    "13-02",
+    "13-03",
+    "13-05",
+    "13-06",
+    "14-01",
+    "14-02",
+    "14-03",
+    "14-04",
+    "14-05",
+    "14-06",
+    "14-07",
+    "14-08",
+    "14-09",
+    "15-02",
+    "15-05",
+    "bulletin-01",
+    "contract-02-04",
+    "contract-04-04",
+    "contract-05-04",
+    "contract-07-04",
+    "contract-07-05",
+    "contract-11-06",
+    "echr-01",
+    "echr-02",
+    "echr-04",
+    "echr-05",
+    "external-moreon-07",
+    "external-roerich-02",
+    "external-roerich-03",
+    "external-roerich-06",
+    "external-troika-01",
+    "external-troika-02",
+    "external-troika-03",
+    "marrakesh-02",
+    "marrakesh-06",
+    "nairobi-03",
+    "nairobi-06",
+    "nairobi-07",
+    "nice-03",
+    "nice-05",
+    "nice-06",
+    "space-01",
+    "space-02",
+    "space-05"
+  ],
+  "historic_false_refusals_results": [
+    {
+      "case_id": "01-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "01-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "01-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "01-05",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "01-06",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "нельзя повышать цену в декабре и январе",
+        "в дальнейшем — не чаще 1 раза в месяц через дополнительную Спецификацию"
+      ]
+    },
+    {
+      "case_id": "02-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "02-05",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "к претензии обязательно прикладывается Акт о нарушении сохранности груза"
+      ]
+    },
+    {
+      "case_id": "02-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "02-07",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "при невыполнении Клиентом п. 5.2, 5.3 и 5.9"
+      ]
+    },
+    {
+      "case_id": "03-05",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "03-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "04-05",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "год отсчитывается с даты приема-передачи по Передаточному акту"
+      ]
+    },
+    {
+      "case_id": "05-02",
+      "outcome": "not_found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "1180 ₽ в месяц",
+        "20 Гб на диске"
+      ]
+    },
+    {
+      "case_id": "05-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "05-05",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "05-06",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "через ту же платёжную систему, иначе по договорённости"
+      ]
+    },
+    {
+      "case_id": "07-02",
+      "outcome": "not_found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "www.metafrax.ru/partners",
+        "раздел «Для наших партнеров»",
+        "в течение 7 дней с момента получения требования Заказчика"
+      ]
+    },
+    {
+      "case_id": "07-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "07-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "07-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "07-07",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "07-08",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "08-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "08-02",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "по тел. 243-01-36"
+      ]
+    },
+    {
+      "case_id": "08-05",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "расчетный период — один календарный месяц"
+      ]
+    },
+    {
+      "case_id": "08-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "09-04",
+      "outcome": "not_found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "не позднее 30 календарных дней",
+        "после получения требования с приложением всех необходимых документов"
+      ]
+    },
+    {
+      "case_id": "09-05",
+      "outcome": "not_found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "в письменной форме",
+        "в течение 20 дней со дня окончания действия договора",
+        "рассмотрение в течение 10 дней со дня получения претензии"
+      ]
+    },
+    {
+      "case_id": "09-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "10-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "10-02",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "уведомление об отказе — в течение 3 рабочих дней со дня принятия решения"
+      ]
+    },
+    {
+      "case_id": "10-03",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "выплата равна разнице между размером убытка и размером франшизы"
+      ]
+    },
+    {
+      "case_id": "10-04",
+      "outcome": "not_found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "незамедлительно, но не позднее 3 календарных дней",
+        "за исключением выходных и праздничных дней",
+        "сообщить Страховщику и в компетентные органы"
+      ]
+    },
+    {
+      "case_id": "10-07",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "11-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "11-07",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "12-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "13-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "13-03",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "перечисление денежных средств",
+        "на банковский счет Исполнителя"
+      ]
+    },
+    {
+      "case_id": "13-05",
+      "outcome": "not_found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "расторжение по соглашению Сторон",
+        "по требованию одной Стороны в случаях, предусмотренных законодательством РФ",
+        "при условии письменного уведомления контрагента до даты расторжения",
+        "расторжение в письменной форме, подписанное уполномоченными представителями"
+      ]
+    },
+    {
+      "case_id": "13-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "14-01",
+      "outcome": "not_found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "79,00 рублей с НДС",
+        "ежемесячный платеж",
+        "архив 1 день",
+        "хранение 1 клипа до 20 минут"
+      ]
+    },
+    {
+      "case_id": "14-02",
+      "outcome": "not_found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "3650,00 рублей с НДС",
+        "до 10 камер",
+        "до FullHD",
+        "архив 30 дней"
+      ]
+    },
+    {
+      "case_id": "14-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "14-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "14-05",
+      "outcome": "found",
+      "all_expected_facts": false,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": [
+        "по реквизитам счета из заявления"
+      ]
+    },
+    {
+      "case_id": "14-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "14-07",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "14-08",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "14-09",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "15-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "15-05",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "echr-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "echr-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "echr-05",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-roerich-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-troika-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "nairobi-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "nice-05",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "space-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "space-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    }
+  ],
+  "answer_content_controls_results": [
+    {
+      "case_id": "01-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "02-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "03-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "04-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "05-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "07-07",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "10-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "12-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "14-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "bulletin-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "contract-02-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "contract-04-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "contract-05-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "contract-07-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "contract-07-05",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "contract-11-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "echr-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "echr-04",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-moreon-07",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-roerich-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-roerich-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-roerich-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-troika-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-troika-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "external-troika-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "marrakesh-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "marrakesh-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "nairobi-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "nairobi-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "nairobi-07",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "nice-03",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "nice-06",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "space-01",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "space-02",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    },
+    {
+      "case_id": "space-05",
+      "outcome": "found",
+      "all_expected_facts": true,
+      "asserted_forbidden_fact": false,
+      "missing_expected_facts": []
+    }
+  ]
+}

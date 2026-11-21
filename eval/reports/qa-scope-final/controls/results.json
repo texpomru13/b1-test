@@ -1,0 +1,247 @@
+{
+  "build": {
+    "instance": "17121a5a4e9d",
+    "source_sha256": "47df87eeb4919cff238936684bc85e727f1eb3122899351716cb7111252197c0"
+  },
+  "doc_id": "5953b19402424f84b81a8027bc10f51b",
+  "source_sha256": "c05c7946001a5bacda054dbe40d8d5bff342ec079ff616851bd608dc6c33f8dc",
+  "controls": {
+    "offer-appendix-14": {
+      "question": "Сколько длится промопериод акции «Полярная» и с какого события он исчисляется?",
+      "status": 200,
+      "body": {
+        "answer": "Промопериод акции «Полярная» составляет 14 дней с даты подключения услуги. [1][2]",
+        "found": true,
+        "citations": [
+          {
+            "id": 1,
+            "text": "1.1. Промопериод составляет 14 дней с даты подключения услуги.",
+            "page": 4,
+            "page_to": 4,
+            "section": "1.1",
+            "chunk_id": "71206307-e14a-544e-b6c1-c74ae66a856a",
+            "char_start": 367,
+            "char_end": 429
+          },
+          {
+            "id": 2,
+            "text": "1.1. Условия промопериода акции указаны в Приложении № 1.",
+            "page": 2,
+            "page_to": 2,
+            "section": "1.1. Условия промопериода акции указаны в Приложении № 1.",
+            "chunk_id": "e52adb96-cd11-557e-a75a-e322415bb78a",
+            "char_start": 220,
+            "char_end": 277
+          }
+        ],
+        "diagnostics": {
+          "dense_returned": 11,
+          "sparse_returned": 7,
+          "fused_returned": 11,
+          "reranked_count": 5,
+          "context_count": 5,
+          "context_chunk_ids": [
+            "71206307-e14a-544e-b6c1-c74ae66a856a",
+            "eea98d89-24e3-5378-bd0e-12cc760fad6e",
+            "e52adb96-cd11-557e-a75a-e322415bb78a",
+            "f1f72a66-b865-564b-8dd3-ee7133ce2ac7",
+            "46c23f82-c536-534e-9c14-361116a6ac80"
+          ],
+          "cited_chunk_ids": [
+            "71206307-e14a-544e-b6c1-c74ae66a856a",
+            "e52adb96-cd11-557e-a75a-e322415bb78a"
+          ],
+          "rerank_scores": {
+            "71206307-e14a-544e-b6c1-c74ae66a856a": 0.9456685781478882,
+            "eea98d89-24e3-5378-bd0e-12cc760fad6e": 0.3313920497894287,
+            "e52adb96-cd11-557e-a75a-e322415bb78a": 0.11263096332550049,
+            "f1f72a66-b865-564b-8dd3-ee7133ce2ac7": 0.0006074404809623957,
+            "46c23f82-c536-534e-9c14-361116a6ac80": 1.6136316844495013e-05
+          },
+          "stage_ms": {
+            "encode": 421,
+            "fusion": 2,
+            "rerank": 735,
+            "context": 0
+          },
+          "model_ids": {
+            "embedding": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+            "reranker": "BAAI/bge-reranker-v2-m3",
+            "llm": "qwen3.5:9b-q4_K_M"
+          },
+          "token_usage": {
+            "input_tokens": 2371,
+            "output_tokens": 150,
+            "llm_calls": 2
+          },
+          "branch_counts_source": "diagnostic_replay",
+          "diagnostic_warnings": [],
+          "refusal_stage": null
+        }
+      },
+      "request_id": "9979834975974149bf531aa812a79fe9",
+      "passed": true
+    },
+    "other-offer-28": {
+      "question": "Сколько длится промопериод акции «Рассвет» и с какого события он исчисляется?",
+      "status": 200,
+      "body": {
+        "answer": "Промопериод акции «Рассвет» составляет 28 дней с даты подключения услуги. [1][2]",
+        "found": true,
+        "citations": [
+          {
+            "id": 1,
+            "text": "1.1. Промопериод составляет 28 дней с даты подключения услуги.",
+            "page": 5,
+            "page_to": 5,
+            "section": "1.1",
+            "chunk_id": "b6b01e45-bc6e-536b-94a3-1b41a1effd24",
+            "char_start": 445,
+            "char_end": 507
+          },
+          {
+            "id": 2,
+            "text": "1.1. Условия промопериода акции указаны в Приложении № 2.",
+            "page": 3,
+            "page_to": 3,
+            "section": "1.1. Условия промопериода акции указаны в Приложении № 2.",
+            "chunk_id": "530f4ee5-cae8-5602-a0c2-68d2339d59f7",
+            "char_start": 294,
+            "char_end": 351
+          }
+        ],
+        "diagnostics": {
+          "dense_returned": 11,
+          "sparse_returned": 7,
+          "fused_returned": 11,
+          "reranked_count": 5,
+          "context_count": 5,
+          "context_chunk_ids": [
+            "b6b01e45-bc6e-536b-94a3-1b41a1effd24",
+            "28d9520f-b563-5c84-8fdc-99b8b307b5b1",
+            "530f4ee5-cae8-5602-a0c2-68d2339d59f7",
+            "938eeffc-c6ba-50b0-96f1-d65cf83b3c84",
+            "46c23f82-c536-534e-9c14-361116a6ac80"
+          ],
+          "cited_chunk_ids": [
+            "530f4ee5-cae8-5602-a0c2-68d2339d59f7",
+            "b6b01e45-bc6e-536b-94a3-1b41a1effd24"
+          ],
+          "rerank_scores": {
+            "b6b01e45-bc6e-536b-94a3-1b41a1effd24": 0.9172810912132263,
+            "28d9520f-b563-5c84-8fdc-99b8b307b5b1": 0.38037294149398804,
+            "530f4ee5-cae8-5602-a0c2-68d2339d59f7": 0.1239929348230362,
+            "938eeffc-c6ba-50b0-96f1-d65cf83b3c84": 0.000296226964564994,
+            "46c23f82-c536-534e-9c14-361116a6ac80": 1.61488787853159e-05
+          },
+          "stage_ms": {
+            "encode": 195,
+            "fusion": 2,
+            "rerank": 879,
+            "context": 0
+          },
+          "model_ids": {
+            "embedding": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+            "reranker": "BAAI/bge-reranker-v2-m3",
+            "llm": "qwen3.5:9b-q4_K_M"
+          },
+          "token_usage": {
+            "input_tokens": 2367,
+            "output_tokens": 150,
+            "llm_calls": 2
+          },
+          "branch_counts_source": "diagnostic_replay",
+          "diagnostic_warnings": [],
+          "refusal_stage": null
+        }
+      },
+      "request_id": "44b301db98a14a8d8fafb0fe6e4b0c76",
+      "passed": true
+    },
+    "priority-appendix-18": {
+      "question": "Какова применимая вместимость резервной цистерны и что входит в ее обслуживание?",
+      "status": 200,
+      "body": {
+        "answer": "Вместимость резервной цистерны составляет 18 л. [1] В обслуживание входит очистка цистерны. [2]",
+        "found": true,
+        "citations": [
+          {
+            "id": 1,
+            "text": "1.1. Вместимость резервной цистерны составляет 18 л.",
+            "page": 6,
+            "page_to": 6,
+            "section": "1.1",
+            "chunk_id": "0292f115-43af-5afe-a1ea-ce08c4c38bb9",
+            "char_start": 523,
+            "char_end": 575
+          },
+          {
+            "id": 2,
+            "text": "в обслуживание входит очистка цистерны.",
+            "page": 1,
+            "page_to": 1,
+            "section": null,
+            "chunk_id": "46c23f82-c536-534e-9c14-361116a6ac80",
+            "char_start": 72,
+            "char_end": 111
+          }
+        ],
+        "diagnostics": {
+          "dense_returned": 11,
+          "sparse_returned": 2,
+          "fused_returned": 11,
+          "reranked_count": 11,
+          "context_count": 8,
+          "context_chunk_ids": [
+            "46c23f82-c536-534e-9c14-361116a6ac80",
+            "0292f115-43af-5afe-a1ea-ce08c4c38bb9",
+            "71206307-e14a-544e-b6c1-c74ae66a856a",
+            "d4f66ba0-0bbb-5eb5-98e8-c9eceb94cb31",
+            "b6b01e45-bc6e-536b-94a3-1b41a1effd24",
+            "f1f72a66-b865-564b-8dd3-ee7133ce2ac7",
+            "e52adb96-cd11-557e-a75a-e322415bb78a",
+            "938eeffc-c6ba-50b0-96f1-d65cf83b3c84"
+          ],
+          "cited_chunk_ids": [
+            "0292f115-43af-5afe-a1ea-ce08c4c38bb9",
+            "46c23f82-c536-534e-9c14-361116a6ac80"
+          ],
+          "rerank_scores": {
+            "46c23f82-c536-534e-9c14-361116a6ac80": 0.9930250644683838,
+            "0292f115-43af-5afe-a1ea-ce08c4c38bb9": 0.8837817311286926,
+            "71206307-e14a-544e-b6c1-c74ae66a856a": 3.08451744785998e-05,
+            "d4f66ba0-0bbb-5eb5-98e8-c9eceb94cb31": 2.440847129037138e-05,
+            "b6b01e45-bc6e-536b-94a3-1b41a1effd24": 2.4115164706017822e-05,
+            "f1f72a66-b865-564b-8dd3-ee7133ce2ac7": 2.0482924810494296e-05,
+            "e52adb96-cd11-557e-a75a-e322415bb78a": 1.7586180547368713e-05,
+            "938eeffc-c6ba-50b0-96f1-d65cf83b3c84": 1.6741831132094376e-05,
+            "530f4ee5-cae8-5602-a0c2-68d2339d59f7": 1.634328691579867e-05,
+            "28d9520f-b563-5c84-8fdc-99b8b307b5b1": 1.619134854990989e-05,
+            "eea98d89-24e3-5378-bd0e-12cc760fad6e": 1.6177427824004553e-05
+          },
+          "stage_ms": {
+            "encode": 234,
+            "fusion": 3,
+            "rerank": 1742,
+            "context": 0
+          },
+          "model_ids": {
+            "embedding": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+            "reranker": "BAAI/bge-reranker-v2-m3",
+            "llm": "qwen3.5:9b-q4_K_M"
+          },
+          "token_usage": {
+            "input_tokens": 2610,
+            "output_tokens": 208,
+            "llm_calls": 2
+          },
+          "branch_counts_source": "diagnostic_replay",
+          "diagnostic_warnings": [],
+          "refusal_stage": null
+        }
+      },
+      "request_id": "237cda970a8d4e6caf5757c40c3e83d2",
+      "passed": true
+    }
+  }
+}

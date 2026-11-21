@@ -1,0 +1,36 @@
+{
+ "judge": "qwen3.6:27b-q4_K_M",
+ "split": "all",
+ "gold_sha256": "c1c4e388f1e97e7a420b4b691752b82be27e572487c2ac743d30125b14988166",
+ "coverage": {
+  "attempted_answerable": 220,
+  "valid_answerable": 220,
+  "failed_responses": 0,
+  "judged": 220
+ },
+ "fact_recall_all_answerable": {
+  "num": 459,
+  "den": 504,
+  "value": 0.9107
+ },
+ "complete_answers_all_answerable": {
+  "num": 195,
+  "den": 220
+ },
+ "fact_recall_found_only": {
+  "num": 459,
+  "den": 478
+ },
+ "answers_with_forbidden_fact": {
+  "num": 0,
+  "den": 220
+ },
+ "judge_errors": 0,
+ "false_positives": {
+  "n": 3,
+  "errors": 0,
+  "quotes_do_not_answer (hallucination)": 2,
+  "quotes_answer (possible gold error)": 1
+ },
+ "ragas": {}
+}

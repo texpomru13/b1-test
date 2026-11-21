@@ -327,4 +327,32 @@ async def test_structural_bridge_is_scoped_and_keeps_atomic_context_budget(k, fo
         bm25=FakeBm25(), length_fn=char_len,  # type: ignore[arg-type]
     )
     assert result.allowed_chunk_ids == expected
-    assert result.diagnostics.reranked_count == result.diagnostics.fused_returned == 2
+    assert result.diagnostics.fused_returned == 2
+    assert result.diagnostics.reranked_count == (1 if foreign else 2)
+
+
+@pytest.mark.parametrize(("limit", "expected"), [
+    (1, ["other"]), (2, ["definition", "deadline"]),
+])
+async def test_reranker_sees_deadline_and_definition_as_one_budgeted_unit(limit, expected):
+    deadline = _point("deadline", 0, "Товар поставляют в течение 7 дней.")
+    other = _point("other", 1, "Уведомление о поступлении отправляют в рабочее время.")
+    definition = _point("definition", 2, "День, дни — рабочие дни.")
+
+    class DefinitionReranker(FakeLM):
+        async def rerank(self, request):
+            by_id = {doc.id: doc.text for doc in request.documents}
+            assert deadline.payload["text"] in by_id["deadline"]
+            assert definition.payload["text"] in by_id["deadline"]
+            assert definition.payload["text"] not in by_id["other"]
+            return await super().rerank(request)
+
+    result = await hybrid_search(
+        question="В какой срок поставят товар?", scope=SCOPE,
+        settings=make_settings(context_top_k=limit),
+        qdrant=FakeQdrant([other, deadline, definition]),
+        local_models=DefinitionReranker({"deadline": .9, "other": .8, "definition": .2}),
+        bm25=FakeBm25(), length_fn=char_len,
+    )
+    assert result.allowed_chunk_ids == expected
+    assert list(result.diagnostics.rerank_scores) == ["deadline", "other", "definition"]

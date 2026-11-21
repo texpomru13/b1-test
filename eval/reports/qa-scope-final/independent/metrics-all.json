@@ -1,0 +1,141 @@
+{
+ "outcomes": {
+  "gold": {
+   "found": 52,
+   "not_found": 28
+  },
+  "isolation": {
+   "not_found": 10
+  }
+ },
+ "by_category": {
+  "no_answer": {
+   "num": 20,
+   "den": 20,
+   "value": 1.0
+  },
+  "source_fact": {
+   "num": 52,
+   "den": 60,
+   "value": 0.8667
+  }
+ },
+ "run": "final",
+ "split": "all",
+ "gold_sha256": "3f13784e7dd2b951359239f17ae1c795f4585a3961ab1efa4e4ac5ebf1b71020",
+ "n_requests": 90,
+ "n_gold": 80,
+ "n_gold_planned": 80,
+ "missing_gold": [],
+ "n_answerable": 60,
+ "n_no_answer": 20,
+ "n_isolation": 10,
+ "structured_validity_200": {
+  "num": 90,
+  "den": 90,
+  "value": 1.0
+ },
+ "citation_span_validity": {
+  "num": 85,
+  "den": 85,
+  "value": 1.0
+ },
+ "cross_doc_leakage_citations": {
+  "num": 0,
+  "den": 85,
+  "value": 0.0
+ },
+ "isolation_correct_not_found": {
+  "num": 10,
+  "den": 10,
+  "value": 1.0
+ },
+ "isolation_found_true": [],
+ "positive_hit_at_candidates": {
+  "num": 57,
+  "den": 60,
+  "value": 0.95
+ },
+ "all_spans_in_candidates": {
+  "num": 57,
+  "den": 60,
+  "value": 0.95
+ },
+ "context_evidence_coverage_all": {
+  "num": 55,
+  "den": 60,
+  "value": 0.9167
+ },
+ "context_evidence_coverage_any": {
+  "num": 55,
+  "den": 60,
+  "value": 0.9167
+ },
+ "mean_span_recall_context": 0.9167,
+ "ndcg@10_rerank": 0.9118,
+ "span_recall@1_rerank": 0.8667,
+ "span_recall@3_rerank": 0.9167,
+ "span_recall@5_rerank": 0.9167,
+ "span_recall@8_rerank": 0.9167,
+ "span_recall@20_rerank": 0.95,
+ "span_recall@60_rerank": 0.95,
+ "answerable_found": {
+  "num": 52,
+  "den": 60,
+  "value": 0.8667
+ },
+ "answerable_not_found": {
+  "num": 8,
+  "den": 60,
+  "value": 0.1333
+ },
+ "answerable_errors": {
+  "num": 0,
+  "den": 60,
+  "value": 0.0
+ },
+ "found_cites_gold_span": {
+  "num": 50,
+  "den": 52,
+  "value": 0.9615
+ },
+ "found_covers_all_gold_spans": {
+  "num": 48,
+  "den": 52,
+  "value": 0.9231
+ },
+ "correct_abstention_negatives": {
+  "num": 20,
+  "den": 20,
+  "value": 1.0
+ },
+ "negatives_errors": {
+  "num": 0,
+  "den": 20,
+  "value": 0.0
+ },
+ "latency_ms_200": {
+  "n": 90,
+  "p50": 62959,
+  "p95": 103470,
+  "max": 148283
+ },
+ "stage_ms_p50": {
+  "context": 3,
+  "encode": 862,
+  "fusion": 7,
+  "rerank": 37366
+ },
+ "stage_ms_p95": {
+  "context": 8,
+  "encode": 1593,
+  "fusion": 16,
+  "rerank": 73777
+ },
+ "provenance": {
+  "result_type": "replay",
+  "responses_sha256": "721d8550435a7691443713350a9d54a07c1292e87579ac24b09e1865c8283ad9",
+  "gold_sha256": "3f13784e7dd2b951359239f17ae1c795f4585a3961ab1efa4e4ac5ebf1b71020",
+  "live_manifest_sha256": "f8c85b2529efb2f1250d85b36484121c725f47152d5910384246a71c7d7de2e4"
+ }
+}

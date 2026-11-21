@@ -130,6 +130,7 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--skip-ragas", action="store_true")
     ap.add_argument("--workers", type=int, default=2)
+    ap.add_argument("--context-tokens", type=int, default=8192)
     args = ap.parse_args()
 
     gold = {c["case_id"]: c for c in load_jsonl(gold_path())}
@@ -170,7 +171,8 @@ def main() -> None:
     chat = ChatOllama(model=args.judge, base_url=args.ollama, temperature=0, seed=7,
                       reasoning=False, num_ctx=16384, num_predict=2048)
     chat_json = ChatOllama(model=args.judge, base_url=args.ollama, temperature=0, seed=7,
-                           reasoning=False, num_ctx=8192, num_predict=512, format="json")
+                           reasoning=False, num_ctx=args.context_tokens,
+                           num_predict=512, format="json")
 
     # ---- explicit fact check -------------------------------------------------
     facts_path = run_dir / "judge_facts.jsonl"

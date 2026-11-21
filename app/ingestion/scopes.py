@@ -11,7 +11,11 @@ _NAMED_HEADING = re.compile(
     r"^[ \t]*(?:\d+(?:\.\d+)*[.)]?\s+)?(?:маркетинговая\s+)?"
     r"(?:акция|тариф|программа|предложение|объект)\s+" + _QUOTED + r"\s*[.:]?\s*$", re.I,
 )
-_APPENDIX = re.compile(r"^\s*приложение\s*(?:№\s*)?\d+\b[^\n]{0,100}$", re.I)
+_APPENDIX = re.compile(
+    r"^[ \t]*приложение[ \t]*(?:№[ \t]*)?(\d+(?:\.\d+)*)\b"
+    r"(?=[ \t]*$|[ \t]*[.:—–-]|[ \t]+к\b|[ \t]*[«\"]|[ \t]+(?-i:[А-ЯЁA-Z]))"
+    r"[^\n]{0,100}$", re.I,
+)
 _COMMON = re.compile(r"^\s*(?:\d+[.)]?\s*)?общие (?:условия|положения|правила)"
                      r"\s+(?:для\s+)?всех\b", re.I)
 
@@ -21,6 +25,7 @@ class DocumentScope:
     scope_id: str
     scope_label: str
     scope_label_span: tuple[int, int]
+    appendix_number: str | None = None
 
 
 def scope_heading(text: str, start: int, line: str) -> DocumentScope | None:
@@ -32,10 +37,11 @@ def scope_heading(text: str, start: int, line: str) -> DocumentScope | None:
         if not match:
             left = start + len(line) - len(line.lstrip())
             return DocumentScope(f"offer-{start}", line.strip(), (left, left + len(line.strip())))
-    elif _APPENDIX.match(line):
+    elif (appendix := _APPENDIX.match(line)):
         label = line.strip()
         left = start + line.index(label)
-        return DocumentScope(f"appendix-{start}", label, (left, left + len(label)))
+        return DocumentScope(f"appendix-{start}", label, (left, left + len(label)),
+                             appendix[1])
     else:
         match = _NAMED_HEADING.match(line)
     if not match:
@@ -58,6 +64,54 @@ _EXPLICIT = re.compile(r"\b(?:акци[яиюй]|акций|тариф[аеу]?|
 _APPENDIX_REF = re.compile(r"\bприложени[еяиюй]\s*(?:№\s*)?(\d+(?:\.\d+)*)\b", re.I)
 
 
+def scope_ancestors(
+    text: str, regions: list[tuple[DocumentScope, int, int]],
+) -> dict[str, tuple[str, ...]]:
+    """Resolve links within this document. A reused number needs an explicit owner."""
+    scopes = {scope.scope_id: scope for scope, _, _ in regions}
+    appendices: dict[str, list[DocumentScope]] = {}
+    names: dict[str, list[DocumentScope]] = {}
+    for scope in scopes.values():
+        if scope.appendix_number:
+            appendices.setdefault(scope.appendix_number, []).append(scope)
+        else:
+            names.setdefault(scope_key(scope.scope_label), []).append(scope)
+    owners: dict[str, set[str]] = {}
+    parents: dict[str, set[str]] = {key: set() for key in scopes}
+    for group in appendices.values():
+        for child in group:
+            for owner_name in _EXPLICIT.finditer(child.scope_label):
+                child_owners = owners.setdefault(child.scope_id, set())
+                matches = names.get(scope_key(owner_name[1]), [])
+                if len(matches) == 1:
+                    child_owners.add(matches[0].scope_id)
+                    parents[child.scope_id].add(matches[0].scope_id)
+    for source, start, end in regions:
+        for ref in _APPENDIX_REF.finditer(text, start, end):
+            if source.scope_label_span[0] <= ref.start() < source.scope_label_span[1]:
+                continue
+            children = appendices.get(ref[1], [])
+            local = [child for child in children if source.scope_id in owners.get(
+                child.scope_id, set())]
+            # An appendix assigned to a different offer cannot be inherited by mention alone.
+            compatible = [child for child in children if child.scope_id not in owners]
+            candidates = local or compatible
+            if len(candidates) == 1 and candidates[0].scope_id != source.scope_id:
+                parents[candidates[0].scope_id].add(source.scope_id)
+
+    result = {}
+    for key in scopes:
+        seen = {key}
+        pending = list(parents[key])
+        while pending:
+            parent = pending.pop()
+            if parent not in seen:
+                seen.add(parent)
+                pending.extend(parents[parent] - seen)
+        result[key] = tuple(scopes[p].scope_label for p in scopes if p in seen and p != key)
+    return result
+
+
 def requested_scope_keys(text: str, labels: set[str]) -> set[str]:
     known = {scope_key(label) for label in labels}
     keys = known.intersection(scope_key(m[1]) for m in re.finditer(_QUOTED, text))
@@ -75,3 +129,17 @@ def requested_scope_keys(text: str, labels: set[str]) -> set[str]:
                    if (scope_key(label) + " ").startswith(prefix + " ")}
         keys.update(matches or {prefix})
     return keys
+
+
+def requested_branches(
+    requested: set[str], paths: set[tuple[str, ...]],
+) -> set[str]:
+    """An offer and its named appendix in the same question describe one branch."""
+    ancestors = {ancestor for key, *parents in paths if key in requested
+                 for ancestor in parents if ancestor != key}
+    return requested - ancestors or requested
+
+
+def belongs_to_request(path: tuple[str, ...], requested: set[str], branches: set[str]) -> bool:
+    return (not requested or not path or path[0] in requested
+            or not branches.isdisjoint(path))
