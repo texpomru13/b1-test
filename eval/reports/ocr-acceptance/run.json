@@ -1,0 +1,143 @@
+{
+  "run_type": "live_public_http_with_real_ocr_and_models",
+  "started_at": "2026-11-21T07:01:15.039322+00:00",
+  "api_build": {
+    "instance": "e1451694568d",
+    "source_sha256": "e0e8264211bd892de42de8dbfb73ad3286c944799e95f777b27c023f216a3c79"
+  },
+  "api_image": "sha256:488bc0ce9d17df63e06b4a077f6065e2c3f0c5d71630d27df45b4562717a36db",
+  "worker_image": "sha256:66500bb3ad9d95bc0835fa25004369dbd33e9ecfa5c64359b7e00be30175e774",
+  "versions": {
+    "tesseract": "tesseract 5.5.0",
+    "poppler": "pdftoppm version 25.03.0",
+    "languages": [
+      "eng",
+      "osd",
+      "rus"
+    ]
+  },
+  "sources": {
+    "original": "test_documents/06_Лицензия_Виртуальная_АТС.pdf",
+    "mixed": {
+      "pages": [
+        {
+          "file": "test_documents/15_Лицензия_Litender.pdf",
+          "physical_page": 1
+        },
+        {
+          "file": "test_documents/06_Лицензия_Виртуальная_АТС.pdf",
+          "physical_page": 3
+        }
+      ],
+      "builder": "pypdf.PdfWriter.add_page in the order above; native page + unchanged image page"
+    }
+  },
+  "documents": {
+    "mixed": {
+      "filename": "mixed-litender-ats.pdf",
+      "sha256": "b6c28afe33aa06ac94bcfa9650b10d2bc7b89a7185cb550495944c93bcebcd3e",
+      "upload_status": 202,
+      "doc_id": "b2fe3eb802114aa085cfe4b576b156c6",
+      "job_id": "95e3d0425bf04a43b9089c05d7d1514a",
+      "status": "succeeded",
+      "attempt": 1,
+      "submitted": "2026-11-21T07:01:15.072120+00:00",
+      "job_finished": "2026-11-21T07:04:28.856126+00:00",
+      "ready": true,
+      "pages": 2,
+      "ocr_pages": [
+        2
+      ],
+      "published_chunks": 25,
+      "canonical_sha256": "58a645d6cb2d4f908b18af55d91a47d96af173cd01cee1ab630a03fbf91ae8e6",
+      "visual_check_span": {
+        "page": 2,
+        "char_start": 6414,
+        "char_end": 6727
+      },
+      "accepted_run_id": "2a4f9bd25e054c4692da33d2e1e22313",
+      "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
+      "all_document_points": 25,
+      "document_run_count": 1,
+      "lease_present_after_completion": false
+    },
+    "original": {
+      "filename": "06_Лицензия_Виртуальная_АТС.pdf",
+      "sha256": "1c7539425bcb030d8599718d91690c7f6f443ce402c8dc33a89755b8d26d61fb",
+      "upload_status": 202,
+      "doc_id": "2cab5ef3acc641fca4794f6f7505c419",
+      "job_id": "f0c230abf4db4cb3aa3195e613a25fae",
+      "status": "succeeded",
+      "attempt": 1,
+      "submitted": "2026-11-21T07:01:15.114006+00:00",
+      "job_finished": "2026-11-21T07:04:59.173857+00:00",
+      "ready": true,
+      "pages": 7,
+      "ocr_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "published_chunks": 102,
+      "canonical_sha256": "8ab68d93a793ab8c92134512382d4f45da4a59e0405d6df04aed86206a2c6a47",
+      "visual_check_span": {
+        "page": 3,
+        "char_start": 10987,
+        "char_end": 11300
+      },
+      "accepted_run_id": "60e35bccbbca4c1cbe0d52c5be43df6c",
+      "index_fingerprint": "2f26d38d7c30c6b35c3c5d0bf15f6f032f340c30b965b3199a7259c1a0cc29d0",
+      "all_document_points": 102,
+      "document_run_count": 1,
+      "lease_present_after_completion": false
+    }
+  },
+  "visual_check": {
+    "reviewer": "agent, visual comparison against original raster",
+    "original_physical_page": 3,
+    "mixed_physical_page": 2,
+    "clause": "5.1",
+    "source_sentence_transcription": "В случае отсутствия в течение 5 (пяти) календарных дней со дня акцепта настоящей оферты у Лицензиата к Лицензиару письменных претензий/требований по вопросу предоставления прав использования ПО, права использования ПО по Договору признаются предоставленными надлежащим образом в соответствии с условиями Договора.",
+    "normalization_for_visual_comparison": "whitespace runs collapse to one; every non-whitespace character including digits matched",
+    "original_image_crop": "ats-page-3-clause-5-1.png",
+    "crop_sha256": "ba86d3c3ed135ffbda5a103d1302537dad30775201c15de58716daf56e1efd0f"
+  },
+  "question": {
+    "question": "По пункту 5.1 лицензионного договора «Виртуальная АТС», сколько календарных дней со дня акцепта оферты отводится лицензиату для письменных претензий по предоставлению права использования ПО?",
+    "http_status": 200,
+    "request_id": "b6be4d49a84246398c2ea29cc90431d2",
+    "doc_id": "b2fe3eb802114aa085cfe4b576b156c6",
+    "answer": "В случае отсутствия в течение 5 (пяти) календарных дней со дня акцепта настоящей оферты у Лицензиата к Лицензиару письменных претензий/требований по вопросу предоставления прав использования ПО, права использования ПО по Договору признаются предоставленными надлежащим образом в соответствии с условиями Договора. [1]",
+    "found": true,
+    "citations": [
+      {
+        "id": 1,
+        "text": "В случае отсутствия в течение 5 (пяти) календарных дней со дня акцепта настоящей оферты у\nЛицензиата к Лицензиару письменных претензий/требований по вопросу предоставления прав использования\nПО, права использования ПО по Договору признаются предоставленными надлежащим образом в\nсоответствии с условиями Договора.",
+        "page": 2,
+        "page_to": 2,
+        "section": "5.1",
+        "chunk_id": "d0fdb687-f349-5dd3-a8dd-4211e84a9b96",
+        "char_start": 6414,
+        "char_end": 6727,
+        "ocr_pages": [
+          2
+        ]
+      }
+    ],
+    "token_usage": {
+      "input_tokens": 2380,
+      "output_tokens": 186,
+      "llm_calls": 2
+    },
+    "model_ids": {
+      "embedding": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+      "reranker": "BAAI/bge-reranker-v2-m3",
+      "llm": "qwen3.5:9b-q4_K_M"
+    },
+    "finished_at": "2026-11-21T07:08:40.351594+00:00"
+  }
+}
