@@ -291,14 +291,23 @@ def validate_claims(
                 parent = chunks.get(ancestor.list_heading_id)
                 if parent is None:
                     raise ProvenanceError("в контексте отсутствует вводная фраза перечня")
-                if ancestor.table_heading_span:
-                    left, right = ancestor.table_heading_span
+                heading_span = ancestor.table_heading_span or ancestor.scope_heading_span
+                if heading_span:
+                    left, right = heading_span
+                    if not parent.char_start <= left < right <= parent.char_end:
+                        raise ProvenanceError("заголовок вне границ родительского источника")
                     quotes.append(quote_at_offsets(parent, left-parent.char_start,
                                                    right-parent.char_start))
                 else:
                     quotes.append(locate_quote(parent, parent.text))
                 ancestor = parent
             if not chunk.list_heading_id:
+                if chunk.scope_heading_span:
+                    left, right = chunk.scope_heading_span
+                    if (chunk.char_start <= left < right <= chunk.char_end
+                            and quote.char_start >= left):
+                        quotes.append(quote_at_offsets(chunk, left-chunk.char_start,
+                                                       right-chunk.char_start))
                 lead = local_list_lead(chunk.text, quote.char_start - chunk.char_start)
                 if lead:
                     quotes.append(locate_quote(chunk, lead))

@@ -2,7 +2,7 @@ from dataclasses import replace
 
 import pytest
 from app.qa.evidence import issue_evidence
-from app.qa.grounding import quote_at_offsets, validate_claims
+from app.qa.grounding import ProvenanceError, quote_at_offsets, validate_claims
 from app.qa.numbers import (
     clause_reference_heading,
     numeric_evidence_texts,
@@ -56,8 +56,12 @@ def test_referenced_local_clause_uses_only_its_nearest_actual_lead():
 
 def test_currency_requires_one_complete_row_and_its_own_heading():
     head = _chunk("header", "№ Позиция Ед. изм. Цена, руб-")
-    row = _chunk("row", "6 Комплект на 8 посещений шт. 1 870", 60, head.chunk_id)
-    other = _chunk("other", "7 Комплект на 9 посещений шт. 2100", 150, head.chunk_id)
+    def price_row(key, text, start):
+        return replace(_chunk(key, text, start, head.chunk_id),
+                       table_heading_span=(head.char_start, head.char_end))
+
+    row = price_row("row", "6 Комплект на 8 посещений шт. 1 870", 60)
+    other = price_row("other", "7 Комплект на 9 посещений шт. 2100", 150)
 
     def quote(chunk):
         return quote_at_offsets(chunk, 0, len(chunk.text))
@@ -74,6 +78,67 @@ def test_currency_requires_one_complete_row_and_its_own_heading():
                      [quote(head), quote_at_offsets(row, 5, len(row.text))],
                      [quote(head), quote(other), quote(row)]):
         assert unsupported_numbers(claim, numeric_evidence_texts(evidence), "")
+
+
+def test_wrapped_price_header_requires_its_own_rightmost_column_and_citation():
+    header = "№ Единица Цена,\nп/п Наименование услуги измерения руб."
+    item = "7 Комплект на 8 посещений шт. 730"
+    title = _chunk("head", header)
+    row = replace(_chunk("item", item, 100, title.chunk_id),
+                  table_heading_span=(0, len(header)))
+    sources = {"source-1": title, "source-2": row}
+    claim = Claim(text="Комплект на 8 посещений стоит 730 рублей.", evidence=["source-2.1"])
+    accepted = validate_claims([claim], sources, spans=issue_evidence(sources))[0]
+    assert [q.quote_raw for q in accepted] == [header, item]
+    assert unsupported_numbers("Комплект стоит 8 рублей.", numeric_evidence_texts(accepted), "")
+
+    # A currency below the price in the middle column cannot confer that
+    # currency on the terminal quantity. An unrelated tariff cannot supply it either.
+    ambiguous = ["№ Цена, Количество\nп/п Наименование руб. шт.",
+                 "№ Единица Цена,\nп/п Наименование Субсидия, руб.",
+                 "№ Единица Цена,\nп/п Наименование евро."]
+    for other_header in ambiguous:
+        assert unsupported_numbers(claim.text, [other_header + "\n" + item], "")
+    for other_row in [replace(row, list_heading_id="elsewhere"),
+                      replace(row, table_heading_span=(2, len(header))),
+                      replace(row, table_heading_span=None)]:
+        evidence = [accepted[0], quote_at_offsets(other_row, 0, len(item))]
+        assert unsupported_numbers(claim.text, numeric_evidence_texts(evidence), "")
+
+
+def test_scoped_rule_cites_only_its_actual_instrument_title():
+    body = "Решение направляется уполномоченному органу."
+    titles = "Договор № 71\nОкончание прежнего текста.\nДоговор № 34"
+    parent = _chunk("sections", titles)
+    interval = (titles.rindex("Договор № 34"), len(titles))
+    child = replace(_chunk("rule", body, len(titles) + 1, parent.chunk_id),
+                    scope_heading_span=interval)
+    sources = {"source-1": parent, "source-2": child}
+    spans = issue_evidence(sources)
+    claim = Claim(text="По договору № 34 решение направляют уполномоченному органу.",
+                  evidence=["source-2.1"])
+    heading, rule = validate_claims([claim], sources, spans=spans)[0]
+    assert (heading.quote_raw, heading.char_start, heading.char_end) == ("Договор № 34", *interval)
+    assert rule.quote_raw == body
+    claim.text = claim.text.replace("34", "71")
+    with pytest.raises(ProvenanceError, match="71"):
+        validate_claims([claim], sources, question="Кому направить решение по договору №71?",
+                        spans=spans)
+
+    # The same heading and the rule can also occupy a single retrieval chunk.
+    text = "Решение согласуется отдельно.\nДоговор № 34\n" + body
+    left = text.index("Договор")
+    local = replace(_chunk("local", text), scope_heading_span=(left, left + len("Договор № 34")))
+    sources = {"source-1": local}
+    spans = issue_evidence(sources)
+    claim.text = "По договору №34 решение направляют уполномоченному органу."
+    claim.evidence = [key for key, q in spans.items() if q.quote_raw == body]
+    assert [q.quote_raw for q in validate_claims([claim], sources, spans=spans)[0]] == [
+        "Договор № 34", body,
+    ]
+    claim.evidence = [key for key, q in spans.items() if q.quote_raw.startswith("Решение согла")]
+    with pytest.raises(ProvenanceError, match="34"):
+        validate_claims([claim], sources, spans=spans)
 
 
 def test_expiry_and_maximum_duration_need_separate_support():

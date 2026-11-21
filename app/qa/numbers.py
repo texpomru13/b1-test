@@ -52,8 +52,17 @@ _REGISTRATION = re.compile(
     r"(?:ООО\s+|АО\s+|ПАО\s+)?(?:составляет\s+)?(\d{6,})(?:\s*/\s*(\d{6,}))?\b", re.I,
 )
 _NUMBER_RE = re.compile(_NUMBER)
-_PRICE_COLUMN = re.compile(
-    r"\b(?:стоимость|цена)\s*[,(:]\s*(?:руб[.\-]?|рублей|₽)\)?(?:\s+с\s+НДС)?\s*$", re.I
+_PRICE_LABEL = r"\b(?:стоимость|цена|тариф)"
+_RUBLE_LABEL = r"(?:руб[.\-]?|рублей|₽)\)?(?:\s+с\s+НДС)?\s*$"
+_PRICE_COLUMN = re.compile(_PRICE_LABEL + r"\s*[,(:]\s*" + _RUBLE_LABEL, re.I)
+_PRICE_LINE_END = re.compile(_PRICE_LABEL + r"\s*[,(:]?\s*$", re.I)
+# While flattening a wrapped PDF header, labels of the *left* columns may
+# intervene before the unit beneath the rightmost price. Another measured
+# column (discount, quantity, weight, etc.) makes this association ambiguous.
+_WRAPPED_RUBLES = re.compile(
+    r"^\s*(?:(?:№|п/п|наименовани[ея]|номенклатура|услуг[аи]?|товар[аы]?|"
+    r"продукции|работ[ыа]?|позиции|ед\.|единиц[аы]|изм\.|измерения)[\s|,]+)*"
+    + _RUBLE_LABEL, re.I,
 )
 _ROW_PRICE = re.compile(r"\s(\d+(?:[.,]\d+)?)\s*$")
 
@@ -108,20 +117,33 @@ def clause_reference_heading(claim: str, text: str, offset: int) -> tuple[int, i
     return None
 
 
+def _ruble_price_column(lines: list[str], end: int) -> bool:
+    if _PRICE_COLUMN.search(lines[end]):
+        return True
+    return bool(end > 0 and _PRICE_LINE_END.search(lines[end - 1])
+                and _WRAPPED_RUBLES.match(lines[end]))
+
+
 def numeric_evidence_texts(quotes: list[LocatedQuote]) -> list[str]:
     """Recover a terminal currency cell using its verified, separately cited header."""
     texts = [q.quote_raw for q in quotes]
-    headers = {q.chunk.chunk_id: q for q in quotes if _PRICE_COLUMN.search(q.quote_raw)}
-    rows = [(q, headers[parent_id]) for q in quotes
-            if (parent_id := q.chunk.list_heading_id) is not None and parent_id in headers]
     # If a claim selects multiple rows, the verifier needs a draft identifying
     # each price with its own row. Never pool bare numeric cells across rows.
-    if len(rows) == 1:
-        row, header = rows[0]
-        text = row.quote_raw.strip()
-        if (header.char_end <= row.char_start and text == row.chunk.text.strip()
-                and "\n" not in text and _ROW_PRICE.search(text)):
-            texts.append(f"{header.quote_raw}\n{text}")
+    rows = [q for q in quotes if q.chunk.table_heading_span]
+    if len(rows) != 1:
+        return texts
+    row = rows[0]
+    text = row.quote_raw.strip()
+    if text != row.chunk.text.strip() or "\n" in text or not _ROW_PRICE.search(text):
+        return texts
+    for header in quotes:
+        if (header.chunk.chunk_id == row.chunk.list_heading_id
+                and (header.char_start, header.char_end) == row.chunk.table_heading_span
+                and header.char_end <= row.char_start):
+            lines = header.quote_raw.splitlines()
+            if lines and _ruble_price_column(lines, len(lines) - 1):
+                texts.append(f"{header.quote_raw}\n{text}")
+                break
     return texts
 
 
@@ -154,8 +176,9 @@ def _facts(text: str) -> set[NumericFact]:
     # In a text-layer table the price is often the rightmost cell under a
     # currency-bearing heading. Only carry that unit through contiguous data rows.
     price_column = False
-    for line in cleaned.splitlines():
-        if _PRICE_COLUMN.search(line):
+    lines = cleaned.splitlines()
+    for i, line in enumerate(lines):
+        if _ruble_price_column(lines, i):
             price_column = True
         elif price_column:
             if row := _ROW_PRICE.search(line):
@@ -331,8 +354,8 @@ def _price_terms(quote: str, price: NumericFact) -> set[str | None]:
     """Look up the rightmost price under its nearest currency-bearing table heading."""
     lines = quote.splitlines()
     terms: set[str | None] = set()
-    for i, line in enumerate(lines):
-        if not _PRICE_COLUMN.search(line):
+    for i in range(len(lines)):
+        if not _ruble_price_column(lines, i):
             continue
         # Table titles may wrap to a second line. Stop at the nearest table or
         # price title so a preceding table cannot lend its terms to the next one.
