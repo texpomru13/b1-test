@@ -22,6 +22,7 @@ from paths import ROOT
 
 sys.path.insert(0, str(ROOT))
 from app.config.settings import Settings
+from app.ingestion.chunker import ApproxTokenLength
 from app.providers.factory import build_chat_adapter
 from app.qa.assemble import assemble_answer
 from app.qa.workflow import OUTCOME_ANSWERED, QaDependencies, run_qa
@@ -46,7 +47,7 @@ async def replay(output: Path, ollama_url: str) -> None:
     adapter = build_chat_adapter(settings)
     # hybrid_search is the only substituted call. The sampled draft, source ID
     # resolution, deterministic checks and LLM verification all use current code.
-    deps = QaDependencies(settings, None, None, None, None, adapter)
+    deps = QaDependencies(settings, None, None, None, ApproxTokenLength(), adapter)
     with output.open("x", encoding="utf-8") as records:
         for line in inputs.read_text().splitlines():
             case = json.loads(line)
