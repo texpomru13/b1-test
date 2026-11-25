@@ -2,10 +2,8 @@
 
     cd eval && .venv/bin/python judge.py --run balanced-9b [--split all] [--limit N]
 
-Judge: LOCAL Ollama model (default qwen3.6:27b-q4_K_M, thinking disabled,
-temperature 0) — never the model under test, never a paid API. Safety rails:
-  * RAGAS telemetry disabled (RAGAS_DO_NOT_TRACK) and OPENAI_API_KEY removed from
-    the process, every metric gets the judge explicitly (no implicit default LLM).
+By default, an independent Ollama model evaluates the run. The explicit
+--judge-provider openai option runs fact and false-positive checks via OpenAI.
 RAGAS metrics (legacy single-turn API, ragas 0.4.3):
   faithfulness                  — response claims supported by the CONTEXT the
                                   model saw (found=true answers only)
@@ -23,7 +21,6 @@ from __future__ import annotations
 import os
 
 os.environ["RAGAS_DO_NOT_TRACK"] = "true"
-os.environ.pop("OPENAI_API_KEY", None)
 
 import argparse
 import hashlib
@@ -33,6 +30,9 @@ import statistics
 import sys
 import time
 import warnings
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from pathlib import Path
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -50,6 +50,7 @@ from ragas.metrics import (  # noqa: E402
 from ragas.run_config import RunConfig  # noqa: E402
 
 sys.path.insert(0, str(ROOT))
+from app.inference.openai_api import API_URL, JUDGE_MODEL, OpenAIJudge, auth_headers, sync_response  # noqa: E402
 from app.schemas.qa import AnswerResponse  # noqa: E402
 from pydantic import ValidationError  # noqa: E402
 
@@ -105,12 +106,12 @@ def numbered(items: list[str]) -> str:
     return "\n".join(f"{i + 1}. {x}" for i, x in enumerate(items)) or "(нет)"
 
 
-def judge_facts(llm: ChatOllama, case: dict, answer: str) -> dict:
+def judge_facts(ask: Callable[[str], str], case: dict, answer: str) -> dict:
     prompt = FACT_PROMPT.format(question=case["question"], answer=answer,
                                 expected=numbered(case["expected_facts"]),
                                 forbidden=numbered(case["forbidden_facts"]))
     for attempt in range(3):
-        raw = llm.invoke(prompt).content
+        raw = ask(prompt)
         try:
             data = json.loads(raw)
             exp = verdict_list(data["expected"], len(case["expected_facts"]))
@@ -125,13 +126,22 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", required=True)
     ap.add_argument("--split", default="all", choices=["all", "dev", "holdout"])
-    ap.add_argument("--judge", default="qwen3.6:27b-q4_K_M")
+    ap.add_argument("--judge")
+    ap.add_argument("--judge-provider", choices=("ollama", "openai"), default="ollama")
     ap.add_argument("--ollama", default="http://127.0.0.1:11434")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--skip-ragas", action="store_true")
     ap.add_argument("--workers", type=int, default=2)
     ap.add_argument("--context-tokens", type=int, default=8192)
     args = ap.parse_args()
+    cloud = args.judge_provider == "openai"
+    args.judge = args.judge or (JUDGE_MODEL if cloud else "qwen3.6:27b-q4_K_M")
+    if args.workers < 1:
+        ap.error("--workers must be positive")
+    if cloud and not args.skip_ragas:
+        ap.error("the OpenAI judge runs fact checks and requires --skip-ragas")
+    if not cloud:
+        os.environ.pop("OPENAI_API_KEY", None)
 
     gold = {c["case_id"]: c for c in load_jsonl(gold_path())}
     index = {json.loads(p.read_text(encoding="utf-8"))["doc_id"]:
@@ -164,41 +174,69 @@ def main() -> None:
                   if (s := json.loads(path.read_text())).get("judge")}
     if judge_meta.exists():
         identities.add(json.loads(judge_meta.read_text())["judge"])
+    if judge_meta.exists() and json.loads(judge_meta.read_text()).get(
+        "provider", "ollama",
+    ) != args.judge_provider:
+        ap.error("saved verdicts used a different provider; use a new --run")
     if identities - {args.judge}:
         ap.error(f"saved verdicts use a different judge {sorted(identities)}; use a new --run")
-    judge_meta.write_text(json.dumps({"judge": args.judge}), encoding="utf-8")
+    judge_meta.write_text(json.dumps({
+        "judge": args.judge, "provider": args.judge_provider,
+        **({"reasoning": "low"} if cloud else {}),
+    }), encoding="utf-8")
 
-    chat = ChatOllama(model=args.judge, base_url=args.ollama, temperature=0, seed=7,
-                      reasoning=False, num_ctx=16384, num_predict=2048)
-    chat_json = ChatOllama(model=args.judge, base_url=args.ollama, temperature=0, seed=7,
-                           reasoning=False, num_ctx=args.context_tokens,
-                           num_predict=512, format="json")
+    if cloud:
+        import httpx
+        from dotenv import dotenv_values
+
+        key = os.environ.get("OPENAI_API_KEY") or dotenv_values(ROOT / ".env").get("OPENAI_API_KEY")
+        if not key:
+            ap.error("--judge-provider openai requires OPENAI_API_KEY")
+        client = httpx.Client(base_url=API_URL, headers=auth_headers(key), timeout=120)
+        ask: Callable[[str], str] = OpenAIJudge(
+            args.judge, partial(sync_response, client, operation="judge"),
+        )
+    else:
+        client = None
+        chat_json = ChatOllama(model=args.judge, base_url=args.ollama, temperature=0, seed=7,
+                               reasoning=False, num_ctx=args.context_tokens,
+                               num_predict=512, format="json")
+
+        def ask_local(prompt: str) -> str:
+            content = chat_json.invoke(prompt).content
+            return content if isinstance(content, str) else ""
+
+        ask = ask_local
 
     # ---- explicit fact check -------------------------------------------------
     facts_path = run_dir / "judge_facts.jsonl"
     saved_facts = latest_rows(facts_path)
     t0 = time.monotonic()
-    with facts_path.open("a", encoding="utf-8") as fh:
-        for rec in recs:
-            case, body = gold[rec["case_id"]], rec["body"]
-            # A changed rubric or answer needs a new verdict even for the same request ID.
-            judge_input = [FACT_PROMPT, case["question"], case["expected_facts"],
-                           case["forbidden_facts"], body["found"], body["answer"]]
-            encoded = json.dumps(judge_input, ensure_ascii=False).encode()
-            input_hash = hashlib.sha256(encoded).hexdigest()
-            saved = saved_facts.get(rec["req_id"], {})
-            if saved.get("input_sha256") == input_hash and "error" not in saved:
-                continue
-            row = {"req_id": rec["req_id"], "case_id": case["case_id"],
-                   "found": body["found"], "input_sha256": input_hash}
-            if body.get("found"):
-                row.update(judge_facts(chat_json, case, MARKER.sub("", body["answer"])))
-            else:
-                row.update({"expected": [False] * len(case["expected_facts"]),
-                            "forbidden": [False] * len(case["forbidden_facts"]),
-                            "note": "found=false on an answerable case"})
-            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-            fh.flush()
+    def evaluate_fact(rec: dict) -> dict | None:
+        case, body = gold[rec["case_id"]], rec["body"]
+        judge_input = [FACT_PROMPT, case["question"], case["expected_facts"],
+                       case["forbidden_facts"], body["found"], body["answer"]]
+        encoded = json.dumps(judge_input, ensure_ascii=False).encode()
+        input_hash = hashlib.sha256(encoded).hexdigest()
+        saved = saved_facts.get(rec["req_id"], {})
+        if saved.get("input_sha256") == input_hash and "error" not in saved:
+            return None
+        row = {"req_id": rec["req_id"], "case_id": rec["case_id"],
+               "found": body["found"], "input_sha256": input_hash}
+        if body.get("found"):
+            row.update(judge_facts(ask, case, MARKER.sub("", body["answer"])))
+        else:
+            row.update({"expected": [False] * len(case["expected_facts"]),
+                        "forbidden": [False] * len(case["forbidden_facts"]),
+                        "note": "found=false on an answerable case"})
+        return row
+
+    with (facts_path.open("a", encoding="utf-8") as fh,
+          ThreadPoolExecutor(args.workers if cloud else 1) as pool):
+        for row in pool.map(evaluate_fact, recs):
+            if row is not None:
+                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+                fh.flush()
     print(f"fact check done in {time.monotonic() - t0:.0f}s", flush=True)
 
     # ---- false positives on negatives / isolation probes --------------------------
@@ -221,7 +259,7 @@ def main() -> None:
             verdict: dict = {"error": "judge output invalid"}
             for _ in range(3):
                 try:
-                    data = json.loads(chat_json.invoke(prompt).content)
+                    data = json.loads(ask(prompt))
                     if type(data["citations_answer_question"]) is not bool:
                         raise ValueError("expected a JSON boolean")
                     verdict = {"citations_answer_question": data["citations_answer_question"],
@@ -235,11 +273,16 @@ def main() -> None:
                                 ensure_ascii=False) + "\n")
             fh.flush()
 
+    if client is not None:
+        client.close()
+
     # ---- RAGAS -----------------------------------------------------------------
     ragas_path = run_dir / "judge_ragas.jsonl"
     if not args.skip_ragas:
         done_r = {k for k, r in latest_rows(ragas_path).items() if None not in r.values()}
         todo = [r for r in recs if r["req_id"] not in done_r]
+        chat = ChatOllama(model=args.judge, base_url=args.ollama, temperature=0, seed=7,
+                          reasoning=False, num_ctx=16384, num_predict=2048)
         llm = LangchainLLMWrapper(chat)
         cfg = RunConfig(timeout=1800, max_retries=3, max_workers=args.workers)
         metrics_found = [Faithfulness(llm=llm), LLMContextRecall(llm=llm),
@@ -293,7 +336,7 @@ def main() -> None:
     forb_cases = sum(1 for f in facts if any(f.get("forbidden", [])))
     found_facts = [f for f in facts if f.get("found") and "error" not in f]
     summary = {
-        "judge": args.judge, "split": args.split,
+        "judge": args.judge, "judge_provider": args.judge_provider, "split": args.split,
         "gold_sha256": hashlib.sha256(gold_path().read_bytes()).hexdigest(),
         "coverage": {"attempted_answerable": len(positives), "valid_answerable": len(recs),
                      "failed_responses": len(positives) - len(recs), "judged": len(valid_facts)},

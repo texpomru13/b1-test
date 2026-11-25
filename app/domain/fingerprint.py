@@ -22,5 +22,7 @@ def upload_fingerprint(*, file_sha256: str, title: str | None, settings: Setting
             f"instr=v{settings.embedding_instruction_version}",
         ]
     )
+    if settings.ocr_provider != "tesseract":
+        processing += f"|ocr={settings.ocr_provider}"
     payload = f"{file_sha256}|{title or ''}|{processing}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()

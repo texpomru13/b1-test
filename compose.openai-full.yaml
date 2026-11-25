@@ -1,0 +1,32 @@
+# Keep B1's retrieval service contract and substitute an OpenAI backend.
+x-cloud-env: &cloud-env
+  OCR_PROVIDER: openai
+  OPENAI_REASONING_EFFORT: low
+  OPENAI_USAGE_PATH: /data/documents/openai-usage.jsonl
+  EMBEDDING_TOKENIZER_PATH: ""
+  LOCAL_MODELS_TIMEOUT_S: ${LOCAL_MODELS_TIMEOUT_S:-175}
+
+services:
+  models-init:
+    profiles: [local-model-provisioning]
+    deploy:
+      replicas: 0
+
+  local-models:
+    build: .
+    command: [uvicorn, app.inference.openai_server:app, --host, 0.0.0.0, --port, "8081"]
+    depends_on: !reset {}
+    volumes: !override
+      - documents_data:/data/documents
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_USAGE_PATH: /data/documents/openai-usage.jsonl
+
+  api:
+    environment: *cloud-env
+
+  worker:
+    environment: *cloud-env
+
+  dispatcher:
+    environment: *cloud-env

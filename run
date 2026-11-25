@@ -66,6 +66,7 @@ compose() {
     case "${B1_SAVED_RUNTIME:-}" in
         host-ollama) set -- -f compose.mac.yaml "$@" ;;
         dmr) set -- -f compose.dmr.yaml "$@" ;;
+        openai-full) set -- -f compose.cloud.yaml -f compose.openai-full.yaml "$@" ;;
         openai|anthropic) set -- -f compose.cloud.yaml "$@" ;;
         container-ollama-gpu) set -- -f compose.gpu.yaml "$@" ;;
     esac
@@ -178,7 +179,7 @@ export B1_HOST_OLLAMA_PORT
 host_ollama_url="http://127.0.0.1:$B1_HOST_OLLAMA_PORT"
 
 case "$OV_PROVIDER" in
-    openai) [ "$(setting HAS_OPENAI_KEY)" = 1 ] || fail "LLM_PROVIDER=openai requires OPENAI_API_KEY" 3 ;;
+    openai|openai-full) [ "$(setting HAS_OPENAI_KEY)" = 1 ] || fail "$OV_PROVIDER requires OPENAI_API_KEY" 3 ;;
     anthropic) [ "$(setting HAS_ANTHROPIC_KEY)" = 1 ] || fail "LLM_PROVIDER=anthropic requires ANTHROPIC_API_KEY" 3 ;;
 esac
 facts=$(sh "$ROOT/scripts/probe.sh")
@@ -237,19 +238,21 @@ else
     compose up -d
 fi
 
-stage download "waiting for models-init (pinned snapshots into the hf_models volume)"
-i=0
-while :; do
-    state=$(service_state models-init)
-    case "$state" in
-    "exited 0") break ;;
-    "exited "*)
-        compose logs models-init | tail -20
-        fail "models-init failed (state: $state); see the asset list above — re-run ./run to resume" 4 ;;
-    esac
-    i=$((i + 1)); [ $i -gt 360 ] && fail "models-init did not finish in 30min; ./run logs" 4
-    sleep 5
-done
+if [ "$B1_SAVED_RUNTIME" != openai-full ]; then
+    stage download "waiting for models-init (pinned snapshots into the hf_models volume)"
+    i=0
+    while :; do
+        state=$(service_state models-init)
+        case "$state" in
+        "exited 0") break ;;
+        "exited "*)
+            compose logs models-init | tail -20
+            fail "models-init failed (state: $state); see the asset list above — re-run ./run to resume" 4 ;;
+        esac
+        i=$((i + 1)); [ $i -gt 360 ] && fail "models-init did not finish in 30min; ./run logs" 4
+        sleep 5
+    done
+fi
 
 if [ "${B1_LLM_PROVIDER}" = "ollama" ] && [ "$B1_OLLAMA_BASE_URL" = "http://ollama:11434" ]; then
     stage download "waiting for ollama-init ($B1_LLM_MODEL into the ollama_models volume)"

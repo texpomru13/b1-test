@@ -6,6 +6,7 @@ document can be indexed directly or requires OCR.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -52,7 +53,9 @@ def _open_reader(path: Path) -> PdfReader:
     return reader
 
 
-def extract_pdf(path: Path, *, max_pages: int) -> PdfExtraction:
+def extract_pdf(
+    path: Path, *, max_pages: int, ocr_page: Callable[[Path, int], str] | None = None,
+) -> PdfExtraction:
     reader = _open_reader(path)
     try:
         page_count = len(reader.pages)
@@ -77,7 +80,7 @@ def extract_pdf(path: Path, *, max_pages: int) -> PdfExtraction:
         has_text = meaningful >= MIN_TEXT_CHARS_PER_PAGE or (meaningful > 0 and not page.images)
         ocr = False
         if not has_text and page.images:
-            text = recognize_page(path, number)
+            text = (ocr_page or recognize_page)(path, number)
             # A scanned divider or illustration can legitimately have no words.
             has_text = ocr = any(char.isalnum() for char in text)
         pages.append(ExtractedPage(page=number, text=text, has_text=has_text, ocr=ocr))

@@ -102,7 +102,8 @@ def run_section(name: str) -> list[str]:
                           f"Ошибок HTTP, транспорта или схемы: {coverage['failed_responses']}.", ""]
             ff = j["fact_recall_found_only"]
             ff_val = dict(ff, value=(ff["num"] / ff["den"]) if ff["den"] else None)
-            lines += [f"Оценка судьёй (`{j['judge']}`, локально):", "",
+            judge_provider = j.get("judge_provider", "ollama")
+            lines += [f"Оценка судьёй `{j['judge']}` ({judge_provider})", "",
                       "| Метрика | Значение |", "|---|---|",
                       f"| Полнота фактов по оценённым ответам на положительные вопросы | "
                       f"{fmt(j['fact_recall_all_answerable'])} |",

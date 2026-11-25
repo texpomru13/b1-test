@@ -1,0 +1,228 @@
+{
+  "dataset": {
+    "documents": 27,
+    "questions": 323,
+    "isolation_probes": 36,
+    "gold_sha256": "c1c4e388f1e97e7a420b4b691752b82be27e572487c2ac743d30125b14988166"
+  },
+  "balanced_m4_max": {
+    "started_at_utc": "2026-11-21T16:23:31.771615+00:00",
+    "workers": 3,
+    "responses_sha256": "34882156547453fc9367bb63f013f512aed9608b559bec6a3f9e1080b528b548",
+    "api": {
+      "n_requests": 359,
+      "n_answerable": 220,
+      "n_no_answer": 103,
+      "n_isolation": 36,
+      "structured_validity_200": {
+        "num": 359,
+        "den": 359,
+        "value": 1.0
+      },
+      "answerable_found": {
+        "num": 211,
+        "den": 220,
+        "value": 0.9591
+      },
+      "correct_abstention_negatives": {
+        "num": 101,
+        "den": 103,
+        "value": 0.9806
+      },
+      "isolation_correct_not_found": {
+        "num": 35,
+        "den": 36,
+        "value": 0.9722
+      },
+      "citation_span_validity": {
+        "num": 446,
+        "den": 446,
+        "value": 1.0
+      },
+      "cross_doc_leakage_citations": {
+        "num": 0,
+        "den": 446,
+        "value": 0.0
+      },
+      "correct_answer_or_refusal": 347
+    },
+    "judge": {
+      "judge": "gpt-6.1-terra",
+      "judge_provider": "openai",
+      "split": "all",
+      "gold_sha256": "c1c4e388f1e97e7a420b4b691752b82be27e572487c2ac743d30125b14988166",
+      "coverage": {
+        "attempted_answerable": 220,
+        "valid_answerable": 220,
+        "failed_responses": 0,
+        "judged": 220
+      },
+      "fact_recall_all_answerable": {
+        "num": 455,
+        "den": 504,
+        "value": 0.9028
+      },
+      "complete_answers_all_answerable": {
+        "num": 191,
+        "den": 220
+      },
+      "fact_recall_found_only": {
+        "num": 455,
+        "den": 478
+      },
+      "answers_with_forbidden_fact": {
+        "num": 2,
+        "den": 220
+      },
+      "judge_errors": 0,
+      "false_positives": {
+        "n": 3,
+        "errors": 0,
+        "quotes_do_not_answer (hallucination)": 3,
+        "quotes_answer (possible gold error)": 0
+      },
+      "all_expected_without_forbidden": {
+        "num": 189,
+        "den": 220
+      }
+    }
+  },
+  "openai_full": {
+    "started_at_utc": "2026-11-25T16:27:55.990476+00:00",
+    "finished_at_utc": "2026-11-25T16:31:06.123404+00:00",
+    "workers": 16,
+    "api_source_sha256": "15bdff479323bb71ef877cdb65be3d49a8279a17441a827c247597e995928d05",
+    "responses_sha256": "15ecd243b7dae1332c4ef0987f99497bf79d08fa0a40073f66b6e8162ec1c721",
+    "models": {
+      "qa": "gpt-6.2-sol",
+      "reasoning_effort": "low",
+      "embedding": "text-embedding-3-large",
+      "rerank": "gpt-5.4-mini",
+      "rerank_head_size": 16,
+      "ocr": "gpt-5.4-mini",
+      "judge": "gpt-6.1-terra"
+    },
+    "api": {
+      "n_requests": 359,
+      "n_answerable": 220,
+      "n_no_answer": 103,
+      "n_isolation": 36,
+      "structured_validity_200": {
+        "num": 359,
+        "den": 359,
+        "value": 1.0
+      },
+      "answerable_found": {
+        "num": 203,
+        "den": 220,
+        "value": 0.9227
+      },
+      "correct_abstention_negatives": {
+        "num": 103,
+        "den": 103,
+        "value": 1.0
+      },
+      "isolation_correct_not_found": {
+        "num": 36,
+        "den": 36,
+        "value": 1.0
+      },
+      "citation_span_validity": {
+        "num": 435,
+        "den": 435,
+        "value": 1.0
+      },
+      "cross_doc_leakage_citations": {
+        "num": 0,
+        "den": 435,
+        "value": 0.0
+      },
+      "correct_answer_or_refusal": 342
+    },
+    "judge": {
+      "judge": "gpt-6.1-terra",
+      "judge_provider": "openai",
+      "split": "all",
+      "gold_sha256": "c1c4e388f1e97e7a420b4b691752b82be27e572487c2ac743d30125b14988166",
+      "coverage": {
+        "attempted_answerable": 220,
+        "valid_answerable": 220,
+        "failed_responses": 0,
+        "judged": 220
+      },
+      "fact_recall_all_answerable": {
+        "num": 445,
+        "den": 504,
+        "value": 0.8829
+      },
+      "complete_answers_all_answerable": {
+        "num": 190,
+        "den": 220
+      },
+      "fact_recall_found_only": {
+        "num": 445,
+        "den": 460
+      },
+      "answers_with_forbidden_fact": {
+        "num": 1,
+        "den": 220
+      },
+      "judge_errors": 0,
+      "false_positives": {
+        "n": 0,
+        "errors": 0,
+        "quotes_do_not_answer (hallucination)": 0,
+        "quotes_answer (possible gold error)": 0
+      },
+      "all_expected_without_forbidden": {
+        "num": 189,
+        "den": 220
+      }
+    },
+    "unmatched_ocr_cases": [
+      "06-01"
+    ]
+  },
+  "cost_usd": {
+    "openai_stack_and_judge": 6.855496,
+    "including_balanced_rejudge": 6.95212,
+    "observed_rounded_balance_difference": 6.96,
+    "usage_breakdown_including_rejudge": {
+      "embedding": {
+        "calls": 463,
+        "input_tokens": 736497,
+        "output_tokens": 0,
+        "reasoning_tokens": 0,
+        "usd": 0.095745
+      },
+      "judge": {
+        "calls": 417,
+        "input_tokens": 141978,
+        "output_tokens": 8987,
+        "reasoning_tokens": 1142,
+        "usd": 0.186913
+      },
+      "ocr": {
+        "calls": 9,
+        "input_tokens": 27141,
+        "output_tokens": 7461,
+        "reasoning_tokens": 0,
+        "usd": 0.05393
+      },
+      "qa": {
+        "calls": 729,
+        "input_tokens": 1528792,
+        "output_tokens": 68066,
+        "reasoning_tokens": 0,
+        "usd": 4.462772
+      },
+      "rerank": {
+        "calls": 361,
+        "input_tokens": 2743591,
+        "output_tokens": 22278,
+        "reasoning_tokens": 0,
+        "usd": 2.15276
+      }
+    }
+  }
+}

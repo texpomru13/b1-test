@@ -23,6 +23,7 @@ import httpx
 settings = get_settings()
 keys = '''llm_provider llm_model llm_temperature llm_thinking local_context_tokens
 llm_read_timeout_s qa_deadline_s llm_max_output_tokens llm_reasoning_budget_tokens
+openai_reasoning_effort ocr_provider
 embedding_model embedding_instruction_version chunk_tokens chunk_overlap_tokens
 dense_top_k sparse_top_k fusion_method rerank_input_k context_top_k context_budget_tokens
 bm25_language bm25_avg_len max_repair_attempts max_llm_calls_per_question llm_max_attempts
@@ -64,6 +65,9 @@ def docker_id(project: str, service: str) -> str:
 
 
 def compose_runtime(project: str, instance: str) -> dict:
+    api = docker_id(project, "api")
+    runtime = json.loads(command("docker", "exec", "-i", api, "python", "-", stdin=MODEL_CONFIG))
+    cloud_retrieval = runtime["local_models"]["device"] == "openai"
     images = {}
     source_file = (ROOT / "app/domain/build.py").read_text()
     for name in ("api", "worker", "dispatcher", "local-models", "redis", "qdrant"):
@@ -74,15 +78,16 @@ def compose_runtime(project: str, instance: str) -> dict:
             raise ValueError("--api reached a different container than --project")
         if name in ("redis", "qdrant"):
             continue
-        is_model_service = name == "local-models"
+        is_model_service = name == "local-models" and not cloud_retrieval
         package = "app_lm" if is_model_service else "app"
         root = ROOT / "services/local-models" if is_model_service else ROOT
         actual = command("docker", "exec", "-i", cid, "python", "-", package, stdin=source_file)
         if actual != source_digest(root, package):
             raise ValueError(f"stale {name} build; rebuild the project before measuring")
         images[name]["source_sha256"] = actual
-    api = docker_id(project, "api")
-    runtime = json.loads(command("docker", "exec", "-i", api, "python", "-", stdin=MODEL_CONFIG))
+    if cloud_retrieval:
+        runtime["ocr"] = {"engine": "OpenAI gpt-5.4-mini"}
+        return {"project": project, "images": images, **runtime}
     worker = docker_id(project, "worker")
     runtime["ocr"] = {
         "engine": command("docker", "exec", worker, "tesseract", "--version").splitlines()[0],

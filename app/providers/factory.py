@@ -13,6 +13,7 @@ The structured-output method differs per provider and lives in the capability ma
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 from typing import Any, Protocol
@@ -21,6 +22,7 @@ import httpx
 from pydantic import SecretStr
 
 from app.config.settings import LLMProvider, LLMThinking, Settings
+from app.inference.openai_api import record_qa_usage
 from app.observability.logging import get_logger
 
 logger = get_logger("providers.factory")
@@ -263,6 +265,15 @@ def build_chat_adapter(settings: Settings) -> ChatAdapter:
             model=settings.llm_model,
             api_key=settings.openai_api_key,
             use_responses_api=True,
+            http_async_client=(
+                httpx.AsyncClient(timeout=settings.llm_read_timeout_s,
+                                  event_hooks={"response": [record_qa_usage]})
+                if os.environ.get("OPENAI_USAGE_PATH") else None
+            ),
+            reasoning=(
+                {"effort": settings.openai_reasoning_effort}
+                if settings.openai_reasoning_effort else None
+            ),
             store=False,  # no provider-side persistence of our requests
             timeout=settings.llm_read_timeout_s,
             max_retries=0,

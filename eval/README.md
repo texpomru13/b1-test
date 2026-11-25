@@ -2,6 +2,8 @@
 
 Для сборки `be7c780` в профиле `balanced` опубликованы полный каталог, повтор исторических отказов, сверка прежних полных ответов, синтетические регрессии и модельная проверка независимого набора. [Единый отчёт и данные для пересчёта](reports/qa-scope-final/README.md)
 
+[Сравнение OpenAI и локального каталога](../README.md#openai-catalog-results) · [Сравнение GTX 1080 и M4 Max на независимой выборке](../README.md#gtx1080-results)
+
 В полном каталоге **27 реальных документов и 323 вопроса**. В него входят 133 вопроса по 14 договорам, 180 вопросов трёх тематических групп и 10 вопросов по сканированному договору о виртуальной АТС. Шесть договоров встречаются в двух сериях вопросов и учитываются один раз при подсчёте документов. [Документы](../test_documents/README.md) · [Все вопросы и эталонные ответы](gold/questions.md) · [Описание сервиса](../README.md) · [Протокол приёмки](../AUDIT.md)
 
 Каждая тематическая группа содержит шесть PDF, 40 вопросов с ответом и 20 вопросов без ответа. Ещё шесть запросов к чужому документу проверяют изоляцию. Полный прогон одной группы охватывает 66 обращений к API.
@@ -47,6 +49,36 @@ uv run --frozen python eval/metrics.py --run catalog
 ```
 
 Для оценки смысловой точности одной тематической группы используйте режим `--qualification` ниже. В её отчёте знаменатели рассчитываются по 60 вопросам и шести проверкам изоляции.
+
+### Прогон каталога с OpenAI
+
+Для отдельного стенда добавьте `OPENAI_API_KEY` в корневой `.env` и выполните команды ниже.
+Каталог содержит 323 вопроса и 36 проб изоляции. Судья GPT-6.1 Terra проверяет факты и ложные
+срабатывания. Опция `--align-ocr` сверяет эталонные выдержки с новой транскрипцией на той же
+странице. Вопросы без совпавшей выдержки участвуют в оценке ответов и отказов.
+
+```sh
+export PROJECT=b1-openai-full API=http://127.0.0.1:8021
+export B1_EVAL_WORK_DIR="$PWD/eval/work/openai-full"
+B1_PROJECT="$PROJECT" MAX_CONCURRENT_QA=8 ./run --build --provider openai-full --port 8021
+uv run --frozen python eval/upload_corpus.py --catalog --api "$API"
+uv run --frozen python eval/export_index.py --project "$PROJECT" --api "$API"
+uv run --frozen python eval/catalog.py --check-index --align-ocr
+uv run --frozen python eval/run_qa.py --project "$PROJECT" --api "$API" --run catalog --workers 8
+uv run --frozen python eval/metrics.py --run catalog \
+  --ocr-alignment "$B1_EVAL_WORK_DIR/ocr-alignment.json"
+OPENAI_USAGE_PATH="$B1_EVAL_WORK_DIR/judge-usage.jsonl" \
+  uv run --frozen --project eval python eval/judge.py --run catalog --judge-provider openai \
+  --skip-ragas --workers 8
+docker exec "$PROJECT-api-1" cat /data/documents/openai-usage.jsonl \
+  > "$B1_EVAL_WORK_DIR/api-usage.jsonl"
+uv run --frozen python eval/openai_cost.py \
+  "$B1_EVAL_WORK_DIR/api-usage.jsonl" "$B1_EVAL_WORK_DIR/judge-usage.jsonl"
+```
+
+Журнал в томе стенда накапливает токены OpenAI с первого запуска этого проекта,
+включая индексацию и повторные вызовы. Скрипт рассчитывает сумму по тарифу Standard.
+Сумму по проекту и ключу показывает [аналитика расходов OpenAI](https://platform.openai.com/analytics/spend).
 
 ### Повторить выборку из 210 вопросов
 
