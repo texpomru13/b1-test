@@ -231,3 +231,14 @@ def test_cloud_requires_explicit_model() -> None:
 def test_explicit_host_ollama_can_run_offline() -> None:
     result = resolve(mac_facts(64, 48), {"provider": "ollama", "offline": True})
     assert result["decisions"]["llm_runtime"] == "host-ollama"
+
+
+def test_openai_full_is_explicit_and_does_not_reuse_a_local_index() -> None:
+    options = {"provider": "openai-full"}
+    result = resolve(linux_cpu_facts(6), options)
+    assert result["ok"]
+    assert result["decisions"]["llm_model"] == "gpt-6.2-sol"
+    assert result["decisions"]["embedding_model"] == "text-embedding-3-large"
+    assert not resolve(linux_cpu_facts(6), {**options, "offline": True})["ok"]
+    local_index = linux_cpu_facts(16, existing_index_encoder="ai-sage/Giga-Embeddings-instruct")
+    assert not resolve(local_index, options)["ok"]

@@ -66,7 +66,19 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", required=True)
     ap.add_argument("--split", default="all", choices=["all", "dev", "holdout"])
+    ap.add_argument("--ocr-alignment", type=Path)
     args = ap.parse_args()
+
+    alignment = {}
+    if args.ocr_alignment:
+        alignment = json.loads(args.ocr_alignment.read_text())
+        if alignment["gold_sha256"] != hashlib.sha256(gold_path().read_bytes()).hexdigest():
+            ap.error("OCR alignment belongs to different gold annotations")
+        for fid, expected in alignment["index_sha256"].items():
+            actual = hashlib.sha256((WORK / "index" / f"{fid}.json").read_bytes()).hexdigest()
+            if actual != expected:
+                ap.error(f"OCR alignment belongs to a different export of {fid}")
+    unmatched = set(alignment.get("unmatched_cases", []))
 
     gold = {c["case_id"]: c for c in load_jsonl(gold_path())}
     index = {p.stem: json.loads(p.read_text(encoding="utf-8"))
@@ -138,13 +150,14 @@ def main() -> None:
         agg["outcomes"].setdefault(rec["kind"], {}).setdefault(oc, 0)
         agg["outcomes"][rec["kind"]][oc] += 1
 
-        if rec["kind"] == "gold" and case["answerable"] and row.get("schema_valid"):
+        if (rec["kind"] == "gold" and case["answerable"] and row.get("schema_valid")
+                and case["case_id"] not in unmatched):
             diag = body.get("diagnostics") or {}
             scores = diag.get("rerank_scores") or {}
             cands = sorted(scores, key=scores.__getitem__, reverse=True)
             ctx = diag.get("context_chunk_ids") or []
             rng = chunk_rng[tfid]
-            spans = case["gold_spans"]
+            spans = alignment.get("spans", {}).get(case["case_id"], case["gold_spans"])
             cand_r = [rng[c] for c in cands if c in rng]
             ctx_r = [rng[c] for c in ctx if c in rng]
             row["hit_at_cands"] = any(span_covered(s, cand_r) for s in spans)
@@ -165,6 +178,8 @@ def main() -> None:
     pos = [r for r in gold_rows if r["answerable"]]
     neg = [r for r in gold_rows if not r["answerable"]]
     pos200 = [r for r in pos if "hit_at_cands" in r]
+    matched_pos = [r for r in pos if r["case_id"] not in unmatched]
+    matched_found = [r for r in matched_pos if r["outcome"] == "found"]
     iso = [r for r in rows if r["kind"] == "isolation"]
 
     def mean(key: str, rs: list[dict]) -> float | None:
@@ -183,10 +198,12 @@ def main() -> None:
         "isolation_correct_not_found": ratio(
             sum(r["outcome"] == "not_found" for r in iso), len(iso)),
         "isolation_found_true": [r["req_id"] for r in iso if r["outcome"] == "found"],
-        "positive_hit_at_candidates": ratio(sum(r["hit_at_cands"] for r in pos200), len(pos)),
-        "all_spans_in_candidates": ratio(sum(r["all_spans_in_cands"] for r in pos200), len(pos)),
-        "context_evidence_coverage_all": ratio(sum(r["ctx_all"] for r in pos200), len(pos)),
-        "context_evidence_coverage_any": ratio(sum(r["ctx_any"] for r in pos200), len(pos)),
+        "positive_hit_at_candidates": ratio(
+            sum(r["hit_at_cands"] for r in pos200), len(matched_pos)),
+        "all_spans_in_candidates": ratio(
+            sum(r["all_spans_in_cands"] for r in pos200), len(matched_pos)),
+        "context_evidence_coverage_all": ratio(sum(r["ctx_all"] for r in pos200), len(matched_pos)),
+        "context_evidence_coverage_any": ratio(sum(r["ctx_any"] for r in pos200), len(matched_pos)),
         "mean_span_recall_context": mean("span_recall_ctx", pos200),
         "ndcg@10_rerank": mean("ndcg10_rerank", pos200),
         **{f"span_recall@{k}_rerank": mean(f"recall@{k}", pos200) for k in (1, 3, 5, 8, 20, 60)},
@@ -195,11 +212,9 @@ def main() -> None:
         "answerable_errors": ratio(
             sum(r["outcome"] not in ("found", "not_found") for r in pos), len(pos)),
         "found_cites_gold_span": ratio(
-            sum(bool(r.get("cited_gold_overlap")) for r in pos if r["outcome"] == "found"),
-            sum(r["outcome"] == "found" for r in pos)),
+            sum(bool(r.get("cited_gold_overlap")) for r in matched_found), len(matched_found)),
         "found_covers_all_gold_spans": ratio(
-            sum(bool(r.get("cited_all_gold_spans")) for r in pos if r["outcome"] == "found"),
-            sum(r["outcome"] == "found" for r in pos)),
+            sum(bool(r.get("cited_all_gold_spans")) for r in matched_found), len(matched_found)),
         "correct_abstention_negatives": ratio(
             sum(r["outcome"] == "not_found" for r in neg), len(neg)),
         "negatives_errors": ratio(
@@ -221,6 +236,11 @@ def main() -> None:
     manifest = run_dir / "manifest.json"
     provenance = {"result_type": "replay", "responses_sha256": digest,
                   "gold_sha256": hashlib.sha256(gold_path().read_bytes()).hexdigest()}
+    if args.ocr_alignment:
+        agg["unmatched_ocr_cases"] = sorted(unmatched)
+        provenance["ocr_alignment_sha256"] = hashlib.sha256(
+            args.ocr_alignment.read_bytes()
+        ).hexdigest()
     if manifest.exists():
         live = json.loads(manifest.read_bytes())
         if (live["responses_sha256"] != digest

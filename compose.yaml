@@ -179,6 +179,8 @@ services:
       EMBEDDING_MODEL: ${B1_EMBEDDING_MODEL:-ai-sage/Giga-Embeddings-instruct-480M-0826}
       EMBEDDING_TOKENIZER_PATH: ${B1_TOKENIZER_PATH:-/models-cache/hub/models--ai-sage--Giga-Embeddings-instruct-480M-0826/snapshots/1763d603adac8057bd6482a708001b0ed2e0a903/tokenizer.json}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_REASONING_EFFORT:
+      OCR_PROVIDER:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     volumes:
       - documents_data:/data/documents

@@ -1,0 +1,142 @@
+{
+  "dataset": {
+    "name": "independent-ten",
+    "documents": 10,
+    "questions": 80,
+    "isolation_probes": 10,
+    "gold_sha256": "3f13784e7dd2b951359239f17ae1c795f4585a3961ab1efa4e4ac5ebf1b71020"
+  },
+  "profile": "balanced",
+  "api_source_sha256": "47df87eeb4919cff238936684bc85e727f1eb3122899351716cb7111252197c0",
+  "llm": {
+    "name": "qwen3.5:9b-q4_K_M",
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "thinking": "off"
+  },
+  "retrieval_model_device": "cpu",
+  "workers_per_run": 1,
+  "same_source_gold_and_model_weights": true,
+  "m4_max": {
+    "started_at_utc": "2026-11-21T16:19:03.982390+00:00",
+    "finished_at_utc": "2026-11-21T18:06:13.459422+00:00",
+    "responses_sha256": "721d8550435a7691443713350a9d54a07c1292e87579ac24b09e1865c8283ad9",
+    "max_concurrent_qa": 5,
+    "http_200": 90,
+    "latency_ms": {
+      "end_to_end": {
+        "n": 90,
+        "p50": 62959,
+        "p95": 103470
+      },
+      "encode": {
+        "n": 90,
+        "p50": 862,
+        "p95": 1593
+      },
+      "fusion": {
+        "n": 90,
+        "p50": 7,
+        "p95": 16
+      },
+      "rerank": {
+        "n": 90,
+        "p50": 37366,
+        "p95": 73777
+      },
+      "context": {
+        "n": 90,
+        "p50": 3,
+        "p95": 8
+      }
+    },
+    "quality": {
+      "complete_correct_answers": [
+        50,
+        60
+      ],
+      "required_facts_and_conditions": [
+        64,
+        72
+      ],
+      "correct_refusals": [
+        20,
+        20
+      ],
+      "isolation_refusals": [
+        10,
+        10
+      ],
+      "critical_error_cases": [
+        "ind-trade-electronic-06"
+      ],
+      "quality_thresholds_met": false,
+      "reviewer": "qwen3.6:27b-q4_K_M@3a40c32f1450b8380412898385b0e00df5d6d2d801dd192ca1acb7e735cd050e"
+    }
+  },
+  "gtx_1080": {
+    "started_at_utc": "2026-11-24T14:07:33.146261+00:00",
+    "finished_at_utc": "2026-11-24T14:45:01.437904+00:00",
+    "responses_sha256": "3744038d20f64a427d66a3f2d41a3e6b08e5dc63e15f39fe8219e22ef4176f05",
+    "platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.39",
+    "max_concurrent_qa": 1,
+    "http_200": 90,
+    "latency_ms": {
+      "end_to_end": {
+        "n": 90,
+        "p50": 25083,
+        "p95": 36161
+      },
+      "encode": {
+        "n": 90,
+        "p50": 189,
+        "p95": 216
+      },
+      "fusion": {
+        "n": 90,
+        "p50": 8,
+        "p95": 13
+      },
+      "rerank": {
+        "n": 90,
+        "p50": 8881,
+        "p95": 16452
+      },
+      "context": {
+        "n": 90,
+        "p50": 4,
+        "p95": 7
+      }
+    },
+    "quality": {
+      "complete_correct_answers": [
+        49,
+        60
+      ],
+      "required_facts_and_conditions": [
+        63,
+        72
+      ],
+      "correct_refusals": [
+        20,
+        20
+      ],
+      "isolation_refusals": [
+        10,
+        10
+      ],
+      "critical_error_cases": [
+        "ind-trade-electronic-06"
+      ],
+      "quality_thresholds_met": false,
+      "reviewer": "qwen3.6:27b-q4_K_M@3a40c32f1450b8380412898385b0e00df5d6d2d801dd192ca1acb7e735cd050e"
+    },
+    "ollama_gpu_offload_percent": 100,
+    "gpu_telemetry": {
+      "samples": 599,
+      "window_minutes_approximate": 10,
+      "peak_memory_mib": 6812,
+      "peak_utilization_percent": 100
+    }
+  },
+  "judge_hardware": "Apple M4 Max"
+}

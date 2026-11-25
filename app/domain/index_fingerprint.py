@@ -28,6 +28,7 @@ def compute_index_fingerprint(
     bm25_language: str,
     bm25_avg_len: int,
     fastembed_version: str,
+    ocr_provider: str = "tesseract",
 ) -> str:
     components = {
         "encoder": embedding_model_id,
@@ -47,6 +48,8 @@ def compute_index_fingerprint(
         "fastembed": fastembed_version,
         "lexical_normalizer": LEXICAL_NORMALIZER_ID,
     }
+    if ocr_provider != "tesseract":
+        components["ocr_provider"] = ocr_provider
     payload = json.dumps(components, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
@@ -61,4 +64,5 @@ def fingerprint_for_embedding(
         chunk_tokens=chunk_tokens, overlap_tokens=overlap_tokens, length_fn_id=length_fn_id,
         bm25_language=settings.bm25_language, bm25_avg_len=settings.bm25_avg_len,
         fastembed_version=importlib.metadata.version("fastembed"),
+        ocr_provider=settings.ocr_provider,
     )

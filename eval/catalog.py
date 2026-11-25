@@ -4,11 +4,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import unicodedata
 from collections import Counter
 from pathlib import Path
 
 from paths import ROOT, WORK
+from provenance import write_json
 from qualification_data import digest, write_once
 
 DOCUMENTS = ROOT / "test_documents"
@@ -84,21 +86,50 @@ def prepare_gold() -> dict[str, Path]:
     return docs
 
 
-def check_index(docs: dict[str, Path], rows: list[dict]) -> None:
+def relocate_span(span: dict, index: dict) -> dict:
+    """Find the same words on the same physical page after OCR changes whitespace."""
+    text = index["canonical_text"]
+    query = re.compile(r"\s+".join(map(re.escape, span["text"].split())))
+    locations = []
+    for number in sorted({item["page"] for item in span["occurrences"]}):
+        page = index["pages"][number - 1]
+        # A quote must start on its reference page. Multi-page quotes may end later.
+        for match in query.finditer(text, page["char_start"]):
+            if match.start() >= page["char_end"]:
+                break
+            locations.append({"page": number, "char_start": match.start(),
+                              "char_end": match.end()})
+    return {**span, "occurrences": locations}
+
+
+def check_index(docs: dict[str, Path], rows: list[dict], *, align_ocr: bool = False) -> dict:
     corpus = json.loads((WORK / "corpus.json").read_text())["docs"]
+    alignment: dict = {"spans": {}, "unmatched_cases": [], "index_sha256": {}}
     for fid, path in docs.items():
-        index = json.loads((WORK / "index" / f"{fid}.json").read_text())
+        export = WORK / "index" / f"{fid}.json"
+        index = json.loads(export.read_text())
         if (corpus[fid]["sha256"] != digest(path) or index["doc_id"] != corpus[fid]["doc_id"]
                 or not index["accepted_run_id"]):
             raise ValueError(f"unexpected file or unpublished index: {fid}")
+        can_relocate = align_ocr and any(page["ocr"] for page in index["pages"])
         for row in (r for r in rows if r["doc_fixture_id"] == fid):
-            for span in row.get("evidence", row["gold_spans"]):
+            spans = row.get("evidence", row["gold_spans"])
+            if can_relocate and spans:
+                alignment["index_sha256"][fid] = digest(export)
+                relocated = [relocate_span(span, index) for span in spans]
+                if all(span["occurrences"] for span in relocated):
+                    alignment["spans"][row["case_id"]] = relocated
+                else:
+                    alignment["unmatched_cases"].append(row["case_id"])
+                continue
+            for span in spans:
                 for o in span["occurrences"]:
                     page = index["pages"][o["page"] - 1]
                     a, b = o["char_start"], o["char_end"]
                     if (not page["char_start"] <= a < page["char_end"]
                             or index["canonical_text"][a:b] != span["text"]):
                         raise ValueError(f"page or evidence differs in {row['case_id']}")
+    return alignment
 
 
 def render(docs: dict[str, Path], rows: list[dict]) -> None:
@@ -154,7 +185,11 @@ def main() -> None:
     parser.add_argument("--render", action="store_true",
                         help="update Markdown from the locked questions")
     parser.add_argument("--check-index", action="store_true", help="verify the exported live index")
+    parser.add_argument("--align-ocr", action="store_true",
+                        help="relocate OCR-dependent evidence without changing the gold questions")
     args = parser.parse_args()
+    if args.align_ocr and not args.check_index:
+        parser.error("--align-ocr requires --check-index")
     docs = documents()
     rows = cases(docs)
     if lock(docs) != json.loads((GOLD / "catalog-lock.json").read_text()):
@@ -163,7 +198,12 @@ def main() -> None:
         render(docs, rows)
     if args.check_index:
         prepare_gold()
-        check_index(docs, rows)
+        alignment = check_index(docs, rows, align_ocr=args.align_ocr)
+        if args.align_ocr:
+            alignment["gold_sha256"] = digest(WORK / "gold.jsonl")
+            write_json(WORK / "ocr-alignment.json", alignment)
+            print(f"OCR evidence relocated for {len(alignment['spans'])} cases, "
+                  f"unmatched for {len(alignment['unmatched_cases'])}")
     positive = sum(r["answerable"] for r in rows)
     print(f"{len(docs)} documents, {len(rows)} questions, {positive} answerable")
 

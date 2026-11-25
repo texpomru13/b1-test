@@ -107,7 +107,7 @@ def _pick_llm_runtime(facts: dict, overrides: dict, reasons: list[str],
     provider = overrides.get("provider") or "auto"
     saved = overrides.get("saved_runtime") or ""
     device = overrides.get("device") or "auto"
-    if provider not in ("auto", "ollama", "dmr", "openai", "anthropic"):
+    if provider not in ("auto", "ollama", "dmr", "openai", "openai-full", "anthropic"):
         errors.append(f"unknown LLM provider '{provider}'")
         return None
     if device not in ("auto", "cpu", "metal", "nvidia"):
@@ -123,7 +123,7 @@ def _pick_llm_runtime(facts: dict, overrides: dict, reasons: list[str],
             return None
         return "container-ollama-gpu" if device == "nvidia" else "container-ollama"
     if device != "auto":
-        if provider in ("openai", "anthropic", "dmr"):
+        if provider in ("openai", "openai-full", "anthropic", "dmr"):
             errors.append(f"--device {device} requires a local Ollama provider")
             return None
         if device == "cpu":
@@ -151,7 +151,7 @@ def _pick_llm_runtime(facts: dict, overrides: dict, reasons: list[str],
             return saved
         reasons.append(f"saved runtime '{saved}' is no longer available -> "
                        "re-resolving automatically")
-    if provider == "openai" or provider == "anthropic":
+    if provider in ("openai", "openai-full", "anthropic"):
         return provider
     if provider == "dmr":
         if not facts.get("dmr_running"):
@@ -205,6 +205,8 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
     llm_runtime = _pick_llm_runtime(facts, overrides, reasons, errors)
     if errors:
         return {"ok": False, "decisions": {}, "reasons": reasons, "errors": errors}
+    if llm_runtime == "openai-full":
+        return resolve_openai_full(facts, overrides)
     cloud = llm_runtime in ("openai", "anthropic")
 
 
@@ -363,6 +365,52 @@ def resolve(facts: dict, overrides: dict) -> dict[str, Any]:
         f"encoder={profile['encoder']} reranker={profile['reranker']} "
         "residency=resident-both")
     return {"ok": True, "decisions": decisions, "reasons": reasons, "errors": []}
+
+
+def resolve_openai_full(facts: dict, overrides: dict) -> dict[str, Any]:
+    encoder = "text-embedding-3-large"
+    reranker = "gpt-5.4-mini"
+    model = overrides.get("model") or "gpt-6.2-sol"
+    errors = []
+    if facts.get("existing_index_encoder") not in (None, "", encoder):
+        errors.append("openai-full uses a different encoder; choose a separate B1_PROJECT")
+    if overrides.get("embedding_model") not in (None, "", encoder):
+        errors.append(f"openai-full uses the {encoder} encoder")
+    if overrides.get("reranker_model") not in (None, "", reranker):
+        errors.append(f"openai-full uses the {reranker} reranker")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_./:@+-]*", model):
+        errors.append("invalid LLM model identifier")
+    if errors:
+        return {"ok": False, "decisions": {}, "reasons": [], "errors": errors}
+    decisions = {
+        "profile": "openai-full",
+        "preset_status": "candidate",
+        "llm_runtime": "openai-full",
+        "llm_provider": "openai",
+        "llm_model": model,
+        "dmr_model": None,
+        "llm_thinking": "auto",
+        "host_ollama_port": facts.get("host_ollama_port", 11434),
+        "ollama_base_url": "http://ollama:11434",
+        "embedding_model": encoder,
+        "embedding_revision": "openai-embeddings-v1",
+        "embedding_dim": 3072,
+        "reranker_model": reranker,
+        "reranker_revision": "openai-listwise-top16-v1",
+        "reranker_adapter": "openai_listwise",
+        "model_residency": "remote",
+        "quality_degraded": False,
+        "quality_degraded_reason": None,
+        "use_ollama_container": False,
+        "compose_overrides": ["compose.cloud.yaml", "compose.openai-full.yaml"],
+        "device": "openai",
+        "accelerator_verified": False,
+        "llm_read_timeout_s": 300,
+        "qa_deadline_s": 420,
+    }
+    return {"ok": True, "decisions": decisions, "errors": [], "reasons": [
+        f"openai-full: LLM={model}, embeddings={encoder}, reranker={reranker}, OCR={reranker}",
+    ]}
 
 
 def shell_environment(result: dict, args: argparse.Namespace) -> str:

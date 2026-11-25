@@ -7,6 +7,7 @@ during parsing and indexing. If ownership changes, the old worker steps aside.
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,7 @@ from app.domain.job import (
 from app.inference.client import LocalModelsSyncClient
 from app.ingestion.chunker import ApproxTokenLength, HFTokenizerLength, LengthFn
 from app.ingestion.errors import ParseError
+from app.ingestion.ocr import recognize_page_openai
 from app.ingestion.pipeline import parse_document, save_parse_artifacts
 from app.jobs.celery_app import celery_app
 from app.jobs.indexer import (
@@ -165,6 +167,10 @@ def _run_owned(
             length_fn=length_fn,
             length_fn_id=length_fn_id,
             progress=progress,
+            ocr_page=(
+                partial(recognize_page_openai, key=settings.openai_api_key.get_secret_value())
+                if settings.ocr_provider == "openai" and settings.openai_api_key else None
+            ),
         )
     except ParseError as exc:
         logger.warning("parse_failed", job_id=job_id, code=exc.code,

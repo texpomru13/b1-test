@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import enum
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -55,6 +56,8 @@ class Settings(BaseSettings):
     llm_model: str = "auto"
     openai_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
+    openai_reasoning_effort: Literal["low", "medium", "high"] | None = None
+    ocr_provider: Literal["tesseract", "openai"] = "tesseract"
 
     # --- Profile selection (launcher/compose-level: consumed by ./run) ---
     device: Device = Device.AUTO
@@ -160,6 +163,8 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _validate_cross_field(self) -> Settings:
         problems: list[str] = []
+        if self.ocr_provider == "openai" and (not self.openai_api_key or self.offline):
+            problems.append("OCR_PROVIDER=openai requires OPENAI_API_KEY and online mode")
         if self.chunk_overlap_tokens >= self.chunk_tokens:
             problems.append(
                 f"CHUNK_OVERLAP_TOKENS ({self.chunk_overlap_tokens}) must be smaller than "

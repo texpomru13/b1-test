@@ -51,6 +51,7 @@ def parse_document(
     length_fn: LengthFn,
     length_fn_id: str,
     progress: ProgressFn = _noop_progress,
+    ocr_page: Callable[[Path, int], str] | None = None,
 ) -> ParseResult:
     if content_type == CONTENT_TYPE_PDF:
         pdf_path = doc_dir / "original.pdf"
@@ -63,7 +64,7 @@ def parse_document(
         raise ParseFailedError(f"unsupported content type '{content_type}'")
 
     progress("parse")
-    extraction = extract_pdf(pdf_path, max_pages=max_pages)
+    extraction = extract_pdf(pdf_path, max_pages=max_pages, ocr_page=ocr_page)
 
     progress("normalize")
     canonical = build_canonical(extraction.pages)
